@@ -3,26 +3,31 @@
   align-items: center;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 0.75rem;
   font-weight: 600;
 
   &.success {
     background: var(--color-success-light);
+    border-color: var(--color-success-border);
     color: var(--color-success);
   }
 
   &.warning {
     background: var(--color-warning-light);
+    border-color: var(--color-warning-border);
     color: var(--color-warning);
   }
 
   &.danger {
     background: var(--color-danger-light);
+    border-color: var(--color-danger-border);
     color: var(--color-danger);
   }
 
   &.neutral {
     background: var(--color-surface-hover);
+    border-color: var(--color-border);
     color: var(--color-text-secondary);
   }
 }

@@ -6,7 +6,7 @@
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 0.75rem;
+  padding: var(--space-xl) var(--space-md);
 
   @media (max-width: 768px) {
     position: fixed;
@@ -38,7 +38,7 @@
 .brand {
   font-weight: 700;
   font-size: 1.05rem;
-  padding: 0.5rem 0.75rem 1.5rem;
+  padding: var(--space-sm) var(--space-md) var(--space-2xl);
   color: var(--color-text-primary);
 }
 
@@ -48,7 +48,7 @@ ul {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-xs);
   flex: 1;
 }
 
@@ -56,8 +56,8 @@ ul {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  padding: 0.75rem;
-  margin-top: 1rem;
+  padding: var(--space-md);
+  margin-top: var(--space-lg);
   border-top: 1px solid var(--color-border);
 
   label {
@@ -68,7 +68,7 @@ ul {
 
   select {
     height: 36px;
-    padding: 0 0.5rem;
+    padding: 0 var(--space-sm);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     font-family: var(--font-family);
@@ -86,8 +86,8 @@ ul {
 a {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
+  gap: var(--space-md);
+  padding: 0.65rem var(--space-md);
   border-radius: var(--radius-sm);
   text-decoration: none;
   color: var(--color-text-secondary);

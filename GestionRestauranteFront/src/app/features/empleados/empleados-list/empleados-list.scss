@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
-  gap: 1rem;
+  margin-bottom: var(--space-xl);
+  gap: var(--space-lg);
 
   h1 {
     font-size: 1.4rem;
@@ -30,7 +30,7 @@
 
 .actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-md);
   flex-wrap: wrap;
 
   a,

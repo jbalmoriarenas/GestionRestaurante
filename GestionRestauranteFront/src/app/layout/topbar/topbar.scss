@@ -3,12 +3,12 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
+  padding: 0 var(--space-2xl);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 
   @media (max-width: 768px) {
-    padding: 0 1rem;
+    padding: 0 var(--space-lg);
   }
 }
 
@@ -20,7 +20,7 @@
   color: var(--color-text-secondary);
   align-items: center;
   padding: 0.4rem;
-  margin-right: 0.5rem;
+  margin-right: var(--space-sm);
   border-radius: var(--radius-sm);
 
   &:hover {
@@ -40,7 +40,7 @@
 .user {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-lg);
 }
 
 .user-info {

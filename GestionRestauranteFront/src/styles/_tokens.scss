@@ -1,0 +1,71 @@
+// Design tokens — capa de "settings" (inspirada en el sistema ITCSS del skill estilos-metrics,
+// adaptada al tamaño/color de este proyecto: sin Angular Material, paleta turquesa tipo Woffu).
+// Regla: cualquier padding/margin/gap/color repetido usa una variable de aqui, nunca un valor suelto.
+:root {
+  /* ---- Escala de neutrales (9 pasos, de mas oscuro a mas claro) ----
+     Los tokens semanticos de mas abajo son alias de estos pasos: si hace falta un gris
+     intermedio para un componente nuevo, usar el paso de escala directamente. */
+  --neutral-10: #1f2933;
+  --neutral-20: #313d47;
+  --neutral-30: #48555e;
+  --neutral-40: #5b6b73;
+  --neutral-50: #7a8a91;
+  --neutral-60: #9aa5ab;
+  --neutral-80: #d5dbde;
+  --neutral-90: #e4e8ea;
+  --neutral-95: #f0f3f4;
+  --neutral-99: #f5f7f8;
+
+  /* Superficie */
+  --color-bg: var(--neutral-99);
+  --color-surface: #ffffff;
+  --color-surface-hover: var(--neutral-95);
+
+  /* Texto */
+  --color-text-primary: var(--neutral-10);
+  --color-text-secondary: var(--neutral-40);
+  --color-text-disabled: var(--neutral-60);
+
+  /* Marca / acento */
+  --color-primary: #0fb5ae;
+  --color-primary-hover: #0d9c96;
+  --color-primary-light: #e3f7f6;
+
+  /* Estados semanticos: color + fondo suave + borde a juego, para badges/alerts */
+  --color-success: #22c55e;
+  --color-success-light: #e7f9ee;
+  --color-success-border: #a7e8c1;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3e2;
+  --color-warning-border: #fbd9a3;
+  --color-danger: #ef4444;
+  --color-danger-light: #fdecec;
+  --color-danger-border: #f6b8b8;
+
+  /* Bordes y sombras */
+  --color-border: var(--neutral-90);
+  --shadow-card: 0 1px 3px rgba(16, 24, 32, 0.06), 0 1px 2px rgba(16, 24, 32, 0.04);
+  --shadow-modal: 0 12px 32px rgba(16, 24, 32, 0.16);
+
+  /* Radios */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* ---- Escala de espaciado (siempre usar estas variables en padding/margin/gap) ---- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 40px;
+  --space-5xl: 48px;
+
+  /* Breakpoint de referencia para mobile/desktop (documentado, los @media siguen escribiendose a mano) */
+  --breakpoint-mobile: 768px;
+
+  /* Tipografia */
+  --font-family: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

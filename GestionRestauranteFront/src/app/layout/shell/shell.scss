@@ -13,9 +13,9 @@
 .shell-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: var(--space-2xl);
 
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: var(--space-lg);
   }
 }

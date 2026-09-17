@@ -1,23 +1,23 @@
 .notification-host {
   position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: var(--space-xl);
+  right: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--space-sm);
   z-index: 200;
 
   @media (max-width: 480px) {
-    top: 1rem;
-    left: 1rem;
-    right: 1rem;
+    top: var(--space-lg);
+    left: var(--space-lg);
+    right: var(--space-lg);
   }
 }
 
 .toast {
   min-width: 260px;
   max-width: 360px;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem var(--space-lg);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-modal);
   font-size: 0.85rem;

@@ -1,0 +1,65 @@
+// Utilidades atomicas — capa de "utilities" (patron tomado del skill estilos-metrics: layout
+// generico (flex/gap/align) se resuelve con estas clases en vez de escribir CSS nuevo de 1-2
+// propiedades en cada componente. Estilos con identidad propia (badges, tarjetas, tablas...)
+// siguen viviendo en el SCSS del componente Angular correspondiente.
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.gap-xs { gap: var(--space-xs); }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+.gap-xl { gap: var(--space-xl); }
+
+.w-full {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .mobile-flex-col {
+    flex-direction: column;
+  }
+
+  .mobile-items-stretch {
+    align-items: stretch;
+  }
+
+  .mobile-w-full {
+    width: 100%;
+  }
+}

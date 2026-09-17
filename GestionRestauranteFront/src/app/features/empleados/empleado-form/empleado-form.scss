@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-xl);
 
   a {
     font-size: 0.85rem;
@@ -24,7 +24,7 @@
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: var(--space-lg);
   max-width: 640px;
 
   @media (max-width: 640px) {
@@ -34,7 +34,7 @@
 
 .form-actions {
   grid-column: 1 / -1;
-  margin-top: 0.5rem;
+  margin-top: var(--space-sm);
 
   @media (max-width: 640px) {
     ::ng-deep .ui-button {

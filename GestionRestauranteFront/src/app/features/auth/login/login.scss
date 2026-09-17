@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
-  padding: 1rem;
+  padding: var(--space-lg);
   box-sizing: border-box;
 }
 
@@ -14,13 +14,13 @@
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 2.5rem 2rem;
+  padding: var(--space-4xl) var(--space-3xl);
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
 
   @media (max-width: 480px) {
-    padding: 2rem 1.25rem;
+    padding: var(--space-3xl) var(--space-xl);
   }
 
   h1 {
@@ -33,7 +33,7 @@
     text-align: center;
     color: var(--color-text-secondary);
     font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-sm);
   }
 
   .form-error {
@@ -43,7 +43,7 @@
   }
 
   ui-button {
-    margin-top: 0.5rem;
+    margin-top: var(--space-sm);
 
     ::ng-deep .ui-button {
       width: 100%;
