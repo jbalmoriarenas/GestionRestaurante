@@ -23,7 +23,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  color: #ffffff;
+  color: var(--color-surface);
 
   @media (max-width: 480px) {
     min-width: 0;

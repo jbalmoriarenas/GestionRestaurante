@@ -72,6 +72,12 @@ public class EmpleadoService {
     @Transactional
     public void darDeBaja(Long id) {
         Empleado empleado = buscarOrThrow(id);
+        if (!empleado.isActivo()) {
+            // Idempotente: si ya estaba de baja, no se toca de nuevo fechaBaja para no
+            // perder la fecha original por una segunda llamada (p.ej. un doble click o un
+            // reintento de red).
+            return;
+        }
         empleado.setActivo(false);
         empleado.setFechaBaja(LocalDate.now());
         empleadoRepository.save(empleado);

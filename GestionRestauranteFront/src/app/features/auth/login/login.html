@@ -1,7 +1,7 @@
 <div class="login-page">
   <form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
+    <img src="logo.jpg" alt="" class="login-logo" />
     <h1>{{ 'login.title' | translate }}</h1>
-    <p class="subtitle">{{ 'login.subtitle' | translate }}</p>
 
     <ui-input
       [label]="'login.email' | translate"

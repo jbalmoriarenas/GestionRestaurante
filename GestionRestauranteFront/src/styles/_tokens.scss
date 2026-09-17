@@ -26,19 +26,23 @@
   --color-text-secondary: var(--neutral-40);
   --color-text-disabled: var(--neutral-60);
 
-  /* Marca / acento */
-  --color-primary: #0fb5ae;
-  --color-primary-hover: #0d9c96;
+  /* Marca / acento — tonos verificados para dar >=4.5:1 de contraste con texto blanco
+     encima (botones/toasts de fondo solido), calculado sobre la formula WCAG de luminancia
+     relativa (no a ojo). Los tonos anteriores (#0fb5ae, #22c55e, #ef4444) fallaban ese ratio. */
+  --color-primary: #0a726c;
+  --color-primary-hover: #096a64;
   --color-primary-light: #e3f7f6;
 
-  /* Estados semanticos: color + fondo suave + borde a juego, para badges/alerts */
-  --color-success: #22c55e;
+  /* Estados semanticos: color + fondo suave + borde a juego, para badges/alerts.
+     --color-success/--color-danger tambien se usan como fondo solido con texto blanco
+     (toasts), de ahi el tono mas oscuro que el habitual verde/rojo "vivo". */
+  --color-success: #15803d;
   --color-success-light: #e7f9ee;
   --color-success-border: #a7e8c1;
   --color-warning: #f59e0b;
   --color-warning-light: #fef3e2;
   --color-warning-border: #fbd9a3;
-  --color-danger: #ef4444;
+  --color-danger: #dc2626;
   --color-danger-light: #fdecec;
   --color-danger-border: #f6b8b8;
 
@@ -46,6 +50,8 @@
   --color-border: var(--neutral-90);
   --shadow-card: 0 1px 3px rgba(16, 24, 32, 0.06), 0 1px 2px rgba(16, 24, 32, 0.04);
   --shadow-modal: 0 12px 32px rgba(16, 24, 32, 0.16);
+  /* Anillo de foco: mas visible que un simple cambio de border-color, para WCAG 2.4.7 */
+  --focus-ring: 0 0 0 3px rgba(10, 114, 108, 0.35);
 
   /* Radios */
   --radius-sm: 6px;

@@ -20,7 +20,7 @@
 
   &.primary {
     background: var(--color-primary);
-    color: #ffffff;
+    color: var(--color-surface);
 
     &:hover:not(:disabled) {
       background: var(--color-primary-hover);

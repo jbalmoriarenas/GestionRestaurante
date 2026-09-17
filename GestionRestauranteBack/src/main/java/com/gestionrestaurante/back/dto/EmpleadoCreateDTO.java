@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record EmpleadoCreateDTO(
@@ -17,6 +18,8 @@ public record EmpleadoCreateDTO(
         String puesto,
         @NotNull(message = "La fecha de alta es obligatoria") LocalDate fechaAlta,
         @NotBlank(message = "El tipo de usuario es obligatorio") String tipoUsuarioCodigo,
-        @NotBlank(message = "La contrasena es obligatoria") String password
+        @NotBlank(message = "La contrasena es obligatoria")
+        @Size(min = 6, message = "La contrasena debe tener al menos 6 caracteres")
+        String password
 ) {
 }

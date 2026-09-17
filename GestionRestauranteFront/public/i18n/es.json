@@ -1,6 +1,6 @@
 {
   "app": {
-    "brand": "Gestion Restaurante"
+    "brand": "La Zapica"
   },
   "menu": {
     "fichajes": "Fichajes",
@@ -17,7 +17,6 @@
   },
   "login": {
     "title": "La Zapica",
-    "subtitle": "Inicia sesión para continuar",
     "email": "Email",
     "emailPlaceholder": "tu@email.com",
     "password": "Contraseña",
@@ -42,6 +41,7 @@
     "title": "Empleados",
     "new": "+ Nuevo empleado",
     "empty": "Todavía no hay empleados dados de alta",
+    "tableCaption": "Listado de empleados",
     "table": {
       "nombre": "Nombre",
       "email": "Email",

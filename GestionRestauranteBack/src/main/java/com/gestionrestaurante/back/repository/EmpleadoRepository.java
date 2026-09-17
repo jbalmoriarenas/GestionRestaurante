@@ -24,6 +24,10 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
     @Override
     @EntityGraph(attributePaths = "tipoUsuario")
+    Optional<Empleado> findById(Long id);
+
+    @Override
+    @EntityGraph(attributePaths = "tipoUsuario")
     Page<Empleado> findAll(Pageable pageable);
 
     @EntityGraph(attributePaths = "tipoUsuario")

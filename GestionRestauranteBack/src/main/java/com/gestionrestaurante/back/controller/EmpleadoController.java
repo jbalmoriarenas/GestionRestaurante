@@ -57,12 +57,14 @@ public class EmpleadoController {
     }
 
     @PatchMapping(Wuris.Empleados.BAJA)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
     public void darDeBaja(@PathVariable Long id) {
         empleadoService.darDeBaja(id);
     }
 
     @PatchMapping(Wuris.Empleados.PASSWORD)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
     public void resetearPassword(@PathVariable Long id, @Valid @RequestBody PasswordResetDTO request) {
         empleadoService.resetearPassword(id, request.password());

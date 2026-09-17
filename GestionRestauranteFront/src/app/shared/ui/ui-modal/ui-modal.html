@@ -1,6 +1,6 @@
 @if (open()) {
   <div class="ui-modal-backdrop" (click)="handleBackdropClick()">
-    <div class="ui-modal" (click)="$event.stopPropagation()">
+    <div class="ui-modal" role="dialog" aria-modal="true" [attr.aria-label]="title()" tabindex="-1" #panel (click)="$event.stopPropagation()">
       <header>
         <h3>{{ title() }}</h3>
         <button type="button" class="close" (click)="closed.emit()" [attr.aria-label]="closeLabel()">✕</button>
