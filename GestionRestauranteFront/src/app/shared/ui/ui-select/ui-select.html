@@ -1,0 +1,21 @@
+<div class="ui-field">
+  @if (label()) {
+    <label [for]="id">{{ label() }}</label>
+  }
+  <select
+    [id]="id"
+    [value]="value"
+    [disabled]="disabled"
+    [class.invalid]="errorMessage()"
+    (change)="handleChange($event)"
+    (blur)="handleBlur()"
+  >
+    <option value="" disabled>{{ placeholder() }}</option>
+    @for (option of options(); track option.value) {
+      <option [value]="option.value">{{ option.label }}</option>
+    }
+  </select>
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
+</div>

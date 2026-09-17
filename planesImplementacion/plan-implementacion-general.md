@@ -1,0 +1,189 @@
+# Plan de Implementación: GestionRestaurante (visión general)
+
+## Contexto y objetivo
+
+Aplicación de gestión integral para un restaurante, compuesta por tres módulos funcionales sobre una base común de empleados y autenticación:
+
+1. **Fichaje de empleados** — registro de entrada/salida tipo Woffu simplificado.
+2. **Gestión de facturas de proveedores** — digitalizar, extraer datos y consultar facturas organizadas por proveedor/mes.
+3. **Gestión de nóminas** — mantener el listado de empleados, subir PDFs/ZIPs de nóminas y enviarlas por email.
+
+Es un único restaurante (sin multi-sede por ahora) con dos roles de usuario: **Admin** y **Empleado**.
+
+Este documento es un plan **general** (arquitectura + fases), no un desglose ticket a ticket. Cada fase deberá convertirse en tickets/planes de detalle más adelante.
+
+## Stack tecnológico
+
+Ya montado y verificado en el repo (`GestionRestaurante/`):
+
+| Capa | Tecnología | Versión |
+|---|---|---|
+| Frontend | Angular (standalone, zoneless) | 22.1.7 |
+| Frontend runtime | Node.js (vía Volta, pineado al proyecto) | 24.21.0 |
+| Backend | Spring Boot / Spring Framework | 4.1.1 / 7.0.9 |
+| Backend runtime | Java (JDK embebido en el proyecto) | 21 |
+| Persistencia | Spring Data JPA + Hibernate ORM | 7.4.5 |
+| Base de datos | MySQL | driver `mysql-connector-j` 9.7.0 |
+| Build | Maven (`mvnw`) / npm | — |
+
+A añadir según los módulos:
+
+- **Spring Security + JWT** — autenticación y autorización por rol (ADMIN / EMPLEADO).
+- **Spring Boot Starter Mail** — envío de nóminas por email vía SMTP.
+- **Librería de extracción OCR/IA** — para el parseo automático de facturas (ver "Decisiones técnicas").
+- **Spring Boot Starter Validation** (ya incluido) — validación de formularios en los distintos módulos.
+
+## Análisis funcional y supuestos
+
+- **Un solo restaurante**, sin necesidad de modelar "sede" en ninguna entidad (asunción confirmada).
+- **Roles**: Admin/RRHH (acceso total) y Empleado (acceso **únicamente** al módulo de Fichaje, y solo a sus propios fichajes). El Empleado **no** tiene acceso a Facturas de proveedores ni a Nóminas desde la app — las nóminas le llegan solo por email; ni la vista ni los endpoints de esos dos módulos son alcanzables por el rol Empleado.
+- **Permisos**: dos roles fijos definidos en código (ADMIN / EMPLEADO), no un sistema de permisos configurable desde la app. Cambiar qué ve cada rol implica un cambio de código (guards en Angular + `@PreAuthorize` en Spring), no una pantalla de administración de permisos.
+- **Facturas**: se quiere extracción automática de datos (OCR/IA) al escanear/subir una factura, no solo carga manual. Se asume que el usuario siempre podrá **revisar y corregir** lo extraído antes de darlo por bueno (ningún proceso automático debe ser 100% ciego).
+- **Nóminas**: el envío por email es **manual** (el admin sube el archivo, revisa la asignación empleado↔nómina, y pulsa "Enviar"), nunca automático al subir el archivo.
+- Se asume que los empleados tendrán login propio (usuario/contraseña) para fichar y consultar sus nóminas, no un totem/tablet compartido.
+- Se asume entorno de despliegue único (sin múltiples entornos por ahora); no se detallan pipelines de CI/CD en este plan.
+
+## Arquitectura propuesta
+
+**Monolito modular** en el backend (un único Spring Boot, paquetes separados por dominio: `auth`, `empleados`, `fichajes`, `facturas`, `nominas`, `common`), consumido por el SPA Angular vía API REST. Un monolito modular es la opción correcta aquí: bajo volumen de datos esperado, un solo equipo, y evita la complejidad operativa de microservicios que no aporta valor a este tamaño de proyecto. Si en el futuro el módulo de OCR necesita escalar de forma independiente (picos de procesamiento), se puede extraer como servicio aparte sin rehacer el resto.
+
+```
+GestionRestaurante/
+├── GestionRestauranteFront/   (Angular SPA)
+├── GestionRestauranteBack/    (Spring Boot monolito modular)
+│   └── src/main/java/.../
+│       ├── auth/          (login, JWT, roles)
+│       ├── empleados/     (CRUD empleados)
+│       ├── fichajes/      (entrada/salida, cálculo de horas)
+│       ├── facturas/      (proveedores, facturas, OCR)
+│       ├── nominas/       (nóminas, envío de email)
+│       └── common/        (almacenamiento de ficheros, utilidades)
+└── planesImplementacion/
+```
+
+### Transversales
+
+- **Autenticación**: Spring Security + JWT (login devuelve token; el front lo guarda y lo manda vía interceptor HTTP). Passwords con BCrypt.
+- **Autorización / permisos**: no es un rol fijo hardcodeado en el código. Se modela como catálogo relacional — **`tipos_usuarios`** (ADMIN, EMPLEADO, y los que se añadan en el futuro) × **`vistas`** (Empleados, Fichajes, Facturas, Nóminas) × **`permisos`** (nivel de acceso `EDICION` o `VISUALIZACION`; si no hay fila para una combinación, ese tipo de usuario no tiene ningún acceso a esa vista). El JWT solo lleva identidad (`empleadoId`, código del tipo de usuario); las autoridades de Spring Security (`"<VISTA>:<NIVEL>"`) se resuelven en cada request contra la tabla `permisos`, y el login devuelve además el mapa de permisos completo para que el front monte menú y guards. Se aplica en dos capas:
+  - **Backend**: `@PreAuthorize("hasAuthority('FACTURAS:EDICION')")` (o `hasAnyAuthority(...)` para lectura) en cada controller — nunca `hasRole('ADMIN')` fijo, precisamente para no tener que tocar código de autorización cuando se añada un tipo de usuario nuevo.
+  - **Frontend**: guard `permissionGuard(vista, nivelMinimo)` por ruta + menú de navegación generado a partir de los permisos del usuario logueado, no de un `if (rol === 'ADMIN')`.
+
+  Matriz de acceso inicial (seed, ver `planesImplementacion/bbdd/fase0-bbdd.md`):
+
+  | Vista | ADMIN | EMPLEADO |
+  |---|---|---|
+  | Empleados | EDICIÓN | sin acceso |
+  | Fichajes (propios) | EDICIÓN | EDICIÓN |
+  | Fichajes (de todos / corrección) | EDICIÓN | sin acceso (la restricción "solo los suyos" es lógica de negocio, no de la tabla de permisos) |
+  | Facturas de proveedores | EDICIÓN | sin acceso (ni vista ni endpoints) |
+  | Nóminas (gestión y envío) | EDICIÓN | sin acceso (ni vista ni endpoints; recibe la nómina solo por email) |
+
+  La gestión de esta matriz desde una pantalla de administración (crear tipos de usuario, marcar EDICIÓN/VISUALIZACIÓN/sin acceso por vista) queda para una fase posterior; en Fase 0 se deja bien modelada en BBDD/backend y poblada por seed.
+- **Almacenamiento de ficheros** (facturas y nóminas): sistema de ficheros local (carpeta `uploads/`, organizada por tipo/año/mes) para el MVP; en BBDD solo se guarda la ruta/metadata, nunca el binario. Diseñar el acceso a ficheros detrás de una interfaz (`FileStorageService`) para poder migrar a S3/Blob Storage sin tocar el resto del código si el volumen crece.
+- **CORS**: habilitado para `localhost:4200` en desarrollo y el dominio real en producción.
+
+## Modelo de datos de alto nivel
+
+**TipoUsuario**
+`id, codigo (ADMIN|EMPLEADO|...), nombre, descripcion`
+
+**Vista**
+`id, codigo (EMPLEADOS|FICHAJES|FACTURAS|NOMINAS|...), nombre, descripcion`
+
+**Permiso**
+`id, tipo_usuario_id (FK), vista_id (FK), nivel_acceso (EDICION|VISUALIZACION)` — único por (`tipo_usuario_id`, `vista_id`); sin fila = sin acceso.
+
+**Empleado**
+`id, nombre, apellidos, email, dni_nie, telefono, puesto, fecha_alta, fecha_baja (nullable), activo, tipo_usuario_id (FK), password_hash`
+
+**Fichaje**
+`id, empleado_id (FK), fecha, hora_entrada, hora_salida (nullable), horas_calculadas, observaciones, corregido_por_admin (bool), fecha_correccion (nullable)`
+
+**Proveedor**
+`id, nombre, cif, email_contacto, telefono`
+
+**Factura**
+`id, proveedor_id (FK), numero_factura, fecha_factura, fecha_vencimiento, importe_base, iva, importe_total, mes, anio, ruta_archivo, estado_extraccion (PENDIENTE|PROCESADA|ERROR|REVISADA), datos_extraidos_raw (JSON, lo que devolvió el OCR sin editar), fecha_subida`
+
+**Nomina**
+`id, empleado_id (FK), periodo_mes, periodo_anio, ruta_archivo, estado (PENDIENTE_ENVIO|ENVIADA), fecha_subida, fecha_envio (nullable), enviada_por_admin_id (FK, nullable)`
+
+Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`.
+
+## Desglose de fases
+
+### Fase 0 — Base transversal (prerequisito de todo lo demás)
+- [Backend, media] Modelo `Empleado` + repositorio + CRUD (solo Admin).
+- [Backend, media] Spring Security + JWT: login, filtro de autenticación, autoridades resueltas dinámicamente desde `tipos_usuarios`/`vistas`/`permisos`.
+- [Backend, baja] `FileStorageService` genérico (guardar/recuperar ficheros por tipo).
+- [Frontend, media] Login, interceptor JWT, guards de ruta por rol, layout base (menú según rol).
+- [Frontend, media] Pantalla de gestión de empleados (alta/baja/edición) — solo Admin.
+- [BBDD, baja] Migraciones iniciales (Flyway/Liquibase recomendado en vez de `ddl-auto=update`, ver Decisiones técnicas).
+
+### Fase 1 — Fichaje de empleados
+- [Backend, media] Modelo `Fichaje`, endpoint fichar entrada/salida (valida que no haya doble entrada sin salida previa), cálculo de horas trabajadas.
+- [Backend, baja] Endpoints de consulta: fichajes propios (empleado) / de todos con filtros por empleado y rango de fechas (admin).
+- [Backend, baja] Corrección manual de fichajes por Admin, con traza de quién corrigió y cuándo.
+- [Frontend, media] Vista "Fichar" para empleado (botón entrada/salida, estado actual).
+- [Frontend, media] Vista Admin: tabla de fichajes filtrable por empleado/fecha, totales de horas por día/semana/mes.
+- [Frontend, baja] Exportación a CSV/Excel de fichajes (opcional, valorar si entra en esta fase o se pospone).
+
+### Fase 2 — Gestión de facturas de proveedores (MVP sin OCR)
+- [Backend, baja] Modelo `Proveedor` + CRUD.
+- [Backend, media] Modelo `Factura`, endpoint de subida de archivo (PDF/imagen) + formulario de datos manuales, listado con filtros por proveedor/mes/año/estado.
+- [Frontend, media] Vista de subida de factura (archivo + formulario).
+- [Frontend, media] Vista de listado/consulta agrupable por proveedor y por mes, con detalle (visor de PDF/imagen + datos).
+
+### Fase 2.1 — Extracción automática (OCR/IA) sobre facturas
+- [Backend, alta] Integración del servicio de extracción elegido (ver Decisiones técnicas): al subir una factura se dispara un proceso asíncrono que rellena `datos_extraidos_raw` y propone valores para los campos estructurados.
+- [Backend, media] Manejo de estados (`PENDIENTE` → `PROCESADA`/`ERROR` → `REVISADA` cuando el admin confirma/corrige).
+- [Frontend, media] En la vista de detalle de factura, mostrar los campos propuestos por OCR como editables, con indicador visual de "pendiente de revisar".
+- **Riesgo alto** — ver sección de riesgos. Se recomienda no bloquear las Fases 0-2 esperando a tener el OCR funcionando; el flujo manual de la Fase 2 debe funcionar de forma autónoma.
+
+### Fase 3 — Gestión de nóminas
+- [Backend, media] Modelo `Nomina`, endpoint de subida de un PDF individual o un ZIP.
+- [Backend, alta] Lógica de extracción de un ZIP y asociación de cada PDF a un empleado (por convención de nombre de fichero, p.ej. `DNI_Periodo.pdf`; si no se puede matchear automáticamente, dejarlo pendiente de asignación manual en el listado).
+- [Backend, media] Spring Boot Starter Mail: servicio de envío con el PDF adjunto, plantilla de email, registro de `fecha_envio` y `enviada_por_admin_id`.
+- [Backend, baja] Endpoint "enviar" (individual o en lote) — nunca automático al subir.
+- [Frontend, media] Vista Admin: listado de empleados por periodo con estado de nómina (sin subir / pendiente de envío / enviada), botón de envío individual y masivo. Módulo completo (ruta, menú y endpoints) exclusivo del rol Admin; el Empleado no tiene ninguna vista de nóminas en la app.
+
+### Fase 4 — Pulido y cierre
+- [Frontend, baja] Dashboard/resumen (horas del mes, facturas pendientes de revisar, nóminas pendientes de enviar).
+- [Backend/Frontend, media] Tests de integración de los flujos críticos (fichaje, envío de nómina, subida de factura).
+- [Transversal, media] Revisión de seguridad (control de acceso a ficheros ajenos, validación de tipos/tamaños de archivo subido).
+- [Transversal, baja] Documentación de despliegue.
+
+## Decisiones técnicas
+
+- **Monolito modular vs microservicios**: se descarta microservicios por sobreingeniería para el tamaño actual del proyecto (un restaurante, equipo pequeño). Los paquetes por dominio dejan la puerta abierta a separar el OCR más adelante si hiciera falta.
+- **Migraciones de BBDD**: se recomienda introducir **Flyway** (o Liquibase) en vez de depender de `spring.jpa.hibernate.ddl-auto=update` (configuración actual) en cuanto el modelo de datos empiece a estabilizarse. `ddl-auto=update` es cómodo en el arranque pero no es seguro para evolucionar el esquema en equipo ni en producción.
+- **Extracción OCR/IA de facturas** — tres opciones válidas, a decidir en la Fase 2.1:
+  1. **LLM multimodal (recomendado para empezar)**: enviar la imagen/PDF a un modelo con visión (p.ej. la API de Claude) pidiendo un JSON estructurado (proveedor, importe, fecha, número de factura...). Ventajas: sin infraestructura propia, buena precisión con facturas variadas, rápido de integrar vía HTTP. Desventaja: coste por documento y dependencia de un servicio externo (revisar tratamiento de datos si las facturas tienen información sensible).
+  2. **OCR cloud especializado** (Azure Document Intelligence, AWS Textract, Google Document AI): mejor rendimiento en campos tabulares y facturas estándar, pero más integración y coste por volumen.
+  3. **OCR self-hosted (Tesseract vía `tess4j`)**: gratuito y sin dependencia externa, pero la precisión en facturas con formatos variados suele ser sensiblemente peor y requiere más post-procesado manual.
+
+  En cualquier caso, el resultado crudo se guarda en `datos_extraidos_raw` y el usuario siempre revisa/confirma antes de que la factura pase a `REVISADA`.
+- **Envío de email**: usar `spring-boot-starter-mail` con un SMTP (Gmail/Office365 corporativo, o un proveedor transaccional tipo SendGrid/Amazon SES si se quiere mejor entregabilidad y trazabilidad de envíos).
+- **Cálculo de horas de fichaje**: se calcula en el backend en el momento de cerrar el fichaje (hora_salida), nunca en el frontend, para evitar inconsistencias por zona horaria/reloj del cliente.
+
+## Riesgos y dependencias
+
+- **Riesgo alto — precisión del OCR**: ningún proveedor de OCR/IA da 100% de acierto con facturas de formato libre. Mitigación: diseñar siempre con un paso de revisión humana obligatorio antes de dar una factura por definitiva; no acoplar el resto del sistema (informes, exportaciones) a que la extracción sea perfecta desde el primer momento.
+- **Riesgo medio — matching automático de nóminas en un ZIP**: si el ZIP no sigue una convención de nombres consistente, el sistema no podrá asociar automáticamente cada PDF a su empleado. Mitigación: definir una convención de nombre de fichero desde el principio (p.ej. `DNI_AAAA-MM.pdf`) y dejar siempre una pantalla de asignación manual como red de seguridad.
+- **Riesgo medio — entregabilidad de emails con nóminas adjuntas**: datos sensibles (nóminas) por email requieren cuidado; valorar cifrado del PDF con contraseña (p.ej. el DNI del empleado) o enviar un enlace de descarga temporal en vez del adjunto directo, según las políticas de protección de datos que se quieran aplicar.
+- **Dependencia**: los módulos de Fichaje, Facturas y Nóminas dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
+- **Riesgo bajo — volumen de almacenamiento**: facturas y nóminas en disco local crecen con el tiempo; planear rotación/backup del directorio `uploads/` o migración a almacenamiento externo si el volumen lo justifica.
+
+## Criterios de aceptación técnicos (a nivel de proyecto)
+
+- Un Empleado puede loguearse, fichar entrada/salida, y ver únicamente sus propios fichajes.
+- Un Empleado **no** puede acceder ni a la vista ni a los endpoints de Facturas de proveedores ni de Nóminas (intentar acceder directamente por URL a esas rutas del front redirige/bloquea, y el backend responde 403 ante cualquier llamada a esos endpoints con un token de rol Empleado).
+- Un Admin puede loguearse, gestionar empleados, ver y corregir fichajes de todos, subir/consultar facturas de proveedores organizadas por proveedor y mes, y subir/enviar nóminas.
+- Toda factura subida queda asociada a un proveedor y es consultable por mes/año; si tiene extracción automática, los datos propuestos son editables antes de confirmarse.
+- El envío de una nómina por email requiere una acción explícita del Admin (nunca ocurre solo al subir el archivo) y queda registrado (fecha y quién lo envió). El único canal por el que un Empleado recibe su nómina es el email.
+- Ningún endpoint de datos de otro empleado (fichajes) es accesible por un Empleado que no sea el propietario.
+
+## Notas adicionales
+
+- Este plan asume que las Fases se implementan en el orden 0→1→2→2.1→3→4, pero Fichajes (Fase 1) y Facturas (Fase 2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
+- Antes de arrancar la Fase 2.1 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas para decidir entre las tres opciones de extracción listadas en "Decisiones técnicas", en vez de comprometerse a una de antemano.

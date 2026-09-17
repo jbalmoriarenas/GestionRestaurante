@@ -1,0 +1,87 @@
+{
+  "app": {
+    "brand": "Gestion Restaurante"
+  },
+  "menu": {
+    "fichajes": "Fichajes",
+    "empleados": "Empleados",
+    "facturas": "Facturas",
+    "nominas": "Nóminas"
+  },
+  "sidebar": {
+    "language": "Idioma"
+  },
+  "topbar": {
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "title": "La Zapica",
+    "subtitle": "Inicia sesión para continuar",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "emailError": "Introduce un email válido",
+    "passwordError": "La contraseña es obligatoria",
+    "invalidCredentials": "Credenciales incorrectas",
+    "genericError": "No se ha podido iniciar sesión"
+  },
+  "common": {
+    "selectOption": "Selecciona una opción",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "← Volver",
+    "unexpectedError": "Ha ocurrido un error inesperado",
+    "close": "Cerrar",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "pageOf": "Página {{current}} de {{total}}"
+  },
+  "empleados": {
+    "title": "Empleados",
+    "new": "+ Nuevo empleado",
+    "empty": "Todavía no hay empleados dados de alta",
+    "table": {
+      "nombre": "Nombre",
+      "email": "Email",
+      "puesto": "Puesto",
+      "tipoUsuario": "Tipo de usuario",
+      "estado": "Estado"
+    },
+    "status": {
+      "activo": "Activo",
+      "inactivo": "Inactivo"
+    },
+    "actions": {
+      "editar": "Editar",
+      "darDeBaja": "Dar de baja"
+    },
+    "modal": {
+      "title": "Confirmar baja",
+      "message": "¿Seguro que quieres dar de baja a {{nombre}}?",
+      "confirm": "Dar de baja"
+    },
+    "notifications": {
+      "baja": "{{nombre}} dado de baja",
+      "created": "Empleado creado",
+      "updated": "Empleado actualizado"
+    },
+    "form": {
+      "newTitle": "Nuevo empleado",
+      "editTitle": "Editar empleado",
+      "nombre": "Nombre",
+      "apellidos": "Apellidos",
+      "email": "Email",
+      "dniNie": "DNI/NIE",
+      "telefono": "Teléfono",
+      "puesto": "Puesto",
+      "fechaAlta": "Fecha de alta",
+      "tipoUsuario": "Tipo de usuario",
+      "password": "Contraseña"
+    }
+  },
+  "fichajes": {
+    "title": "Fichajes",
+    "placeholder": "Este módulo se implementará en la Fase 1."
+  }
+}

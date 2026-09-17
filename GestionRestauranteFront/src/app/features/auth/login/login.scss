@@ -1,0 +1,46 @@
+.login-page {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-error {
+    color: var(--color-danger);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  ui-button {
+    margin-top: 0.5rem;
+
+    ::ng-deep .ui-button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,18 @@
+<div class="ui-field">
+  @if (label()) {
+    <label [for]="id">{{ label() }}</label>
+  }
+  <input
+    [id]="id"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [value]="value"
+    [disabled]="disabled"
+    [class.invalid]="errorMessage()"
+    (input)="handleInput($event)"
+    (blur)="handleBlur()"
+  />
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
+</div>

@@ -1,0 +1,34 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+
+  a {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    width: fit-content;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}

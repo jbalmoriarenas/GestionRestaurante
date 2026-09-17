@@ -1,0 +1,14 @@
+<header class="topbar">
+  <div class="spacer"></div>
+  @if (currentUser(); as user) {
+    <div class="user">
+      <div class="user-info">
+        <span class="name">{{ user.nombre }} {{ user.apellidos }}</span>
+        <span class="role">{{ user.tipoUsuario.nombre }}</span>
+      </div>
+      <button type="button" class="logout" (click)="logout()" [attr.aria-label]="'topbar.logout' | translate">
+        <ui-icon name="logout" />
+      </button>
+    </div>
+  }
+</header>

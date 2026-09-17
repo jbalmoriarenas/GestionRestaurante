@@ -1,0 +1,22 @@
+<div class="ui-table-wrapper">
+  @if (loading()) {
+    <div class="ui-table-state">
+      <ui-spinner [label]="loadingLabel()" />
+    </div>
+  } @else if (empty()) {
+    <div class="ui-table-state">
+      <p>{{ emptyMessage() }}</p>
+    </div>
+  } @else {
+    <div class="ui-table-scroll">
+      <ng-content />
+    </div>
+    @if (totalPages() > 1) {
+      <div class="ui-table-pagination">
+        <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 0">{{ previousLabel() }}</button>
+        <span>{{ pageLabel() }}</span>
+        <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() >= totalPages() - 1">{{ nextLabel() }}</button>
+      </div>
+    }
+  }
+</div>

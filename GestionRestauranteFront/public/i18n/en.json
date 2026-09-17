@@ -1,0 +1,87 @@
+{
+  "app": {
+    "brand": "Gestion Restaurante"
+  },
+  "menu": {
+    "fichajes": "Time tracking",
+    "empleados": "Employees",
+    "facturas": "Invoices",
+    "nominas": "Payroll"
+  },
+  "sidebar": {
+    "language": "Language"
+  },
+  "topbar": {
+    "logout": "Log out"
+  },
+  "login": {
+    "title": "La Zapica",
+    "subtitle": "Sign in to continue",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "password": "Password",
+    "submit": "Sign in",
+    "emailError": "Enter a valid email",
+    "passwordError": "Password is required",
+    "invalidCredentials": "Invalid credentials",
+    "genericError": "Could not sign in"
+  },
+  "common": {
+    "selectOption": "Select an option",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "← Back",
+    "unexpectedError": "An unexpected error occurred",
+    "close": "Close",
+    "previous": "← Previous",
+    "next": "Next →",
+    "pageOf": "Page {{current}} of {{total}}"
+  },
+  "empleados": {
+    "title": "Employees",
+    "new": "+ New employee",
+    "empty": "No employees have been added yet",
+    "table": {
+      "nombre": "Name",
+      "email": "Email",
+      "puesto": "Position",
+      "tipoUsuario": "User type",
+      "estado": "Status"
+    },
+    "status": {
+      "activo": "Active",
+      "inactivo": "Inactive"
+    },
+    "actions": {
+      "editar": "Edit",
+      "darDeBaja": "Deactivate"
+    },
+    "modal": {
+      "title": "Confirm deactivation",
+      "message": "Are you sure you want to deactivate {{nombre}}?",
+      "confirm": "Deactivate"
+    },
+    "notifications": {
+      "baja": "{{nombre}} deactivated",
+      "created": "Employee created",
+      "updated": "Employee updated"
+    },
+    "form": {
+      "newTitle": "New employee",
+      "editTitle": "Edit employee",
+      "nombre": "First name",
+      "apellidos": "Last name",
+      "email": "Email",
+      "dniNie": "National ID",
+      "telefono": "Phone",
+      "puesto": "Position",
+      "fechaAlta": "Start date",
+      "tipoUsuario": "User type",
+      "password": "Password"
+    }
+  },
+  "fichajes": {
+    "title": "Time tracking",
+    "placeholder": "This module will be implemented in Phase 1."
+  }
+}

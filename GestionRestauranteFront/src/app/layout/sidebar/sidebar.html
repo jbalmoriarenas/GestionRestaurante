@@ -1,0 +1,22 @@
+<nav class="sidebar">
+  <div class="brand">{{ 'app.brand' | translate }}</div>
+  <ul>
+    @for (item of items(); track item.vista) {
+      <li>
+        <a [routerLink]="item.ruta" routerLinkActive="active">
+          <ui-icon [name]="item.icono" />
+          <span>{{ 'menu.' + item.labelKey | translate }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="language-picker">
+    <label for="language-select">{{ 'sidebar.language' | translate }}</label>
+    <select id="language-select" [value]="currentLang()" (change)="changeLanguage($event)">
+      @for (language of languages; track language.code) {
+        <option [value]="language.code">{{ language.label }}</option>
+      }
+    </select>
+  </div>
+</nav>

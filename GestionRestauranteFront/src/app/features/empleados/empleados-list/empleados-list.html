@@ -1,0 +1,75 @@
+<div class="empleados-list">
+  <div class="header">
+    <h1>{{ 'empleados.title' | translate }}</h1>
+    @if (puedeEditar()) {
+      <a routerLink="/empleados/nuevo">
+        <ui-button>{{ 'empleados.new' | translate }}</ui-button>
+      </a>
+    }
+  </div>
+
+  <ui-table
+    [loading]="loading()"
+    [empty]="!loading() && (pageData()?.content?.length ?? 0) === 0"
+    [emptyMessage]="'empleados.empty' | translate"
+    [page]="pageData()?.number ?? 0"
+    [totalPages]="pageData()?.totalPages ?? 0"
+    [previousLabel]="'common.previous' | translate"
+    [nextLabel]="'common.next' | translate"
+    [pageLabel]="'common.pageOf' | translate: { current: (pageData()?.number ?? 0) + 1, total: pageData()?.totalPages ?? 0 }"
+    (pageChange)="load($event)"
+  >
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'empleados.table.nombre' | translate }}</th>
+          <th>{{ 'empleados.table.email' | translate }}</th>
+          <th>{{ 'empleados.table.puesto' | translate }}</th>
+          <th>{{ 'empleados.table.tipoUsuario' | translate }}</th>
+          <th>{{ 'empleados.table.estado' | translate }}</th>
+          @if (puedeEditar()) {
+            <th></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (empleado of pageData()?.content ?? []; track empleado.id) {
+          <tr>
+            <td>{{ empleado.nombre }} {{ empleado.apellidos }}</td>
+            <td>{{ empleado.email }}</td>
+            <td>{{ empleado.puesto || '—' }}</td>
+            <td><ui-badge variant="neutral">{{ empleado.tipoUsuario.nombre }}</ui-badge></td>
+            <td>
+              <ui-badge [variant]="empleado.activo ? 'success' : 'danger'">
+                {{ (empleado.activo ? 'empleados.status.activo' : 'empleados.status.inactivo') | translate }}
+              </ui-badge>
+            </td>
+            @if (puedeEditar()) {
+              <td class="actions">
+                <a [routerLink]="['/empleados', empleado.id]">{{ 'empleados.actions.editar' | translate }}</a>
+                @if (empleado.activo) {
+                  <button type="button" (click)="confirmarBaja(empleado)">{{ 'empleados.actions.darDeBaja' | translate }}</button>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </ui-table>
+</div>
+
+<ui-modal
+  [open]="empleadoABajar() !== null"
+  [title]="'empleados.modal.title' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarModalBaja()"
+>
+  @if (empleadoABajar(); as empleado) {
+    <p>{{ 'empleados.modal.message' | translate: { nombre: empleado.nombre + ' ' + empleado.apellidos } }}</p>
+  }
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarModalBaja()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button variant="danger" (click)="darDeBaja()">{{ 'empleados.modal.confirm' | translate }}</ui-button>
+  </div>
+</ui-modal>

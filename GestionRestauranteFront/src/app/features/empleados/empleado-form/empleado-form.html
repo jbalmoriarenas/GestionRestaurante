@@ -1,0 +1,32 @@
+<div class="empleado-form-page">
+  <div class="header">
+    <a routerLink="/empleados">{{ 'common.back' | translate }}</a>
+    <h1>{{ (esEdicion() ? 'empleados.form.editTitle' : 'empleados.form.newTitle') | translate }}</h1>
+  </div>
+
+  <ui-card>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <ui-input [label]="'empleados.form.nombre' | translate" formControlName="nombre" />
+      <ui-input [label]="'empleados.form.apellidos' | translate" formControlName="apellidos" />
+      <ui-input [label]="'empleados.form.email' | translate" type="email" formControlName="email" />
+      <ui-input [label]="'empleados.form.dniNie' | translate" formControlName="dniNie" />
+      <ui-input [label]="'empleados.form.telefono' | translate" formControlName="telefono" />
+      <ui-input [label]="'empleados.form.puesto' | translate" formControlName="puesto" />
+      <ui-input [label]="'empleados.form.fechaAlta' | translate" type="date" formControlName="fechaAlta" />
+      <ui-select
+        [label]="'empleados.form.tipoUsuario' | translate"
+        [placeholder]="'common.selectOption' | translate"
+        [options]="tipoUsuarioOptions()"
+        formControlName="tipoUsuarioCodigo"
+      />
+
+      @if (!esEdicion()) {
+        <ui-input [label]="'empleados.form.password' | translate" type="password" formControlName="password" />
+      }
+
+      <div class="form-actions">
+        <ui-button type="submit" [loading]="loading()">{{ 'common.save' | translate }}</ui-button>
+      </div>
+    </form>
+  </ui-card>
+</div>
