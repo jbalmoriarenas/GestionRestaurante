@@ -12,7 +12,8 @@
     "language": "Language"
   },
   "topbar": {
-    "logout": "Log out"
+    "logout": "Log out",
+    "menu": "Open menu"
   },
   "login": {
     "title": "La Zapica",

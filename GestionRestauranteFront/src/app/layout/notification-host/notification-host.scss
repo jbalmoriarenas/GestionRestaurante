@@ -6,6 +6,12 @@
   flex-direction: column;
   gap: 0.6rem;
   z-index: 200;
+
+  @media (max-width: 480px) {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
 }
 
 .toast {
@@ -18,6 +24,13 @@
   font-weight: 500;
   cursor: pointer;
   color: #ffffff;
+
+  @media (max-width: 480px) {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
 
   &.success {
     background: var(--color-success);

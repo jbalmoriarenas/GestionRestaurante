@@ -4,4 +4,8 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   padding: 1.5rem;
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+  }
 }

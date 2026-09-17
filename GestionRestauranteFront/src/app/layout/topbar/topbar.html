@@ -1,4 +1,7 @@
 <header class="topbar">
+  <button type="button" class="menu-toggle" (click)="toggleMenu()" [attr.aria-label]="'topbar.menu' | translate">
+    <ui-icon name="menu" />
+  </button>
   <div class="spacer"></div>
   @if (currentUser(); as user) {
     <div class="user">

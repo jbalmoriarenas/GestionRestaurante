@@ -1,9 +1,13 @@
-<nav class="sidebar">
+@if (mobileMenuOpen()) {
+  <div class="sidebar-backdrop" (click)="closeMobileMenu()"></div>
+}
+
+<nav class="sidebar" [class.open]="mobileMenuOpen()">
   <div class="brand">{{ 'app.brand' | translate }}</div>
   <ul>
     @for (item of items(); track item.vista) {
       <li>
-        <a [routerLink]="item.ruta" routerLinkActive="active">
+        <a [routerLink]="item.ruta" routerLinkActive="active" (click)="closeMobileMenu()">
           <ui-icon [name]="item.icono" />
           <span>{{ 'menu.' + item.labelKey | translate }}</span>
         </a>
