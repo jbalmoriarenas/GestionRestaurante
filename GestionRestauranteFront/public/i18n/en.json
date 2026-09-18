@@ -78,7 +78,19 @@
       "puesto": "Position",
       "fechaAlta": "Start date",
       "tipoUsuario": "User type",
-      "password": "Password"
+      "password": "Password",
+      "emailPlaceholder": "name@domain.com",
+      "dniNiePlaceholder": "12345678Z",
+      "telefonoPlaceholder": "612345678",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailFormat": "Enter a valid email (e.g. name@domain.com)",
+        "dniNieRequired": "National ID is required",
+        "dniNieFormat": "Invalid national ID format (8 digits + letter, or X/Y/Z + 7 digits + letter)",
+        "telefonoFormat": "Invalid phone format (9 digits, starting with 6, 7, 8 or 9)",
+        "passwordRequired": "Password is required",
+        "passwordFormat": "At least 8 characters, with one uppercase, one lowercase and one digit"
+      }
     }
   },
   "fichajes": {

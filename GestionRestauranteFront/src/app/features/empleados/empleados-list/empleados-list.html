@@ -47,10 +47,16 @@
             </td>
             @if (puedeEditar()) {
               <td class="actions">
-                <a [routerLink]="['/empleados', empleado.id]">{{ 'empleados.actions.editar' | translate }}</a>
-                @if (empleado.activo) {
-                  <button type="button" (click)="confirmarBaja(empleado)">{{ 'empleados.actions.darDeBaja' | translate }}</button>
-                }
+                <div class="actions-inner">
+                  <ui-badge variant="warning">
+                    <a [routerLink]="['/empleados', empleado.id]">{{ 'empleados.actions.editar' | translate }}</a>
+                  </ui-badge>
+                  @if (empleado.activo) {
+                    <ui-badge variant="danger">
+                      <button type="button" (click)="confirmarBaja(empleado)">{{ 'empleados.actions.darDeBaja' | translate }}</button>
+                    </ui-badge>
+                  }
+                </div>
               </td>
             }
           </tr>

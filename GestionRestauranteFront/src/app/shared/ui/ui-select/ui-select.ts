@@ -1,4 +1,4 @@
-import { Component, forwardRef, input } from '@angular/core';
+import { Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface UiSelectOption {
@@ -27,14 +27,14 @@ export class UiSelect implements ControlValueAccessor {
   readonly options = input<UiSelectOption[]>([]);
   readonly errorMessage = input<string | null>(null);
 
-  value = '';
-  disabled = false;
+  readonly value = signal('');
+  readonly disabled = signal(false);
 
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
   writeValue(value: string): void {
-    this.value = value ?? '';
+    this.value.set(value ?? '');
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -46,12 +46,13 @@ export class UiSelect implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.disabled.set(isDisabled);
   }
 
   handleChange(event: Event): void {
-    this.value = (event.target as HTMLSelectElement).value;
-    this.onChange(this.value);
+    const value = (event.target as HTMLSelectElement).value;
+    this.value.set(value);
+    this.onChange(value);
   }
 
   handleBlur(): void {

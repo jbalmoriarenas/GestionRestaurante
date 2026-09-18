@@ -1,6 +1,5 @@
 <div class="empleado-form-page">
   <div class="header">
-    <a routerLink="/empleados">{{ 'common.back' | translate }}</a>
     <h1>{{ (esEdicion() ? 'empleados.form.editTitle' : 'empleados.form.newTitle') | translate }}</h1>
   </div>
 
@@ -8,9 +7,25 @@
     <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
       <ui-input [label]="'empleados.form.nombre' | translate" formControlName="nombre" />
       <ui-input [label]="'empleados.form.apellidos' | translate" formControlName="apellidos" />
-      <ui-input [label]="'empleados.form.email' | translate" type="email" formControlName="email" />
-      <ui-input [label]="'empleados.form.dniNie' | translate" formControlName="dniNie" />
-      <ui-input [label]="'empleados.form.telefono' | translate" formControlName="telefono" />
+      <ui-input
+        [label]="'empleados.form.email' | translate"
+        type="email"
+        [placeholder]="'empleados.form.emailPlaceholder' | translate"
+        formControlName="email"
+        [errorMessage]="emailErrorMessage()"
+      />
+      <ui-input
+        [label]="'empleados.form.dniNie' | translate"
+        [placeholder]="'empleados.form.dniNiePlaceholder' | translate"
+        formControlName="dniNie"
+        [errorMessage]="dniNieErrorMessage()"
+      />
+      <ui-input
+        [label]="'empleados.form.telefono' | translate"
+        [placeholder]="'empleados.form.telefonoPlaceholder' | translate"
+        formControlName="telefono"
+        [errorMessage]="telefonoErrorMessage()"
+      />
       <ui-input [label]="'empleados.form.puesto' | translate" formControlName="puesto" />
       <ui-input [label]="'empleados.form.fechaAlta' | translate" type="date" formControlName="fechaAlta" />
       <ui-select
@@ -21,10 +36,17 @@
       />
 
       @if (!esEdicion()) {
-        <ui-input [label]="'empleados.form.password' | translate" type="password" formControlName="password" />
+        <ui-input
+          [label]="'empleados.form.password' | translate"
+          type="password"
+          placeholder="********"
+          formControlName="password"
+          [errorMessage]="passwordErrorMessage()"
+        />
       }
 
       <div class="form-actions">
+        <ui-button type="button" variant="secondary" (click)="volver()">{{ 'common.back' | translate }}</ui-button>
         <ui-button type="submit" [loading]="loading()">{{ 'common.save' | translate }}</ui-button>
       </div>
     </form>

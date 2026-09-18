@@ -33,7 +33,8 @@
 
     &:disabled {
       background: var(--color-surface-hover);
-      color: var(--color-text-disabled);
+      color: var(--color-text-primary);
+      opacity: 0.85;
     }
   }
 

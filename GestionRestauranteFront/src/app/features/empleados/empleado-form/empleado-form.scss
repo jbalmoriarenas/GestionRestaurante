@@ -1,19 +1,5 @@
 .header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
   margin-bottom: var(--space-xl);
-
-  a {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    width: fit-content;
-
-    &:hover {
-      color: var(--color-primary);
-    }
-  }
 
   h1 {
     font-size: 1.4rem;
@@ -35,8 +21,13 @@
 .form-actions {
   grid-column: 1 / -1;
   margin-top: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 
   @media (max-width: 640px) {
+    flex-direction: column;
+
     ::ng-deep .ui-button {
       width: 100%;
     }

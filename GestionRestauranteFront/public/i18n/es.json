@@ -78,7 +78,19 @@
       "puesto": "Puesto",
       "fechaAlta": "Fecha de alta",
       "tipoUsuario": "Tipo de usuario",
-      "password": "Contraseña"
+      "password": "Contraseña",
+      "emailPlaceholder": "nombre@dominio.com",
+      "dniNiePlaceholder": "12345678Z",
+      "telefonoPlaceholder": "612345678",
+      "errors": {
+        "emailRequired": "El email es obligatorio",
+        "emailFormat": "Introduce un email válido (ej: nombre@dominio.com)",
+        "dniNieRequired": "El DNI/NIE es obligatorio",
+        "dniNieFormat": "Formato de DNI/NIE no válido (8 dígitos + letra, o X/Y/Z + 7 dígitos + letra)",
+        "telefonoFormat": "Formato de teléfono no válido (9 dígitos, empezando por 6, 7, 8 o 9)",
+        "passwordRequired": "La contraseña es obligatoria",
+        "passwordFormat": "Mínimo 8 caracteres, con al menos una mayúscula, una minúscula y un número"
+      }
     }
   },
   "fichajes": {

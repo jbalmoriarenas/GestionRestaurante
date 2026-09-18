@@ -18,6 +18,10 @@ import { UiSelect, UiSelectOption } from '../../../shared/ui/ui-select/ui-select
   styleUrl: './empleado-form.scss',
 })
 export class EmpleadoForm implements OnInit {
+  private static readonly DNI_NIE_PATTERN = /^(\d{8}[A-Za-z]|[XYZxyz]\d{7}[A-Za-z])$/;
+  private static readonly TELEFONO_PATTERN = /^[6789]\d{8}$/;
+  private static readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly empleadoService = inject(EmpleadoService);
   private readonly tipoUsuarioService = inject(TipoUsuarioService);
@@ -36,8 +40,8 @@ export class EmpleadoForm implements OnInit {
     nombre: ['', Validators.required],
     apellidos: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    dniNie: ['', Validators.required],
-    telefono: [''],
+    dniNie: ['', [Validators.required, Validators.pattern(EmpleadoForm.DNI_NIE_PATTERN)]],
+    telefono: ['', Validators.pattern(EmpleadoForm.TELEFONO_PATTERN)],
     puesto: [''],
     fechaAlta: [new Date().toISOString().substring(0, 10), Validators.required],
     tipoUsuarioCodigo: ['', Validators.required],
@@ -68,13 +72,50 @@ export class EmpleadoForm implements OnInit {
             fechaAlta: empleado.fechaAlta,
             tipoUsuarioCodigo: empleado.tipoUsuario.codigo,
           });
+          this.form.controls.nombre.disable();
+          this.form.controls.apellidos.disable();
+          this.form.controls.dniNie.disable();
           this.loading.set(false);
         },
         error: () => this.loading.set(false),
       });
     } else {
-      this.form.controls.password.addValidators([Validators.required, Validators.minLength(6)]);
+      this.form.controls.password.addValidators([
+        Validators.required,
+        Validators.pattern(EmpleadoForm.PASSWORD_PATTERN),
+      ]);
     }
+  }
+
+  emailErrorMessage(): string | null {
+    const control = this.form.controls.email;
+    if (!control.touched || control.valid) return null;
+    const key = control.hasError('required') ? 'empleados.form.errors.emailRequired' : 'empleados.form.errors.emailFormat';
+    return this.translateService.instant(key);
+  }
+
+  telefonoErrorMessage(): string | null {
+    const control = this.form.controls.telefono;
+    if (!control.touched || control.valid) return null;
+    return this.translateService.instant('empleados.form.errors.telefonoFormat');
+  }
+
+  dniNieErrorMessage(): string | null {
+    const control = this.form.controls.dniNie;
+    if (!control.touched || control.valid) return null;
+    const key = control.hasError('required') ? 'empleados.form.errors.dniNieRequired' : 'empleados.form.errors.dniNieFormat';
+    return this.translateService.instant(key);
+  }
+
+  passwordErrorMessage(): string | null {
+    const control = this.form.controls.password;
+    if (!control.touched || control.valid) return null;
+    const key = control.hasError('required') ? 'empleados.form.errors.passwordRequired' : 'empleados.form.errors.passwordFormat';
+    return this.translateService.instant(key);
+  }
+
+  volver(): void {
+    this.router.navigateByUrl('/empleados');
   }
 
   submit(): void {
