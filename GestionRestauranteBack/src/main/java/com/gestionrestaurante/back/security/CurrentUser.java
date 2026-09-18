@@ -1,5 +1,6 @@
 package com.gestionrestaurante.back.security;
 
+import java.util.Objects;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -13,6 +14,12 @@ public final class CurrentUser {
     }
 
     public static Long empleadoId(Authentication authentication) {
-        return (Long) authentication.getDetails();
+        // No deberia poder faltar (JwtService siempre incluye el claim al generar el
+        // token), pero si algun dia se acepta un token sin el, se prefiere un fallo
+        // explicito aqui a un NPE/ClassCastException opaco varias capas mas abajo
+        // (p.ej. dentro de EmpleadoRepository.getReferenceById(null)).
+        return Objects.requireNonNull(
+                (Long) authentication.getDetails(),
+                "El token no contiene el empleadoId del usuario autenticado");
     }
 }

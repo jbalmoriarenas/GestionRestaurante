@@ -28,6 +28,11 @@ public class ConfiguracionUbicacionService {
                         "Falta la fila de configuracion_ubicacion (id=1); revisar que la migracion V13 se aplico"));
     }
 
+    /**
+     * Sin uso todavia en esta fase (Fase 1.1): lo consumira el endpoint de edicion de
+     * ubicacion del Admin, que se añade en Fase 1.3 (back/fase1-3-back.md). Se declara ya
+     * aqui porque vive en el mismo servicio que {@link #obtener()}.
+     */
     @Transactional
     public ConfiguracionUbicacion actualizar(BigDecimal lat, BigDecimal lng, Integer radioMetros, Long adminId) {
         ConfiguracionUbicacion configuracion = obtener();

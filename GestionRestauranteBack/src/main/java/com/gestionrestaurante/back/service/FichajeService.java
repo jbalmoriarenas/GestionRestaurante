@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,16 @@ public class FichajeService {
         fichaje.setHoraEntrada(LocalDateTime.now());
         fichaje.setLatEntrada(BigDecimal.valueOf(lat));
         fichaje.setLngEntrada(BigDecimal.valueOf(lng));
-        return toResponse(fichajeRepository.save(fichaje));
+        try {
+            return toResponse(fichajeRepository.save(fichaje));
+        } catch (DataIntegrityViolationException ex) {
+            // Segundo cinturón de seguridad (bbdd/fase1-1-bbdd.md): si dos peticiones casi
+            // simultaneas pasan la comprobacion de arriba a la vez, el indice unico
+            // uk_fichajes_abierto rechaza el segundo insert. Se traduce a la misma
+            // excepcion de negocio en vez de dejar escapar la DataIntegrityViolationException
+            // como un 500 generico.
+            throw new FichajeYaAbiertoException();
+        }
     }
 
     @Transactional

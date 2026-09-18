@@ -28,8 +28,17 @@ export class MiFichaje implements OnInit {
   readonly enCurso = signal(false);
   readonly segundosTranscurridos = signal(0);
   readonly obteniendoUbicacion = signal(false);
+  readonly finalizandoTurno = signal(false);
   readonly tiempoFormateado = computed(() => this.formatearTiempo(this.segundosTranscurridos()));
-  readonly fechaHoy = computed(() => this.formatearFecha(this.translateService.currentLang()));
+
+  // Ademas de recalcularse si cambia el idioma, se refresca al volver a la pestaña
+  // (visibilitychange): si alguien la deja abierta pasada la medianoche, no se queda
+  // mostrando la fecha de ayer indefinidamente.
+  private readonly fechaTick = signal(0);
+  readonly fechaHoy = computed(() => {
+    this.fechaTick();
+    return this.formatearFecha(this.translateService.currentLang());
+  });
 
   readonly fichajesHoy = signal<Fichaje[]>([]);
   readonly horasImputadas = signal(0);
@@ -46,8 +55,18 @@ export class MiFichaje implements OnInit {
     });
 
     this.cargarResumenHoy();
-    this.destroyRef.onDestroy(() => this.detenerIntervalo());
+    document.addEventListener('visibilitychange', this.alVolverVisible);
+    this.destroyRef.onDestroy(() => {
+      this.detenerIntervalo();
+      document.removeEventListener('visibilitychange', this.alVolverVisible);
+    });
   }
+
+  private readonly alVolverVisible = (): void => {
+    if (document.visibilityState === 'visible') {
+      this.fechaTick.update((n) => n + 1);
+    }
+  };
 
   iniciar(): void {
     this.obteniendoUbicacion.set(true);
@@ -82,16 +101,25 @@ export class MiFichaje implements OnInit {
   }
 
   finalizar(): void {
-    this.fichajeService.finalizar().subscribe((fichaje) => {
-      this.detenerIntervalo();
-      this.enCurso.set(false);
-      this.segundosTranscurridos.set(0);
-      this.notificationService.success(
-        this.translateService.instant('fichajes.miFichaje.turnoFinalizado', {
-          horas: fichaje.horasCalculadas,
-        }),
-      );
-      this.cargarResumenHoy();
+    this.finalizandoTurno.set(true);
+    this.fichajeService.finalizar().subscribe({
+      next: (fichaje) => {
+        this.finalizandoTurno.set(false);
+        this.detenerIntervalo();
+        this.enCurso.set(false);
+        this.segundosTranscurridos.set(0);
+        this.notificationService.success(
+          this.translateService.instant('fichajes.miFichaje.turnoFinalizado', {
+            horas: fichaje.horasCalculadas,
+          }),
+        );
+        this.cargarResumenHoy();
+      },
+      // El toast del error ya lo muestra el errorInterceptor global; aqui solo hay que
+      // apagar el estado de carga para no dejar el boton bloqueado (y no tocar enCurso:
+      // si la llamada falla, el turno sigue abierto de verdad, asi que dejarlo como
+      // estaba es lo correcto).
+      error: () => this.finalizandoTurno.set(false),
     });
   }
 

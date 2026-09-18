@@ -4,7 +4,7 @@
       <p class="fichaje-panel__fecha">{{ fechaHoy() }}</p>
       @if (enCurso()) {
         <p class="fichaje-panel__cronometro">{{ tiempoFormateado() }}</p>
-        <ui-button variant="secondary" [loading]="obteniendoUbicacion()" (click)="finalizar()">
+        <ui-button variant="secondary" [loading]="finalizandoTurno()" (click)="finalizar()">
           {{ 'fichajes.miFichaje.finalizar' | translate }}
         </ui-button>
       } @else {
@@ -47,7 +47,7 @@
       <div class="mi-fichaje-page__resumen flex justify-between items-center">
         <span>
           {{ 'fichajes.miFichaje.resumen.imputadas' | translate }}:
-          <strong [class.mi-fichaje-page__resumen-bajo]="horasImputadas() < horasTeoricas()">{{ horasImputadas() }} h</strong>
+          <strong [class.mi-fichaje-page__resumen--bajo]="horasImputadas() < horasTeoricas()">{{ horasImputadas() }} h</strong>
         </span>
         <span>{{ 'fichajes.miFichaje.resumen.teoricas' | translate }}: <strong>{{ horasTeoricas() }} h</strong></span>
       </div>

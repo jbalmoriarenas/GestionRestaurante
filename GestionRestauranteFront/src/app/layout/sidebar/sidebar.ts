@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -30,6 +30,15 @@ export class Sidebar {
     ),
     { initialValue: this.router.url },
   );
+
+  // Un cierre manual solo debe durar mientras el usuario no navegue: si no, un grupo
+  // cerrado a mano se queda cerrado para siempre aunque luego se navegue a una de sus
+  // rutas hijas, escondiendo el enlace activo sin que quede forma obvia de recuperarlo
+  // salvo recordar que existe el toggle.
+  private readonly resetToggleManualAlNavegar = effect(() => {
+    this.currentUrl();
+    this.manualToggle.set({});
+  });
 
   readonly items = computed(() =>
     MENU_ITEMS.map((item) => this.resolverItem(item)).filter((item): item is MenuItem => item !== null),
@@ -68,13 +77,13 @@ export class Sidebar {
 
   private resolverItem(item: MenuItem): MenuItem | null {
     if (item.children) {
-      const children = item.children.filter((child) => this.tieneAccesoA(child));
+      const children = item.children.filter((child) => this.tieneAcceso(child));
       return children.length > 0 ? { ...item, children } : null;
     }
-    return this.tieneAccesoA(item) ? item : null;
+    return this.tieneAcceso(item) ? item : null;
   }
 
-  private tieneAccesoA(entry: { vista: CodigoVista; nivelMinimo?: NivelAcceso }): boolean {
+  private tieneAcceso(entry: { vista: CodigoVista; nivelMinimo?: NivelAcceso }): boolean {
     return entry.nivelMinimo === 'EDICION'
       ? this.authService.puedeEditar(entry.vista)
       : this.authService.tieneAcceso(entry.vista);

@@ -77,7 +77,8 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 33, 0.45);
+    background: var(--neutral-10);
+    opacity: 0.45;
     z-index: 149;
   }
 }

@@ -18,9 +18,14 @@
             [attr.aria-expanded]="openGroups()[item.labelKey]"
             (click)="toggleGroup(item.labelKey)"
           >
-            <ui-icon [name]="item.icono" />
+            <ui-icon [name]="item.icono" aria-hidden="true" />
             <span>{{ 'menu.' + item.labelKey | translate }}</span>
-            <ui-icon name="chevron" class="menu-group-chevron" [class.open]="openGroups()[item.labelKey]" />
+            <ui-icon
+              name="chevron"
+              class="menu-group-chevron"
+              [class.open]="openGroups()[item.labelKey]"
+              aria-hidden="true"
+            />
           </button>
           @if (openGroups()[item.labelKey]) {
             <ul class="menu-subitems">
@@ -35,7 +40,7 @@
           }
         } @else {
           <a [routerLink]="item.ruta" routerLinkActive="active" (click)="closeMobileMenu()">
-            <ui-icon [name]="item.icono" />
+            <ui-icon [name]="item.icono" aria-hidden="true" />
             <span>{{ 'menu.' + item.labelKey | translate }}</span>
           </a>
         }

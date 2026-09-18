@@ -15,12 +15,12 @@
 
     strong {
       color: var(--color-text-primary);
-
-      &.mi-fichaje-page__resumen-bajo {
-        color: var(--color-danger);
-      }
     }
   }
+}
+
+.mi-fichaje-page__resumen strong.mi-fichaje-page__resumen--bajo {
+  color: var(--color-danger);
 }
 
 .fichaje-panel {
