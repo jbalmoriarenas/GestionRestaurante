@@ -17,3 +17,29 @@ export interface FichajeResumenHoy {
   horasImputadas: number;
   horasTeoricas: number;
 }
+
+export interface FichajeResumenDia {
+  fecha: string; // yyyy-MM-dd
+  horasCalculadas: number;
+  cumpleMinimo: boolean;
+}
+
+export interface FichajeResumenSemana {
+  inicioSemana: string; // yyyy-MM-dd
+  finSemana: string; // yyyy-MM-dd
+  horasCalculadas: number;
+  cumpleMinimo: boolean;
+}
+
+export interface FichajeResumenMes {
+  mes: number; // 1-12
+  anio: number;
+  horasCalculadas: number;
+  cumpleMinimo: boolean;
+}
+
+export interface FichajeCorreccionRequest {
+  horaEntrada: string; // ISO 8601
+  horaSalida: string; // ISO 8601
+  observaciones: string | null;
+}

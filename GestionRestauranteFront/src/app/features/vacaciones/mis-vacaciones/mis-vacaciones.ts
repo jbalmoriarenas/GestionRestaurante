@@ -16,15 +16,19 @@ import { UiTable } from '../../../shared/ui/ui-table/ui-table';
 const PAGE_SIZE = 10;
 const RESUMEN_VACIO: ResumenVacaciones = { total: 0, aprobados: 0, pendientes: 0, disponibles: 0 };
 
+function anioActual(): number {
+  return new Date().getFullYear();
+}
+
 function fechaFinNoAnteriorAInicio(group: AbstractControl): ValidationErrors | null {
   const inicio: string = group.get('fechaInicio')?.value;
   const fin: string = group.get('fechaFin')?.value;
   if (!inicio || !fin) return null;
   if (fin < inicio) return { rangoInvalido: true };
-  // Comparacion por prefijo de año (yyyy-MM-dd): mismo criterio que back/fase1-2-back.md,
-  // que rechaza un rango que cruce el año natural para no tener que prorratear el cupo
-  // entre dos años distintos.
-  if (inicio.slice(0, 4) !== fin.slice(0, 4)) return { distintoAnio: true };
+  // Solo se puede solicitar dentro del año en curso (mismo criterio que back/fase1-2-back.md):
+  // no basta con que inicio y fin coincidan entre si, ambos deben caer en el año de "hoy".
+  const anio = anioActual().toString();
+  if (inicio.slice(0, 4) !== anio || fin.slice(0, 4) !== anio) return { distintoAnio: true };
   return null;
 }
 
@@ -98,15 +102,25 @@ export class MisVacaciones implements OnInit {
     return null;
   }
 
-  // Restringe el propio selector de fecha del navegador al año natural de fechaInicio,
-  // para que no se puedan ni seleccionar fechas fuera de ese año (ver back/fase1-2-back.md).
+  // Restringe los propios selectores de fecha del navegador al año en curso (no al año de
+  // la otra fecha, sino al de "hoy" — confirmado con el usuario: hoy en 2026 solo se puede
+  // solicitar dentro de 2026, ni 2025 ni 2027), y ademas a no cruzarse entre si. Cuando la
+  // otra fecha ya esta rellena, siempre cae dentro del año en curso (por esta misma
+  // restriccion), asi que basta con preferirla sobre el limite del año.
+  fechaInicioMin(): string {
+    return `${anioActual()}-01-01`;
+  }
+
+  fechaInicioMax(): string {
+    return this.form.controls.fechaFin.value || `${anioActual()}-12-31`;
+  }
+
   fechaFinMin(): string {
-    return this.form.controls.fechaInicio.value;
+    return this.form.controls.fechaInicio.value || `${anioActual()}-01-01`;
   }
 
   fechaFinMax(): string {
-    const inicio = this.form.controls.fechaInicio.value;
-    return inicio ? `${inicio.slice(0, 4)}-12-31` : '';
+    return `${anioActual()}-12-31`;
   }
 
   solicitar(): void {

@@ -1,0 +1,62 @@
+.fichajes-admin-page {
+  &__tabs {
+    display: flex;
+    gap: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__tab {
+    background: none;
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    font: inherit;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+      color: var(--color-text-primary);
+    }
+
+    &--activa {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+  }
+
+  &__filtros {
+    ui-input,
+    ui-select {
+      flex: 1;
+      min-width: 160px;
+    }
+  }
+
+  &__fila--bajoMinimo {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+  }
+
+  &__corregir {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  &__nota,
+  &__actualizado {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+  }
+
+  &__aviso {
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-lg);
+    background: var(--color-warning-light);
+    border: 1px solid var(--color-warning-border);
+    color: var(--color-warning);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+  }
+}

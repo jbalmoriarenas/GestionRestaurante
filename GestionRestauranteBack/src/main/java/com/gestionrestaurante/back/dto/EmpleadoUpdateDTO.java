@@ -1,8 +1,11 @@
 package com.gestionrestaurante.back.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.math.BigDecimal;
 
 public record EmpleadoUpdateDTO(
         @NotBlank(message = "El nombre es obligatorio") String nombre,
@@ -13,6 +16,9 @@ public record EmpleadoUpdateDTO(
         String dniNie,
         String telefono,
         String puesto,
-        @NotBlank(message = "El tipo de usuario es obligatorio") String tipoUsuarioCodigo
+        @NotBlank(message = "El tipo de usuario es obligatorio") String tipoUsuarioCodigo,
+        @DecimalMin(value = "1", message = "La jornada minima es de 1 hora")
+        @DecimalMax(value = "12", message = "La jornada maxima es de 12 horas")
+        BigDecimal horasJornadaDiaria
 ) {
 }

@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, message.isBlank() ? "Datos invalidos" : message, request);
     }
 
-    @ExceptionHandler({EmpleadoNotFoundException.class, TipoUsuarioNotFoundException.class})
+    @ExceptionHandler({EmpleadoNotFoundException.class, TipoUsuarioNotFoundException.class, FichajeNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }

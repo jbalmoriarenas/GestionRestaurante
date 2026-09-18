@@ -5,6 +5,7 @@
   "menu": {
     "fichajes": "Fichajes",
     "fichajesMio": "Mi fichaje",
+    "fichajesAdmin": "Fichajes (Admin)",
     "vacaciones": "Vacaciones",
     "vacacionesMias": "Mis vacaciones",
     "empleados": "Empleados",
@@ -82,6 +83,9 @@
       "fechaAlta": "Fecha de alta",
       "tipoUsuario": "Tipo de usuario",
       "password": "Contraseña",
+      "horasJornadaDiaria": "Horas de jornada diaria",
+      "horasJornadaDiariaPlaceholder": "8",
+      "horasJornadaDiariaAyuda": "Déjalo vacío para usar el valor por defecto del restaurante",
       "emailPlaceholder": "nombre@dominio.com",
       "dniNiePlaceholder": "12345678Z",
       "telefonoPlaceholder": "612345678",
@@ -92,7 +96,8 @@
         "dniNieFormat": "Formato de DNI/NIE no válido (8 dígitos + letra, o X/Y/Z + 7 dígitos + letra)",
         "telefonoFormat": "Formato de teléfono no válido (9 dígitos, empezando por 6, 7, 8 o 9)",
         "passwordRequired": "La contraseña es obligatoria",
-        "passwordFormat": "Mínimo 8 caracteres, con al menos una mayúscula, una minúscula y un número"
+        "passwordFormat": "Mínimo 8 caracteres, con al menos una mayúscula, una minúscula y un número",
+        "horasJornadaDiariaFormat": "Debe estar entre 1 y 12 horas"
       }
     }
   },
@@ -119,6 +124,66 @@
         "posicionNoDisponible": "No se ha podido obtener tu ubicación. Inténtalo de nuevo",
         "tiempoAgotado": "Se agotó el tiempo esperando tu ubicación. Inténtalo de nuevo"
       }
+    },
+    "admin": {
+      "titulo": "Fichajes (Admin)",
+      "notaVacaciones": "El mínimo esperado no descuenta días de vacaciones aprobadas",
+      "pestanas": {
+        "diario": "Diario",
+        "semanal": "Semanal",
+        "mensual": "Mensual",
+        "ubicacion": "Ubicación"
+      },
+      "filtros": {
+        "empleado": "Empleado",
+        "desde": "Desde",
+        "hasta": "Hasta",
+        "anio": "Año",
+        "consultar": "Consultar"
+      },
+      "diario": {
+        "titulo": "Fichajes diarios",
+        "vacio": "No hay fichajes en ese rango",
+        "corregir": "Corregir",
+        "tabla": {
+          "fecha": "Fecha",
+          "entrada": "Entrada",
+          "salida": "Salida",
+          "horas": "Horas"
+        }
+      },
+      "semanal": {
+        "titulo": "Resumen semanal",
+        "vacio": "No hay fichajes en ese rango",
+        "tabla": {
+          "semana": "Semana",
+          "horas": "Horas totales"
+        }
+      },
+      "mensual": {
+        "titulo": "Resumen mensual",
+        "vacio": "No hay fichajes en ese año",
+        "tabla": {
+          "mes": "Mes",
+          "horas": "Horas totales"
+        }
+      },
+      "correccion": {
+        "titulo": "Corregir fichaje",
+        "horaEntrada": "Hora de entrada",
+        "horaSalida": "Hora de salida",
+        "observaciones": "Observaciones",
+        "exito": "Fichaje corregido"
+      },
+      "ubicacion": {
+        "lat": "Latitud",
+        "lng": "Longitud",
+        "radio": "Radio (metros)",
+        "ayuda": "Los empleados solo podrán fichar entrada dentro de este radio alrededor de este punto",
+        "sinConfigurar": "Ubicación sin configurar: ningún empleado podrá fichar hasta que la guardes",
+        "actualizadoEl": "Última actualización:",
+        "exito": "Ubicación actualizada"
+      }
     }
   },
   "vacaciones": {
@@ -138,7 +203,7 @@
         "solicitar": "Solicitar",
         "errores": {
           "rangoInvalido": "La fecha de fin no puede ser anterior a la fecha de inicio",
-          "distintoAnio": "El rango de vacaciones debe estar dentro del mismo año natural"
+          "distintoAnio": "El rango de vacaciones debe estar dentro del año en curso"
         }
       },
       "solicitudCreada": "Solicitud de vacaciones enviada",

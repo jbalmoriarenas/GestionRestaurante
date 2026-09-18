@@ -15,6 +15,7 @@ export interface Empleado {
   fechaBaja: string | null;
   activo: boolean;
   tipoUsuario: TipoUsuario;
+  horasJornadaDiaria: number | null;
 }
 
 export interface EmpleadoCreateRequest {
@@ -27,6 +28,7 @@ export interface EmpleadoCreateRequest {
   fechaAlta: string;
   tipoUsuarioCodigo: string;
   password: string;
+  horasJornadaDiaria: number | null;
 }
 
 export type EmpleadoUpdateRequest = Omit<EmpleadoCreateRequest, 'password'>;

@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,6 +62,14 @@ public class Empleado {
 
     @Column(name = "dias_vacaciones_anuales", nullable = false)
     private short diasVacacionesAnuales;
+
+    /**
+     * Jornada diaria propia de este empleado (jornada parcial); NULL significa "usa el
+     * valor global por defecto" (app.fichajes.horas-jornada-default), no "0 horas" — ver
+     * FichajeService.obtenerUmbralDiario.
+     */
+    @Column(name = "horas_jornada_diaria", precision = 4, scale = 2)
+    private BigDecimal horasJornadaDiaria;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_usuario_id", nullable = false)

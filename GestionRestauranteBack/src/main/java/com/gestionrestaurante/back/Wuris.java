@@ -49,6 +49,19 @@ public final class Wuris {
         public static final String ACTUAL = BASE + "/actual";
         public static final String MIOS = BASE + "/mios";
         public static final String MIOS_HOY = BASE + "/mios/hoy";
+
+        public static final String ADMIN = BASE + "/admin";
+        public static final String ADMIN_RESUMEN_DIARIO = ADMIN + "/resumen/diario";
+        public static final String ADMIN_RESUMEN_SEMANAL = ADMIN + "/resumen/semanal";
+        public static final String ADMIN_RESUMEN_MENSUAL = ADMIN + "/resumen/mensual";
+        public static final String ADMIN_BY_ID = ADMIN + "/{id}";
+    }
+
+    public static final class Configuracion {
+        private Configuracion() {
+        }
+
+        public static final String UBICACION = API + "/configuracion/ubicacion";
     }
 
     public static final class Vacaciones {

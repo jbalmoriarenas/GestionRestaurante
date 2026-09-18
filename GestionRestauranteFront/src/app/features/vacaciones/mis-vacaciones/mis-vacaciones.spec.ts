@@ -62,7 +62,7 @@ describe('MisVacaciones', () => {
     expect(componente.form.hasError('rangoInvalido')).toBe(true);
   });
 
-  it('el formulario es invalido si el rango cruza el año natural', () => {
+  it('el formulario es invalido si el rango cruza dos años (aunque uno de ellos sea el actual)', () => {
     const componente = crearComponente();
 
     componente.form.setValue({ fechaInicio: '2026-12-29', fechaFin: '2027-01-03' });
@@ -70,11 +70,47 @@ describe('MisVacaciones', () => {
     expect(componente.form.hasError('distintoAnio')).toBe(true);
   });
 
-  it('fechaFinMax() limita el selector de fecha al 31 de diciembre del año de fechaInicio', () => {
+  it('el formulario es invalido si el rango cae en un año que no es el actual, aunque inicio y fin coincidan entre si', () => {
     const componente = crearComponente();
-    componente.form.controls.fechaInicio.setValue('2026-06-15');
+    const anioPasado = new Date().getFullYear() - 1;
 
-    expect(componente.fechaFinMax()).toBe('2026-12-31');
+    componente.form.setValue({ fechaInicio: `${anioPasado}-06-01`, fechaFin: `${anioPasado}-06-05` });
+
+    expect(componente.form.hasError('distintoAnio')).toBe(true);
+  });
+
+  it('fechaFinMax() limita el selector de fecha al 31 de diciembre del año en curso', () => {
+    const componente = crearComponente();
+    const anioActual = new Date().getFullYear();
+
+    expect(componente.fechaFinMax()).toBe(`${anioActual}-12-31`);
+  });
+
+  it('fechaFinMin() usa fechaInicio si ya esta rellena, o el 1 de enero del año en curso si no', () => {
+    const componente = crearComponente();
+    const anioActual = new Date().getFullYear();
+
+    expect(componente.fechaFinMin()).toBe(`${anioActual}-01-01`);
+
+    componente.form.controls.fechaInicio.setValue(`${anioActual}-03-10`);
+    expect(componente.fechaFinMin()).toBe(`${anioActual}-03-10`);
+  });
+
+  it('fechaInicioMin() esta siempre anclado al 1 de enero del año en curso', () => {
+    const componente = crearComponente();
+    const anioActual = new Date().getFullYear();
+
+    expect(componente.fechaInicioMin()).toBe(`${anioActual}-01-01`);
+  });
+
+  it('fechaInicioMax() usa fechaFin si ya esta rellena, o el 31 de diciembre del año en curso si no', () => {
+    const componente = crearComponente();
+    const anioActual = new Date().getFullYear();
+
+    expect(componente.fechaInicioMax()).toBe(`${anioActual}-12-31`);
+
+    componente.form.controls.fechaFin.setValue(`${anioActual}-06-15`);
+    expect(componente.fechaInicioMax()).toBe(`${anioActual}-06-15`);
   });
 
   it('solicitar(): con el formulario invalido, no llama al backend', () => {

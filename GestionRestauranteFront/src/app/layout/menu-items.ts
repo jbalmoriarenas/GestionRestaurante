@@ -31,7 +31,13 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     labelKey: 'fichajes',
     icono: 'fichajes',
-    children: [{ ruta: '/fichajes', labelKey: 'fichajesMio', vista: 'FICHAJES', nivelMinimo: 'EDICION' }],
+    children: [
+      { ruta: '/fichajes', labelKey: 'fichajesMio', vista: 'FICHAJES', nivelMinimo: 'EDICION' },
+      // EMPLEADOS, no FICHAJES: alineado con el guard de la ruta y con la autorizacion del
+      // backend (back/fase1-3-back.md) — "ver fichajes de cualquiera" es una capacidad de
+      // gestion de empleados, no del modulo de fichaje en si.
+      { ruta: '/fichajes/admin', labelKey: 'fichajesAdmin', vista: 'EMPLEADOS', nivelMinimo: 'EDICION' },
+    ],
   },
   {
     labelKey: 'vacaciones',

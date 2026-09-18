@@ -35,6 +35,8 @@
         [label]="'vacaciones.misVacaciones.form.fechaInicio' | translate"
         type="date"
         formControlName="fechaInicio"
+        [min]="fechaInicioMin()"
+        [max]="fechaInicioMax()"
       />
       <ui-input
         [label]="'vacaciones.misVacaciones.form.fechaFin' | translate"

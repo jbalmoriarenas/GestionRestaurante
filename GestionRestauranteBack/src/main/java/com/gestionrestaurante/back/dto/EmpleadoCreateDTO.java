@@ -1,10 +1,13 @@
 package com.gestionrestaurante.back.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record EmpleadoCreateDTO(
@@ -20,6 +23,9 @@ public record EmpleadoCreateDTO(
         @NotBlank(message = "El tipo de usuario es obligatorio") String tipoUsuarioCodigo,
         @NotBlank(message = "La contrasena es obligatoria")
         @Size(min = 6, message = "La contrasena debe tener al menos 6 caracteres")
-        String password
+        String password,
+        @DecimalMin(value = "1", message = "La jornada minima es de 1 hora")
+        @DecimalMax(value = "12", message = "La jornada maxima es de 12 horas")
+        BigDecimal horasJornadaDiaria
 ) {
 }

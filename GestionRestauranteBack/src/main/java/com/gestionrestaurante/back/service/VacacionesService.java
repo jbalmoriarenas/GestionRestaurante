@@ -48,8 +48,11 @@ public class VacacionesService {
         if (fin.isBefore(inicio)) {
             throw new RangoFechasInvalidoException();
         }
-        if (inicio.getYear() != fin.getYear()) {
-            throw new RangoFechasInvalidoException("El rango de vacaciones debe estar dentro del mismo año natural");
+        // Solo se puede solicitar dentro del año en curso (confirmado con el usuario): no
+        // basta con que inicio y fin coincidan entre si, ambos deben caer en el año de "hoy".
+        int anioActual = LocalDate.now().getYear();
+        if (inicio.getYear() != anioActual || fin.getYear() != anioActual) {
+            throw new RangoFechasInvalidoException("El rango de vacaciones debe estar dentro del año en curso");
         }
 
         // Bloqueo pessimista de la fila del empleado (EmpleadoRepository.findByIdConBloqueo):

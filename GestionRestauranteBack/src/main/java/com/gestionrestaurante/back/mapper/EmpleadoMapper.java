@@ -24,7 +24,8 @@ public final class EmpleadoMapper {
                 empleado.getFechaAlta(),
                 empleado.getFechaBaja(),
                 empleado.isActivo(),
-                TipoUsuarioDTO.from(empleado.getTipoUsuario()));
+                TipoUsuarioDTO.from(empleado.getTipoUsuario()),
+                empleado.getHorasJornadaDiaria());
     }
 
     public static Empleado toEntity(EmpleadoCreateDTO dto, TipoUsuario tipoUsuario, String passwordHash) {
@@ -38,6 +39,7 @@ public final class EmpleadoMapper {
         empleado.setFechaAlta(dto.fechaAlta());
         empleado.setActivo(true);
         empleado.setDiasVacacionesAnuales(Empleado.DIAS_VACACIONES_ANUALES_DEFECTO);
+        empleado.setHorasJornadaDiaria(dto.horasJornadaDiaria());
         empleado.setTipoUsuario(tipoUsuario);
         empleado.setPasswordHash(passwordHash);
         return empleado;
@@ -50,6 +52,7 @@ public final class EmpleadoMapper {
         empleado.setDniNie(dto.dniNie());
         empleado.setTelefono(dto.telefono());
         empleado.setPuesto(dto.puesto());
+        empleado.setHorasJornadaDiaria(dto.horasJornadaDiaria());
         empleado.setTipoUsuario(tipoUsuario);
     }
 }

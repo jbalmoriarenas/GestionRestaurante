@@ -46,6 +46,9 @@ export class EmpleadoForm implements OnInit {
     fechaAlta: [new Date().toISOString().substring(0, 10), Validators.required],
     tipoUsuarioCodigo: ['', Validators.required],
     password: [''],
+    // Opcional: vacio = usa el valor global por defecto del restaurante (ver
+    // back/fase1-3-back.md), no "0 horas".
+    horasJornadaDiaria: ['', [Validators.min(1), Validators.max(12)]],
   });
 
   ngOnInit(): void {
@@ -71,6 +74,7 @@ export class EmpleadoForm implements OnInit {
             puesto: empleado.puesto ?? '',
             fechaAlta: empleado.fechaAlta,
             tipoUsuarioCodigo: empleado.tipoUsuario.codigo,
+            horasJornadaDiaria: empleado.horasJornadaDiaria !== null ? String(empleado.horasJornadaDiaria) : '',
           });
           this.form.controls.nombre.disable();
           this.form.controls.apellidos.disable();
@@ -114,6 +118,12 @@ export class EmpleadoForm implements OnInit {
     return this.translateService.instant(key);
   }
 
+  horasJornadaDiariaErrorMessage(): string | null {
+    const control = this.form.controls.horasJornadaDiaria;
+    if (!control.touched || control.valid) return null;
+    return this.translateService.instant('empleados.form.errors.horasJornadaDiariaFormat');
+  }
+
   volver(): void {
     this.router.navigateByUrl('/empleados');
   }
@@ -124,7 +134,13 @@ export class EmpleadoForm implements OnInit {
       return;
     }
 
-    const value = this.form.getRawValue();
+    const raw = this.form.getRawValue();
+    // ui-input siempre trabaja con strings (ver ui-input.ts); "" se traduce aqui a null
+    // ("sin jornada propia, usa el valor global"), nunca a 0 horas.
+    const value = {
+      ...raw,
+      horasJornadaDiaria: raw.horasJornadaDiaria ? Number(raw.horasJornadaDiaria) : null,
+    };
     this.loading.set(true);
 
     const request$ = this.esEdicion() && this.empleadoId !== null

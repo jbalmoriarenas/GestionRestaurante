@@ -1,0 +1,198 @@
+<div class="fichajes-admin-page flex flex-col gap-xl">
+  <h1 class="section-heading">{{ 'fichajes.admin.titulo' | translate }}</h1>
+
+  <div class="fichajes-admin-page__tabs" role="tablist">
+    <button
+      type="button"
+      class="fichajes-admin-page__tab"
+      [class.fichajes-admin-page__tab--activa]="pestana() === 'diario'"
+      (click)="cambiarPestana('diario')"
+    >
+      {{ 'fichajes.admin.pestanas.diario' | translate }}
+    </button>
+    <button
+      type="button"
+      class="fichajes-admin-page__tab"
+      [class.fichajes-admin-page__tab--activa]="pestana() === 'semanal'"
+      (click)="cambiarPestana('semanal')"
+    >
+      {{ 'fichajes.admin.pestanas.semanal' | translate }}
+    </button>
+    <button
+      type="button"
+      class="fichajes-admin-page__tab"
+      [class.fichajes-admin-page__tab--activa]="pestana() === 'mensual'"
+      (click)="cambiarPestana('mensual')"
+    >
+      {{ 'fichajes.admin.pestanas.mensual' | translate }}
+    </button>
+    <button
+      type="button"
+      class="fichajes-admin-page__tab"
+      [class.fichajes-admin-page__tab--activa]="pestana() === 'ubicacion'"
+      (click)="cambiarPestana('ubicacion')"
+    >
+      {{ 'fichajes.admin.pestanas.ubicacion' | translate }}
+    </button>
+  </div>
+
+  @if (pestana() !== 'ubicacion') {
+    <ui-card>
+      <form [formGroup]="filtros" (ngSubmit)="consultar()" class="fichajes-admin-page__filtros flex flex-wrap gap-lg items-end">
+        <ui-select
+          [label]="'fichajes.admin.filtros.empleado' | translate"
+          [placeholder]="'common.selectOption' | translate"
+          [options]="empleadoOptions()"
+          formControlName="empleadoId"
+        />
+        @if (pestana() === 'diario' || pestana() === 'semanal') {
+          <ui-input [label]="'fichajes.admin.filtros.desde' | translate" type="date" formControlName="desde" />
+          <ui-input [label]="'fichajes.admin.filtros.hasta' | translate" type="date" formControlName="hasta" />
+        } @else {
+          <ui-input [label]="'fichajes.admin.filtros.anio' | translate" type="number" formControlName="anio" />
+        }
+        <ui-button type="submit" [loading]="cargando()">{{ 'fichajes.admin.filtros.consultar' | translate }}</ui-button>
+      </form>
+    </ui-card>
+  }
+
+  @switch (pestana()) {
+    @case ('diario') {
+      <ui-card>
+        <ui-table
+          [loading]="cargando()"
+          [empty]="consultado() && !cargando() && (pageFichajes()?.content?.length ?? 0) === 0"
+          [emptyMessage]="'fichajes.admin.diario.vacio' | translate"
+          [page]="pageFichajes()?.number ?? 0"
+          [totalPages]="pageFichajes()?.totalPages ?? 0"
+          [previousLabel]="'common.previous' | translate"
+          [nextLabel]="'common.next' | translate"
+          [pageLabel]="
+            'common.pageOf' | translate: { current: (pageFichajes()?.number ?? 0) + 1, total: pageFichajes()?.totalPages ?? 0 }
+          "
+          (pageChange)="cambiarPaginaDiario($event)"
+        >
+          <table>
+            <caption class="sr-only">{{ 'fichajes.admin.diario.titulo' | translate }}</caption>
+            <thead>
+              <tr>
+                <th>{{ 'fichajes.admin.diario.tabla.fecha' | translate }}</th>
+                <th>{{ 'fichajes.admin.diario.tabla.entrada' | translate }}</th>
+                <th>{{ 'fichajes.admin.diario.tabla.salida' | translate }}</th>
+                <th>{{ 'fichajes.admin.diario.tabla.horas' | translate }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fichaje of pageFichajes()?.content ?? []; track fichaje.id) {
+                <tr [class.fichajes-admin-page__fila--bajoMinimo]="esDiaPorDebajoDelMinimo(fichaje.fecha)">
+                  <td>{{ fichaje.fecha }}</td>
+                  <td>{{ fichaje.horaEntrada.substring(11, 16) }}</td>
+                  <td>{{ fichaje.horaSalida ? fichaje.horaSalida.substring(11, 16) : '—' }}</td>
+                  <td>{{ fichaje.horasCalculadas ?? '—' }}</td>
+                  <td>
+                    <button type="button" class="badge-action-reset fichajes-admin-page__corregir" (click)="abrirCorreccion(fichaje)">
+                      {{ 'fichajes.admin.diario.corregir' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </ui-table>
+      </ui-card>
+    }
+    @case ('semanal') {
+      <ui-card>
+        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
+        <ui-table
+          [loading]="cargando()"
+          [empty]="consultado() && !cargando() && resumenSemanal().length === 0"
+          [emptyMessage]="'fichajes.admin.semanal.vacio' | translate"
+        >
+          <table>
+            <caption class="sr-only">{{ 'fichajes.admin.semanal.titulo' | translate }}</caption>
+            <thead>
+              <tr>
+                <th>{{ 'fichajes.admin.semanal.tabla.semana' | translate }}</th>
+                <th>{{ 'fichajes.admin.semanal.tabla.horas' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (semana of resumenSemanal(); track semana.inicioSemana) {
+                <tr [class.fichajes-admin-page__fila--bajoMinimo]="!semana.cumpleMinimo">
+                  <td>{{ semana.inicioSemana }} – {{ semana.finSemana }}</td>
+                  <td>{{ semana.horasCalculadas }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </ui-table>
+      </ui-card>
+    }
+    @case ('mensual') {
+      <ui-card>
+        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
+        <ui-table
+          [loading]="cargando()"
+          [empty]="consultado() && !cargando() && resumenMensual().length === 0"
+          [emptyMessage]="'fichajes.admin.mensual.vacio' | translate"
+        >
+          <table>
+            <caption class="sr-only">{{ 'fichajes.admin.mensual.titulo' | translate }}</caption>
+            <thead>
+              <tr>
+                <th>{{ 'fichajes.admin.mensual.tabla.mes' | translate }}</th>
+                <th>{{ 'fichajes.admin.mensual.tabla.horas' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mes of resumenMensual(); track mes.mes) {
+                <tr [class.fichajes-admin-page__fila--bajoMinimo]="!mes.cumpleMinimo">
+                  <td>{{ mes.mes }}/{{ mes.anio }}</td>
+                  <td>{{ mes.horasCalculadas }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </ui-table>
+      </ui-card>
+    }
+    @case ('ubicacion') {
+      <ui-card>
+        @if (ubicacionSinConfigurar()) {
+          <p class="fichajes-admin-page__aviso">{{ 'fichajes.admin.ubicacion.sinConfigurar' | translate }}</p>
+        }
+        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.ubicacion.ayuda' | translate }}</p>
+        <form [formGroup]="ubicacionForm" (ngSubmit)="guardarUbicacion()" class="flex flex-wrap gap-lg items-end">
+          <ui-input [label]="'fichajes.admin.ubicacion.lat' | translate" type="number" formControlName="lat" />
+          <ui-input [label]="'fichajes.admin.ubicacion.lng' | translate" type="number" formControlName="lng" />
+          <ui-input [label]="'fichajes.admin.ubicacion.radio' | translate" type="number" formControlName="radioMetros" />
+          <ui-button type="submit" [loading]="guardandoUbicacion()">{{ 'common.save' | translate }}</ui-button>
+        </form>
+        @if (ubicacionActual(); as ubicacion) {
+          <p class="fichajes-admin-page__actualizado">
+            {{ 'fichajes.admin.ubicacion.actualizadoEl' | translate }} {{ ubicacion.updatedAt }}
+          </p>
+        }
+      </ui-card>
+    }
+  }
+</div>
+
+<ui-modal
+  [open]="fichajeACorregir() !== null"
+  [title]="'fichajes.admin.correccion.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarCorreccion()"
+>
+  <form [formGroup]="correccionForm" class="flex flex-col gap-lg">
+    <ui-input [label]="'fichajes.admin.correccion.horaEntrada' | translate" type="datetime-local" formControlName="horaEntrada" />
+    <ui-input [label]="'fichajes.admin.correccion.horaSalida' | translate" type="datetime-local" formControlName="horaSalida" />
+    <ui-input [label]="'fichajes.admin.correccion.observaciones' | translate" formControlName="observaciones" />
+  </form>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarCorreccion()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button [loading]="guardandoCorreccion()" (click)="guardarCorreccion()">{{ 'common.save' | translate }}</ui-button>
+  </div>
+</ui-modal>

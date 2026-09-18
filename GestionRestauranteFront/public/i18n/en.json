@@ -5,6 +5,7 @@
   "menu": {
     "fichajes": "Time tracking",
     "fichajesMio": "My clock-in",
+    "fichajesAdmin": "Time tracking (Admin)",
     "vacaciones": "Time off",
     "vacacionesMias": "My time off",
     "empleados": "Employees",
@@ -82,6 +83,9 @@
       "fechaAlta": "Start date",
       "tipoUsuario": "User type",
       "password": "Password",
+      "horasJornadaDiaria": "Daily working hours",
+      "horasJornadaDiariaPlaceholder": "8",
+      "horasJornadaDiariaAyuda": "Leave it empty to use the restaurant's default value",
       "emailPlaceholder": "name@domain.com",
       "dniNiePlaceholder": "12345678Z",
       "telefonoPlaceholder": "612345678",
@@ -92,7 +96,8 @@
         "dniNieFormat": "Invalid national ID format (8 digits + letter, or X/Y/Z + 7 digits + letter)",
         "telefonoFormat": "Invalid phone format (9 digits, starting with 6, 7, 8 or 9)",
         "passwordRequired": "Password is required",
-        "passwordFormat": "At least 8 characters, with one uppercase, one lowercase and one digit"
+        "passwordFormat": "At least 8 characters, with one uppercase, one lowercase and one digit",
+        "horasJornadaDiariaFormat": "Must be between 1 and 12 hours"
       }
     }
   },
@@ -119,6 +124,66 @@
         "posicionNoDisponible": "Couldn't get your location. Please try again",
         "tiempoAgotado": "Timed out waiting for your location. Please try again"
       }
+    },
+    "admin": {
+      "titulo": "Time tracking (Admin)",
+      "notaVacaciones": "The expected minimum does not subtract approved time-off days",
+      "pestanas": {
+        "diario": "Daily",
+        "semanal": "Weekly",
+        "mensual": "Monthly",
+        "ubicacion": "Location"
+      },
+      "filtros": {
+        "empleado": "Employee",
+        "desde": "From",
+        "hasta": "To",
+        "anio": "Year",
+        "consultar": "Search"
+      },
+      "diario": {
+        "titulo": "Daily clock-ins",
+        "vacio": "No clock-ins in that range",
+        "corregir": "Fix",
+        "tabla": {
+          "fecha": "Date",
+          "entrada": "Clock in",
+          "salida": "Clock out",
+          "horas": "Hours"
+        }
+      },
+      "semanal": {
+        "titulo": "Weekly summary",
+        "vacio": "No clock-ins in that range",
+        "tabla": {
+          "semana": "Week",
+          "horas": "Total hours"
+        }
+      },
+      "mensual": {
+        "titulo": "Monthly summary",
+        "vacio": "No clock-ins in that year",
+        "tabla": {
+          "mes": "Month",
+          "horas": "Total hours"
+        }
+      },
+      "correccion": {
+        "titulo": "Fix clock-in",
+        "horaEntrada": "Clock-in time",
+        "horaSalida": "Clock-out time",
+        "observaciones": "Notes",
+        "exito": "Clock-in fixed"
+      },
+      "ubicacion": {
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "radio": "Radius (meters)",
+        "ayuda": "Employees will only be able to clock in within this radius around this point",
+        "sinConfigurar": "Location not configured: no employee will be able to clock in until you save it",
+        "actualizadoEl": "Last updated:",
+        "exito": "Location updated"
+      }
     }
   },
   "vacaciones": {
@@ -138,7 +203,7 @@
         "solicitar": "Request",
         "errores": {
           "rangoInvalido": "The end date can't be before the start date",
-          "distintoAnio": "The time off range must stay within the same calendar year"
+          "distintoAnio": "The time off range must stay within the current year"
         }
       },
       "solicitudCreada": "Time off request submitted",

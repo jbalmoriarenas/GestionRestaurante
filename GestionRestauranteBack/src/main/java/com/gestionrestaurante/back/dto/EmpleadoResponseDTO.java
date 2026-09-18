@@ -1,5 +1,6 @@
 package com.gestionrestaurante.back.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record EmpleadoResponseDTO(
@@ -13,6 +14,7 @@ public record EmpleadoResponseDTO(
         LocalDate fechaAlta,
         LocalDate fechaBaja,
         boolean activo,
-        TipoUsuarioDTO tipoUsuario
+        TipoUsuarioDTO tipoUsuario,
+        BigDecimal horasJornadaDiaria
 ) {
 }

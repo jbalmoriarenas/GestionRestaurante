@@ -28,6 +28,16 @@
       />
       <ui-input [label]="'empleados.form.puesto' | translate" formControlName="puesto" />
       <ui-input [label]="'empleados.form.fechaAlta' | translate" type="date" formControlName="fechaAlta" />
+      <div class="form-field">
+        <ui-input
+          [label]="'empleados.form.horasJornadaDiaria' | translate"
+          type="number"
+          [placeholder]="'empleados.form.horasJornadaDiariaPlaceholder' | translate"
+          formControlName="horasJornadaDiaria"
+          [errorMessage]="horasJornadaDiariaErrorMessage()"
+        />
+        <p class="form-hint">{{ 'empleados.form.horasJornadaDiariaAyuda' | translate }}</p>
+      </div>
       <ui-select
         [label]="'empleados.form.tipoUsuario' | translate"
         [placeholder]="'common.selectOption' | translate"

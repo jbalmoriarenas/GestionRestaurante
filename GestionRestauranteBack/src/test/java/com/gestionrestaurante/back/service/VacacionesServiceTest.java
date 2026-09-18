@@ -88,8 +88,21 @@ class VacacionesServiceTest {
 
     @Test
     void solicitar_rangoEnDistintosAniosLanzaRangoInvalidoSinBloquearAlEmpleado() {
-        LocalDate inicio = LocalDate.of(2026, 12, 29);
-        LocalDate fin = LocalDate.of(2027, 1, 3);
+        int anioActual = LocalDate.now().getYear();
+        LocalDate inicio = LocalDate.of(anioActual, 12, 29);
+        LocalDate fin = LocalDate.of(anioActual + 1, 1, 3);
+
+        assertThatThrownBy(() -> vacacionesService.solicitar(1L, inicio, fin))
+                .isInstanceOf(RangoFechasInvalidoException.class);
+
+        verify(empleadoRepository, never()).findByIdConBloqueo(any());
+    }
+
+    @Test
+    void solicitar_rangoEnUnAnioDistintoAlActualLanzaRangoInvalidoAunqueInicioYFinCoincidan() {
+        int anioPasado = LocalDate.now().getYear() - 1;
+        LocalDate inicio = LocalDate.of(anioPasado, 6, 1);
+        LocalDate fin = LocalDate.of(anioPasado, 6, 5);
 
         assertThatThrownBy(() -> vacacionesService.solicitar(1L, inicio, fin))
                 .isInstanceOf(RangoFechasInvalidoException.class);
