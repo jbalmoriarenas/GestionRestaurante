@@ -4,9 +4,10 @@
 
 Aplicación de gestión integral para un restaurante, compuesta por tres módulos funcionales sobre una base común de empleados y autenticación:
 
-1. **Fichaje de empleados** — registro de entrada/salida tipo Woffu simplificado.
-2. **Gestión de facturas de proveedores** — digitalizar, extraer datos y consultar facturas organizadas por proveedor/mes.
-3. **Gestión de nóminas** — mantener el listado de empleados, subir PDFs/ZIPs de nóminas y enviarlas por email.
+1. **Fichaje de empleados** — registro de entrada/salida tipo Woffu simplificado, con vista propia (empleado) y vista de supervisión (Admin).
+2. **Gestión de vacaciones** — calendario de festivos y días propios, solicitud de vacaciones por el empleado (con cupo anual y disponibilidad) y aprobación/rechazo por el Admin.
+3. **Gestión de facturas de proveedores** — digitalizar, extraer datos y consultar facturas organizadas por proveedor/mes.
+4. **Gestión de nóminas** — mantener el listado de empleados, subir PDFs/ZIPs de nóminas y enviarlas por email.
 
 Es un único restaurante (sin multi-sede por ahora) con dos roles de usuario: **Admin** y **Empleado**.
 
@@ -74,9 +75,13 @@ GestionRestaurante/
   |---|---|---|
   | Empleados | EDICIÓN | sin acceso |
   | Fichajes (propios) | EDICIÓN | EDICIÓN |
-  | Fichajes (de todos / corrección) | EDICIÓN | sin acceso (la restricción "solo los suyos" es lógica de negocio, no de la tabla de permisos) |
+  | Fichajes (de todos / corrección) | EDICIÓN (vía la authority de `EMPLEADOS`, ver nota debajo) | sin acceso (la restricción "solo los suyos" es lógica de negocio, no de la tabla de permisos) |
+  | Vacaciones (propias: solicitar/cancelar) | EDICIÓN | EDICIÓN |
+  | Vacaciones (de todos / aprobar-rechazar) | EDICIÓN (vía la authority de `EMPLEADOS`, ver nota debajo) | sin acceso |
   | Facturas de proveedores | EDICIÓN | sin acceso (ni vista ni endpoints) |
   | Nóminas (gestión y envío) | EDICIÓN | sin acceso (ni vista ni endpoints; recibe la nómina solo por email) |
+
+  **Nota (Fase 1)**: `FICHAJES:EDICION` y `VACACIONES:EDICION` los tiene también `EMPLEADO` (para operar sobre lo suyo), así que esa authority no sirve para proteger los endpoints "de cualquier empleado" que usa el Admin (listar/corregir fichajes de todos, aprobar/rechazar solicitudes de cualquiera). Esos endpoints reutilizan `hasAuthority('EMPLEADOS:EDICION')` — que solo tiene `ADMIN` — en vez de crear una vista/permiso nueva solo para esa distinción; ver el detalle en `planesImplementacion/back/fase1-3-back.md` y `fase1-4-back.md`.
 
   La gestión de esta matriz desde una pantalla de administración (crear tipos de usuario, marcar EDICIÓN/VISUALIZACIÓN/sin acceso por vista) queda para una fase posterior; en Fase 0 se deja bien modelada en BBDD/backend y poblada por seed.
 - **Almacenamiento de ficheros** (facturas y nóminas): sistema de ficheros local (carpeta `uploads/`, organizada por tipo/año/mes) para el MVP; en BBDD solo se guarda la ruta/metadata, nunca el binario. Diseñar el acceso a ficheros detrás de una interfaz (`FileStorageService`) para poder migrar a S3/Blob Storage sin tocar el resto del código si el volumen crece.
@@ -94,10 +99,16 @@ GestionRestaurante/
 `id, tipo_usuario_id (FK), vista_id (FK), nivel_acceso (EDICION|VISUALIZACION)` — único por (`tipo_usuario_id`, `vista_id`); sin fila = sin acceso.
 
 **Empleado**
-`id, nombre, apellidos, email, dni_nie, telefono, puesto, fecha_alta, fecha_baja (nullable), activo, tipo_usuario_id (FK), password_hash`
+`id, nombre, apellidos, email, dni_nie, telefono, puesto, fecha_alta, fecha_baja (nullable), activo, tipo_usuario_id (FK), password_hash, dias_vacaciones_anuales (default 23)`
 
 **Fichaje**
-`id, empleado_id (FK), fecha, hora_entrada, hora_salida (nullable), horas_calculadas, observaciones, corregido_por_admin (bool), fecha_correccion (nullable)`
+`id, empleado_id (FK), fecha, hora_entrada, hora_salida (nullable), horas_calculadas, observaciones, corregido_por_admin (bool), corregido_por_admin_id (FK, nullable), fecha_correccion (nullable)`
+
+**DiaFestivo**
+`id, fecha, descripcion`
+
+**SolicitudVacaciones**
+`id, empleado_id (FK), fecha_inicio, fecha_fin, dias_solicitados, estado (PENDIENTE|APROBADA|RECHAZADA), fecha_solicitud, fecha_resolucion (nullable), resuelta_por_admin_id (FK, nullable), motivo_rechazo (nullable)`
 
 **Proveedor**
 `id, nombre, cif, email_contacto, telefono`
@@ -108,7 +119,7 @@ GestionRestaurante/
 **Nomina**
 `id, empleado_id (FK), periodo_mes, periodo_anio, ruta_archivo, estado (PENDIENTE_ENVIO|ENVIADA), fecha_subida, fecha_envio (nullable), enviada_por_admin_id (FK, nullable)`
 
-Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`.
+Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N SolicitudVacaciones`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`.
 
 ## Desglose de fases
 
@@ -120,13 +131,33 @@ Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1�
 - [Frontend, media] Pantalla de gestión de empleados (alta/baja/edición) — solo Admin.
 - [BBDD, baja] Migraciones iniciales (Flyway/Liquibase recomendado en vez de `ddl-auto=update`, ver Decisiones técnicas).
 
-### Fase 1 — Fichaje de empleados
-- [Backend, media] Modelo `Fichaje`, endpoint fichar entrada/salida (valida que no haya doble entrada sin salida previa), cálculo de horas trabajadas.
-- [Backend, baja] Endpoints de consulta: fichajes propios (empleado) / de todos con filtros por empleado y rango de fechas (admin).
-- [Backend, baja] Corrección manual de fichajes por Admin, con traza de quién corrigió y cuándo.
-- [Frontend, media] Vista "Fichar" para empleado (botón entrada/salida, estado actual).
-- [Frontend, media] Vista Admin: tabla de fichajes filtrable por empleado/fecha, totales de horas por día/semana/mes.
+### Fase 1 — Fichaje y Vacaciones de empleados
+
+Dividida en 4 vistas independientes, cada una con su propio plan de detalle (BBDD + Backend + Frontend, cuando aplica):
+
+| Vista | Qué es | Planes de detalle |
+|---|---|---|
+| **1.1** | Fichaje — empleado (botón Iniciar/Finalizar tipo Woffu) | [`bbdd/fase1-1-bbdd.md`](./bbdd/fase1-1-bbdd.md) · [`back/fase1-1-back.md`](./back/fase1-1-back.md) · [`front/fase1-1-front.md`](./front/fase1-1-front.md) |
+| **1.2** | Vacaciones — empleado (calendario, cupo anual, solicitud) | [`bbdd/fase1-2-bbdd.md`](./bbdd/fase1-2-bbdd.md) · [`back/fase1-2-back.md`](./back/fase1-2-back.md) · [`front/fase1-2-front.md`](./front/fase1-2-front.md) |
+| **1.3** | Fichaje — Admin (todos los empleados, corrección, umbral de horas por empleado, resumen diario/semanal/mensual) | [`bbdd/fase1-3-bbdd.md`](./bbdd/fase1-3-bbdd.md) · [`back/fase1-3-back.md`](./back/fase1-3-back.md) · [`front/fase1-3-front.md`](./front/fase1-3-front.md) *(añade solo una columna a `empleados`; el resto reutiliza el esquema de 1.1)* |
+| **1.4** | Vacaciones — Admin (bandeja global de pendientes, por empleado, aprobar/rechazar, asignación de oficio) | [`back/fase1-4-back.md`](./back/fase1-4-back.md) · [`front/fase1-4-front.md`](./front/fase1-4-front.md) *(reutiliza el esquema de 1.2, sin migraciones nuevas)* |
+
+Resumen (ver cada documento para el desglose completo de subtareas):
+
+- [Backend, media] Modelo `Fichaje`, endpoint fichar entrada/salida (valida que no haya doble entrada sin salida previa **a nivel de índice único de BBDD**, no solo en código), cálculo de horas trabajadas — siempre en el backend.
+- [Backend, media] Verificación de ubicación al fichar entrada (**GPS + geovalla, decisión confirmada con el usuario tras evaluar también la IP del router**, descartada por depender de IP fija): el front envía `{lat, lng}`, el backend valida la distancia (Haversine) contra la ubicación del restaurante y un radio de tolerancia; fuera de rango, 403. Se audita la ubicación de cada entrada (`fichajes.lat_entrada`/`lng_entrada`). La ubicación/radio se guardan en BBDD (`configuracion_ubicacion`, una sola fila) y son **editables por el Admin en caliente** (confirmado con el usuario), no una propiedad fija que requiera redesplegar. Detalle completo en `back/fase1-1-back.md` y `back/fase1-3-back.md`.
+- [Backend, baja] Modelo `DiaFestivo` + `SolicitudVacaciones`, cálculo centralizado de días laborables (excluyendo fines de semana y festivos) y de disponibilidad anual (cupo `dias_vacaciones_anuales`, 23 por defecto, **prorrateado el año de alta** según `fecha_alta`; completo en los años siguientes).
+- [Backend, baja] Columna `empleados.horas_jornada_diaria` (nullable, 1.3): el mínimo de horas que resalta en rojo la vista Admin de Fichajes es **por empleado** (jornada parcial), no un único valor fijo para todo el restaurante; si no está configurado, se usa el valor global por defecto (8h).
+- [Backend, baja] Endpoints de consulta: fichajes/vacaciones propios (empleado) / de todos con filtros por empleado y rango de fechas (admin, protegido con la authority `EMPLEADOS:EDICION` — ver nota de diseño más arriba), incluyendo resumen diario/semanal/mensual de fichajes y una bandeja global de solicitudes de vacaciones pendientes de todos los empleados.
+- [Backend, baja] Corrección manual de fichajes, aprobación/rechazo de solicitudes de vacaciones, y **asignación de oficio** de días de vacaciones por el Admin (sin solicitud previa del empleado, ej. cierre obligatorio de empresa) — con traza de quién y cuándo en todos los casos.
+- [Frontend, media] Vista "Mi Fichaje" para empleado (botón Iniciar/Finalizar, cronómetro en signal — la app es zoneless).
+- [Frontend, media] Vista "Mis Vacaciones" para empleado (resumen anual, calendario, solicitud, cancelación).
+- [Frontend, alta] Componente reutilizable `ui-calendar` (mes/año + marcadores por variante semántica), construido en 1.2 y reutilizado en 1.4.
+- [Frontend, alta] Vista Admin de Fichajes: tabla diaria filtrable por empleado/fecha + resúmenes semanal y mensual, todos en rojo bajo el mínimo de horas de cada empleado.
+- [Frontend, media] Vista Admin de Vacaciones: bandeja global de pendientes, detalle por empleado (calendario + listado), aprobar/rechazar, asignar de oficio.
 - [Frontend, baja] Exportación a CSV/Excel de fichajes (opcional, valorar si entra en esta fase o se pospone).
+
+**Futuro (fuera de alcance de Fase 1)**: la IP pública del router del restaurante queda descartada como mecanismo principal (depende de IP fija, ver el análisis en `back/fase1-1-back.md`), pero podría añadirse más adelante como **factor secundario opcional** junto al GPS, si el restaurante llega a tener IP fija — no como sustituto.
 
 ### Fase 2 — Gestión de facturas de proveedores (MVP sin OCR)
 - [Backend, baja] Modelo `Proveedor` + CRUD.
@@ -171,12 +202,15 @@ Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1�
 - **Riesgo alto — precisión del OCR**: ningún proveedor de OCR/IA da 100% de acierto con facturas de formato libre. Mitigación: diseñar siempre con un paso de revisión humana obligatorio antes de dar una factura por definitiva; no acoplar el resto del sistema (informes, exportaciones) a que la extracción sea perfecta desde el primer momento.
 - **Riesgo medio — matching automático de nóminas en un ZIP**: si el ZIP no sigue una convención de nombres consistente, el sistema no podrá asociar automáticamente cada PDF a su empleado. Mitigación: definir una convención de nombre de fichero desde el principio (p.ej. `DNI_AAAA-MM.pdf`) y dejar siempre una pantalla de asignación manual como red de seguridad.
 - **Riesgo medio — entregabilidad de emails con nóminas adjuntas**: datos sensibles (nóminas) por email requieren cuidado; valorar cifrado del PDF con contraseña (p.ej. el DNI del empleado) o enviar un enlace de descarga temporal en vez del adjunto directo, según las políticas de protección de datos que se quieran aplicar.
-- **Dependencia**: los módulos de Fichaje, Facturas y Nóminas dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
+- **Dependencia**: los módulos de Fichaje, Vacaciones, Facturas y Nóminas dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
+- **Riesgo medio — mantenimiento del catálogo de festivos**: se siembra por SQL año a año (ver `bbdd/fase1-2-bbdd.md`); si no se actualiza, el cálculo de días laborables de vacaciones sobreestimará ligeramente los días consumidos a partir del año no sembrado.
 - **Riesgo bajo — volumen de almacenamiento**: facturas y nóminas en disco local crecen con el tiempo; planear rotación/backup del directorio `uploads/` o migración a almacenamiento externo si el volumen lo justifica.
 
 ## Criterios de aceptación técnicos (a nivel de proyecto)
 
-- Un Empleado puede loguearse, fichar entrada/salida, y ver únicamente sus propios fichajes.
+- Un Empleado puede loguearse, fichar entrada/salida, y ver únicamente sus propios fichajes; fichar entrada exige que su ubicación GPS esté dentro del radio configurado del restaurante (403 si no).
+- Un Empleado puede solicitar y cancelar (mientras esté pendiente) sus propios días de vacaciones, ver su cupo anual y disponible, y ver en su calendario los festivos, sus días aprobados y sus días pendientes; no puede ver ni resolver solicitudes de otro empleado.
+- Un Admin puede ver y corregir los fichajes de cualquier empleado (con aviso visual de días, semanas y meses por debajo del mínimo de horas de **ese** empleado, jornada parcial incluida), y puede ver una bandeja global de solicitudes de vacaciones pendientes de todos los empleados, aprobar/rechazar las de cualquier empleado, y asignarle días de vacaciones de oficio sin que este los solicite antes.
 - Un Empleado **no** puede acceder ni a la vista ni a los endpoints de Facturas de proveedores ni de Nóminas (intentar acceder directamente por URL a esas rutas del front redirige/bloquea, y el backend responde 403 ante cualquier llamada a esos endpoints con un token de rol Empleado).
 - Un Admin puede loguearse, gestionar empleados, ver y corregir fichajes de todos, subir/consultar facturas de proveedores organizadas por proveedor y mes, y subir/enviar nóminas.
 - Toda factura subida queda asociada a un proveedor y es consultable por mes/año; si tiene extracción automática, los datos propuestos son editables antes de confirmarse.
@@ -185,5 +219,6 @@ Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1�
 
 ## Notas adicionales
 
-- Este plan asume que las Fases se implementan en el orden 0→1→2→2.1→3→4, pero Fichajes (Fase 1) y Facturas (Fase 2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
+- Este plan asume que las Fases se implementan en el orden 0→1→2→2.1→3→4, pero Fichajes/Vacaciones (Fase 1) y Facturas (Fase 2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
+- Dentro de la Fase 1, las vistas 1.1 (Fichaje empleado) y 1.2 (Vacaciones empleado) son independientes entre sí y se pueden desarrollar en paralelo; 1.3 depende de que 1.1 esté terminada (reutiliza su esquema y sus clases) y 1.4 depende de que 1.2 esté terminada, por la misma razón.
 - Antes de arrancar la Fase 2.1 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas para decidir entre las tres opciones de extracción listadas en "Decisiones técnicas", en vez de comprometerse a una de antemano.
