@@ -16,9 +16,9 @@ export const routes: Routes = [
       { path: '', redirectTo: 'fichajes', pathMatch: 'full' },
       {
         path: 'fichajes',
-        canActivate: [permissionGuard('FICHAJES')],
+        canActivate: [permissionGuard('FICHAJES', 'EDICION')],
         loadComponent: () =>
-          import('./features/fichajes/fichajes-placeholder').then((m) => m.FichajesPlaceholder),
+          import('./features/fichajes/mi-fichaje/mi-fichaje').then((m) => m.MiFichaje),
       },
       {
         path: 'empleados',

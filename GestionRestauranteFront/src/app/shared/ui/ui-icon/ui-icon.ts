@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 
-export type IconName = 'empleados' | 'fichajes' | 'facturas' | 'nominas' | 'logout' | 'menu';
+export type IconName = 'empleados' | 'fichajes' | 'facturas' | 'nominas' | 'logout' | 'menu' | 'chevron';
 
 @Component({
   selector: 'ui-icon',

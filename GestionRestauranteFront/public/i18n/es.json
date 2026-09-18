@@ -4,6 +4,7 @@
   },
   "menu": {
     "fichajes": "Fichajes",
+    "fichajesMio": "Mi fichaje",
     "empleados": "Empleados",
     "facturas": "Facturas",
     "nominas": "Nóminas"
@@ -95,6 +96,27 @@
   },
   "fichajes": {
     "title": "Fichajes",
-    "placeholder": "Este módulo se implementará en la Fase 1."
+    "placeholder": "Este módulo se implementará en la Fase 1.",
+    "miFichaje": {
+      "iniciar": "Iniciar",
+      "finalizar": "Finalizar turno",
+      "turnoFinalizado": "Turno finalizado: {{horas}} h trabajadas",
+      "fichajesHoy": "Fichajes de hoy",
+      "fichajesHoyVacio": "Todavía no has fichado hoy",
+      "tabla": {
+        "entrada": "Entrada",
+        "salida": "Salida",
+        "horas": "Horas"
+      },
+      "resumen": {
+        "imputadas": "Horas imputadas",
+        "teoricas": "Horas teóricas del turno"
+      },
+      "errores": {
+        "permisoDenegado": "Activa el permiso de ubicación en tu navegador para poder fichar",
+        "posicionNoDisponible": "No se ha podido obtener tu ubicación. Inténtalo de nuevo",
+        "tiempoAgotado": "Se agotó el tiempo esperando tu ubicación. Inténtalo de nuevo"
+      }
+    }
   }
 }

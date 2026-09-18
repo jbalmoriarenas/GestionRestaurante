@@ -1,0 +1,62 @@
+.mi-fichaje-page {
+  &__heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+  }
+
+  &__resumen {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border);
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+
+    strong {
+      color: var(--color-text-primary);
+
+      &.mi-fichaje-page__resumen-bajo {
+        color: var(--color-danger);
+      }
+    }
+  }
+}
+
+.fichaje-panel {
+  padding: var(--space-3xl) 0;
+
+  &__fecha {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
+
+  &__cronometro {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--color-text-primary);
+  }
+
+  ::ng-deep .ui-button {
+    height: 64px;
+    padding: 0 var(--space-3xl);
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: var(--space-xl) 0;
+
+    &__cronometro {
+      font-size: 1.8rem;
+    }
+
+    ::ng-deep .ui-button {
+      height: 52px;
+      width: 100%;
+      padding: 0 var(--space-lg);
+    }
+  }
+}

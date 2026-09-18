@@ -91,7 +91,7 @@ INSERT INTO configuracion_ubicacion (id, lat, lng, radio_metros) VALUES (1, 0, 0
 | `hora_entrada` | `horaEntrada` | `LocalDateTime` | `string` (ISO 8601) |
 | `hora_salida` | `horaSalida` | `LocalDateTime` (nullable) | `string \| null` |
 | `horas_calculadas` | `horasCalculadas` | `BigDecimal` (nullable) | `number \| null` |
-| `lat_entrada` / `lng_entrada` | `latEntrada` / `lngEntrada` | `Double` (nullable) | — (solo auditoría; no se expone en el DTO de respuesta, ver `back/fase1-1-back.md`) |
+| `lat_entrada` / `lng_entrada` | `latEntrada` / `lngEntrada` | `BigDecimal` (nullable) | — (solo auditoría; no se expone en el DTO de respuesta, ver `back/fase1-1-back.md`) |
 | `corregido_por_admin` | `corregidoPorAdmin` | `boolean` | `boolean` |
 | `corregido_por_admin_id` | `corregidoPorAdminId` | `Long` (nullable) | — (no se expone en el DTO de empleado, solo en el de admin) |
 | `marca_abierto` | *(no se mapea en la entidad; es un artefacto de BBDD)* | — | — |

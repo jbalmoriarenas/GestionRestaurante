@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({EmailYaExisteException.class, DniYaExisteException.class})
+    @ExceptionHandler({EmailYaExisteException.class, DniYaExisteException.class,
+            FichajeYaAbiertoException.class, FichajeNoAbiertoException.class})
     public ResponseEntity<ApiError> handleConflict(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
@@ -37,6 +38,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CredencialesInvalidasException.class)
     public ResponseEntity<ApiError> handleCredencialesInvalidas(CredencialesInvalidasException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UbicacionFueraDeRangoException.class)
+    public ResponseEntity<ApiError> handleUbicacionFueraDeRango(UbicacionFueraDeRangoException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

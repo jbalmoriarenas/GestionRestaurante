@@ -14,12 +14,19 @@
     transition: width 0.2s ease;
 
     .brand,
-    a {
+    a,
+    .menu-group-toggle {
       justify-content: center;
     }
 
     .brand span,
-    a span {
+    a span,
+    .menu-group-toggle span {
+      display: none;
+    }
+
+    .menu-group-chevron,
+    .menu-subitems {
       display: none;
     }
 
@@ -27,13 +34,23 @@
       width: 240px;
 
       .brand,
-      a {
+      a,
+      .menu-group-toggle {
         justify-content: flex-start;
       }
 
       .brand span,
-      a span {
+      a span,
+      .menu-group-toggle span {
         display: inline;
+      }
+
+      .menu-group-chevron {
+        display: inline-flex;
+      }
+
+      .menu-subitems {
+        display: flex;
       }
     }
   }
@@ -139,16 +156,22 @@ ul {
   }
 }
 
-a {
+a,
+.menu-group-toggle {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  width: 100%;
   padding: 0.65rem var(--space-md);
+  border: none;
   border-radius: var(--radius-sm);
+  background: none;
   text-decoration: none;
   color: var(--color-text-secondary);
+  font-family: var(--font-family);
   font-size: 0.9rem;
   font-weight: 500;
+  cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 
   &:hover {
@@ -163,5 +186,41 @@ a {
 
   span {
     white-space: nowrap;
+  }
+}
+
+.menu-group-toggle {
+  &.open {
+    color: var(--color-text-primary);
+  }
+
+  span {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+.menu-group-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.menu-subitems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+
+  a {
+    padding: 0.55rem var(--space-md) 0.55rem calc(var(--space-md) + 22px);
+    font-size: 0.85rem;
   }
 }

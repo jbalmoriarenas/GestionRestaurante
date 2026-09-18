@@ -8,12 +8,37 @@
     <span>{{ 'app.brand' | translate }}</span>
   </div>
   <ul>
-    @for (item of items(); track item.vista) {
+    @for (item of items(); track item.labelKey) {
       <li>
-        <a [routerLink]="item.ruta" routerLinkActive="active" (click)="closeMobileMenu()">
-          <ui-icon [name]="item.icono" />
-          <span>{{ 'menu.' + item.labelKey | translate }}</span>
-        </a>
+        @if (item.children) {
+          <button
+            type="button"
+            class="menu-group-toggle"
+            [class.open]="openGroups()[item.labelKey]"
+            [attr.aria-expanded]="openGroups()[item.labelKey]"
+            (click)="toggleGroup(item.labelKey)"
+          >
+            <ui-icon [name]="item.icono" />
+            <span>{{ 'menu.' + item.labelKey | translate }}</span>
+            <ui-icon name="chevron" class="menu-group-chevron" [class.open]="openGroups()[item.labelKey]" />
+          </button>
+          @if (openGroups()[item.labelKey]) {
+            <ul class="menu-subitems">
+              @for (child of item.children; track child.ruta) {
+                <li>
+                  <a [routerLink]="child.ruta" routerLinkActive="active" (click)="closeMobileMenu()">
+                    <span>{{ 'menu.' + child.labelKey | translate }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <a [routerLink]="item.ruta" routerLinkActive="active" (click)="closeMobileMenu()">
+            <ui-icon [name]="item.icono" />
+            <span>{{ 'menu.' + item.labelKey | translate }}</span>
+          </a>
+        }
       </li>
     }
   </ul>

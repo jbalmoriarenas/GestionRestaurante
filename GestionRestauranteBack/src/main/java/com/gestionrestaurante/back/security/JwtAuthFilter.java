@@ -35,9 +35,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.parseClaims(token);
                 String email = claims.getSubject();
                 String tipoUsuarioCodigo = claims.get("tipoUsuarioCodigo", String.class);
+                Long empleadoId = claims.get("empleadoId", Long.class);
 
                 var authorities = permisoService.obtenerAutoridades(tipoUsuarioCodigo);
                 var authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
+                // El empleadoId va en los "details" (no en el principal) para que
+                // Authentication#getName() siga devolviendo el email sin cambios; los
+                // controllers que necesitan "solo mis propios datos" (fichajes, vacaciones)
+                // lo leen via CurrentUser.empleadoId(authentication).
+                authentication.setDetails(empleadoId);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException ex) {
                 SecurityContextHolder.clearContext();

@@ -38,4 +38,16 @@ public final class Wuris {
 
         public static final String BASE = API + "/tipos-usuarios";
     }
+
+    public static final class Fichajes {
+        private Fichajes() {
+        }
+
+        public static final String BASE = API + "/fichajes";
+        public static final String ENTRADA = BASE + "/entrada";
+        public static final String SALIDA = BASE + "/salida";
+        public static final String ACTUAL = BASE + "/actual";
+        public static final String MIOS = BASE + "/mios";
+        public static final String MIOS_HOY = BASE + "/mios/hoy";
+    }
 }

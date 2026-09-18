@@ -1,0 +1,56 @@
+<div class="mi-fichaje-page flex flex-col gap-xl">
+  <ui-card>
+    <div class="fichaje-panel flex flex-col items-center gap-lg">
+      <p class="fichaje-panel__fecha">{{ fechaHoy() }}</p>
+      @if (enCurso()) {
+        <p class="fichaje-panel__cronometro">{{ tiempoFormateado() }}</p>
+        <ui-button variant="secondary" [loading]="obteniendoUbicacion()" (click)="finalizar()">
+          {{ 'fichajes.miFichaje.finalizar' | translate }}
+        </ui-button>
+      } @else {
+        <ui-button variant="primary" [loading]="obteniendoUbicacion()" (click)="iniciar()">
+          {{ 'fichajes.miFichaje.iniciar' | translate }}
+        </ui-button>
+      }
+    </div>
+  </ui-card>
+
+  <ui-card>
+    <h2 class="mi-fichaje-page__heading">{{ 'fichajes.miFichaje.fichajesHoy' | translate }}</h2>
+    <ui-table
+      [loading]="cargandoHoy()"
+      [empty]="!cargandoHoy() && fichajesHoy().length === 0"
+      [emptyMessage]="'fichajes.miFichaje.fichajesHoyVacio' | translate"
+    >
+      <table>
+        <caption class="sr-only">{{ 'fichajes.miFichaje.fichajesHoy' | translate }}</caption>
+        <thead>
+          <tr>
+            <th>{{ 'fichajes.miFichaje.tabla.entrada' | translate }}</th>
+            <th>{{ 'fichajes.miFichaje.tabla.salida' | translate }}</th>
+            <th>{{ 'fichajes.miFichaje.tabla.horas' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fichaje of fichajesHoy(); track fichaje.id) {
+            <tr>
+              <td>{{ fichaje.horaEntrada | date: 'HH:mm' }}</td>
+              <td>{{ fichaje.horaSalida ? (fichaje.horaSalida | date: 'HH:mm') : '—' }}</td>
+              <td>{{ fichaje.horasCalculadas ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </ui-table>
+
+    @if (!cargandoHoy()) {
+      <div class="mi-fichaje-page__resumen flex justify-between items-center">
+        <span>
+          {{ 'fichajes.miFichaje.resumen.imputadas' | translate }}:
+          <strong [class.mi-fichaje-page__resumen-bajo]="horasImputadas() < horasTeoricas()">{{ horasImputadas() }} h</strong>
+        </span>
+        <span>{{ 'fichajes.miFichaje.resumen.teoricas' | translate }}: <strong>{{ horasTeoricas() }} h</strong></span>
+      </div>
+    }
+  </ui-card>
+</div>

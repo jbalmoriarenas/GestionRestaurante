@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { EmpleadoService } from '../../../core/services/empleado.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -13,7 +13,7 @@ import { UiSelect, UiSelectOption } from '../../../shared/ui/ui-select/ui-select
 
 @Component({
   selector: 'app-empleado-form',
-  imports: [ReactiveFormsModule, RouterLink, UiCard, UiInput, UiSelect, UiButton, TranslatePipe],
+  imports: [ReactiveFormsModule, UiCard, UiInput, UiSelect, UiButton, TranslatePipe],
   templateUrl: './empleado-form.html',
   styleUrl: './empleado-form.scss',
 })
