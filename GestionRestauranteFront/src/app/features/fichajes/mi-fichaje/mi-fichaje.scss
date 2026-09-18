@@ -1,8 +1,7 @@
 .mi-fichaje-page {
+  // El tamaño/peso/margen vive en la utilidad compartida .section-heading; aqui solo el
+  // centrado, que es propio de esta vista (mis-vacaciones.scss lo deja alineado a la izquierda).
   &__heading {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: var(--space-lg);
     text-align: center;
   }
 

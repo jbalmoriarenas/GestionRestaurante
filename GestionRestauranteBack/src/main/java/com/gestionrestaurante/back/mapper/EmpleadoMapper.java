@@ -37,6 +37,7 @@ public final class EmpleadoMapper {
         empleado.setPuesto(dto.puesto());
         empleado.setFechaAlta(dto.fechaAlta());
         empleado.setActivo(true);
+        empleado.setDiasVacacionesAnuales(Empleado.DIAS_VACACIONES_ANUALES_DEFECTO);
         empleado.setTipoUsuario(tipoUsuario);
         empleado.setPasswordHash(passwordHash);
         return empleado;

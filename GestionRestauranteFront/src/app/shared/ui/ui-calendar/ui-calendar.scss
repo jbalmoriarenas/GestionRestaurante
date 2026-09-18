@@ -1,0 +1,100 @@
+.ui-calendar {
+  max-width: 560px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+  }
+
+  &__titulo {
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  &__nav {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-text-primary);
+    }
+  }
+
+  &__weekdays,
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  &__weekday {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    padding-bottom: var(--space-sm);
+  }
+
+  &__dia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+
+    &--fuera {
+      color: var(--color-text-disabled);
+    }
+
+    &--hoy {
+      background: var(--color-primary-light);
+      font-weight: 600;
+    }
+
+    &--festivo {
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      font-weight: 600;
+    }
+
+    &--aprobado {
+      background: var(--color-success-light);
+      color: var(--color-success);
+      font-weight: 600;
+    }
+
+    &--pendiente {
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+      font-weight: 600;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__nav {
+      width: 28px;
+      height: 28px;
+      font-size: 1rem;
+    }
+
+    &__weekday {
+      font-size: 0.65rem;
+    }
+
+    &__dia {
+      font-size: 0.75rem;
+    }
+  }
+}

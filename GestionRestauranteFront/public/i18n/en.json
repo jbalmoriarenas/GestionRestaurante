@@ -5,6 +5,8 @@
   "menu": {
     "fichajes": "Time tracking",
     "fichajesMio": "My clock-in",
+    "vacaciones": "Time off",
+    "vacacionesMias": "My time off",
     "empleados": "Employees",
     "facturas": "Invoices",
     "nominas": "Payroll"
@@ -116,6 +118,51 @@
         "permisoDenegado": "Enable location permission in your browser to clock in",
         "posicionNoDisponible": "Couldn't get your location. Please try again",
         "tiempoAgotado": "Timed out waiting for your location. Please try again"
+      }
+    }
+  },
+  "vacaciones": {
+    "misVacaciones": {
+      "resumen": {
+        "total": "Total days",
+        "disponibles": "Available",
+        "pendientes": "Pending"
+      },
+      "calendario": {
+        "diasSemana": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+      },
+      "form": {
+        "titulo": "Request time off",
+        "fechaInicio": "Start date",
+        "fechaFin": "End date",
+        "solicitar": "Request",
+        "errores": {
+          "rangoInvalido": "The end date can't be before the start date",
+          "distintoAnio": "The time off range must stay within the same calendar year"
+        }
+      },
+      "solicitudCreada": "Time off request submitted",
+      "solicitudCancelada": "Request cancelled",
+      "solicitudes": {
+        "titulo": "My requests",
+        "vacio": "You haven't requested time off yet",
+        "cancelar": "Cancel",
+        "modal": {
+          "titulo": "Cancel request",
+          "mensaje": "Are you sure you want to cancel this time off period?",
+          "confirmar": "Yes, cancel"
+        },
+        "tabla": {
+          "fechaInicio": "Start",
+          "fechaFin": "End",
+          "dias": "Days",
+          "estado": "Status"
+        },
+        "estados": {
+          "PENDIENTE": "Pending",
+          "APROBADA": "Approved",
+          "RECHAZADA": "Rejected"
+        }
       }
     }
   }

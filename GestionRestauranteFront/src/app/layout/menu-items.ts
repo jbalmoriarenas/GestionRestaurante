@@ -33,6 +33,11 @@ export const MENU_ITEMS: MenuItem[] = [
     icono: 'fichajes',
     children: [{ ruta: '/fichajes', labelKey: 'fichajesMio', vista: 'FICHAJES', nivelMinimo: 'EDICION' }],
   },
+  {
+    labelKey: 'vacaciones',
+    icono: 'vacaciones',
+    children: [{ ruta: '/vacaciones', labelKey: 'vacacionesMias', vista: 'VACACIONES', nivelMinimo: 'EDICION' }],
+  },
   { vista: 'EMPLEADOS', ruta: '/empleados', labelKey: 'empleados', icono: 'empleados' },
   { vista: 'FACTURAS', ruta: '/facturas', labelKey: 'facturas', icono: 'facturas' },
   { vista: 'NOMINAS', ruta: '/nominas', labelKey: 'nominas', icono: 'nominas' },

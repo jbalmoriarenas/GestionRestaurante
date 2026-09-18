@@ -1,0 +1,32 @@
+<div class="ui-calendar">
+  <div class="ui-calendar__header">
+    <button type="button" class="ui-calendar__nav" (click)="irAMesAnterior()" [attr.aria-label]="previousLabel()">
+      ‹
+    </button>
+    <span class="ui-calendar__titulo">{{ titulo() }}</span>
+    <button type="button" class="ui-calendar__nav" (click)="irAMesSiguiente()" [attr.aria-label]="nextLabel()">
+      ›
+    </button>
+  </div>
+
+  <div class="ui-calendar__weekdays">
+    @for (label of weekdayLabels(); track label) {
+      <span class="ui-calendar__weekday">{{ label }}</span>
+    }
+  </div>
+
+  <div class="ui-calendar__grid">
+    @for (dia of dias(); track dia.fecha.getTime()) {
+      <span
+        class="ui-calendar__dia"
+        [class.ui-calendar__dia--fuera]="dia.fueraDeMes"
+        [class.ui-calendar__dia--hoy]="dia.hoy"
+        [class.ui-calendar__dia--festivo]="dia.variante === 'festivo'"
+        [class.ui-calendar__dia--aprobado]="dia.variante === 'aprobado'"
+        [class.ui-calendar__dia--pendiente]="dia.variante === 'pendiente'"
+      >
+        {{ dia.numero }}
+      </span>
+    }
+  </div>
+</div>

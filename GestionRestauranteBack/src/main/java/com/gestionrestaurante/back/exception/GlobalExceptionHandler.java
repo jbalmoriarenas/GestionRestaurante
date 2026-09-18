@@ -5,12 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 @Slf4j
@@ -24,13 +26,32 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, message.isBlank() ? "Datos invalidos" : message, request);
     }
 
+    @ExceptionHandler(RangoFechasInvalidoException.class)
+    public ResponseEntity<ApiError> handleRangoFechasInvalido(RangoFechasInvalidoException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // Fallo de validacion de un @RequestParam/@PathVariable individual (p.ej. @Min/@Max en
+    // VacacionesController#anio), distinto de MethodArgumentNotValidException (que es para
+    // @Valid en @RequestBody).
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiError> handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
+        String message = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream())
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+        return build(HttpStatus.BAD_REQUEST, message.isBlank() ? "Datos invalidos" : message, request);
+    }
+
     @ExceptionHandler({EmpleadoNotFoundException.class, TipoUsuarioNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler({EmailYaExisteException.class, DniYaExisteException.class,
-            FichajeYaAbiertoException.class, FichajeNoAbiertoException.class})
+            FichajeYaAbiertoException.class, FichajeNoAbiertoException.class,
+            DiasVacacionesInsuficientesException.class, SolicitudVacacionesNoEditableException.class,
+            SolicitudVacacionesSolapadaException.class})
     public ResponseEntity<ApiError> handleConflict(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
@@ -40,8 +61,8 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(UbicacionFueraDeRangoException.class)
-    public ResponseEntity<ApiError> handleUbicacionFueraDeRango(UbicacionFueraDeRangoException ex, HttpServletRequest request) {
+    @ExceptionHandler({UbicacionFueraDeRangoException.class, SolicitudVacacionesNoPropiaException.class})
+    public ResponseEntity<ApiError> handleForbiddenDeNegocio(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 

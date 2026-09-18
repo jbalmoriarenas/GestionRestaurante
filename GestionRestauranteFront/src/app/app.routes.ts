@@ -21,6 +21,12 @@ export const routes: Routes = [
           import('./features/fichajes/mi-fichaje/mi-fichaje').then((m) => m.MiFichaje),
       },
       {
+        path: 'vacaciones',
+        canActivate: [permissionGuard('VACACIONES', 'EDICION')],
+        loadComponent: () =>
+          import('./features/vacaciones/mis-vacaciones/mis-vacaciones').then((m) => m.MisVacaciones),
+      },
+      {
         path: 'empleados',
         canActivate: [permissionGuard('EMPLEADOS')],
         loadComponent: () =>

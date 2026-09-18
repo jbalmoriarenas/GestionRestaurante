@@ -50,4 +50,15 @@ public final class Wuris {
         public static final String MIOS = BASE + "/mios";
         public static final String MIOS_HOY = BASE + "/mios/hoy";
     }
+
+    public static final class Vacaciones {
+        private Vacaciones() {
+        }
+
+        public static final String BASE = API + "/vacaciones";
+        public static final String RESUMEN = BASE + "/resumen";
+        public static final String CALENDARIO = BASE + "/calendario";
+        public static final String SOLICITUDES = BASE + "/solicitudes";
+        public static final String SOLICITUD_BY_ID = SOLICITUDES + "/{id}";
+    }
 }

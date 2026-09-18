@@ -15,7 +15,7 @@ shared/ui/ui-calendar/ui-calendar.ts / .html / .scss   ← nuevo, reutilizable
 features/vacaciones/mis-vacaciones/mis-vacaciones.ts / .html / .scss
 ```
 
-Ruta `/vacaciones` protegida con `permissionGuard('VACACIONES', 'EDICION')`; añadir `VACACIONES` al mapa `CodigoVista → {ruta, label, icono}` de `menu-items.ts` (Fase 0) para que aparezca en el menú de ambos roles.
+Ruta `/vacaciones` protegida con `permissionGuard('VACACIONES', 'EDICION')`; añadir `VACACIONES` a `menu-items.ts` como un nuevo `MenuGroup` (o como `MenuChild` de uno ya existente, si para entonces cuelga de un grupo compartido) siguiendo el modelo `MenuLeaf | MenuGroup` introducido en `fase1-1-front.md` (ya no es el mapa plano `CodigoVista → {ruta, label, icono}` de Fase 0), para que aparezca en el sidebar de ambos roles.
 
 ## Modelos (`core/models/vacaciones.model.ts`)
 

@@ -8,6 +8,8 @@
     [placeholder]="placeholder()"
     [value]="value()"
     [disabled]="disabled()"
+    [attr.min]="min() || null"
+    [attr.max]="max() || null"
     [class.invalid]="errorMessage()"
     (input)="handleInput($event)"
     (blur)="handleBlur()"

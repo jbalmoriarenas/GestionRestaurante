@@ -2,10 +2,12 @@ package com.gestionrestaurante.back.repository;
 
 import com.gestionrestaurante.back.entity.Empleado;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,6 +19,17 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
             where e.email = :email
             """)
     Optional<Empleado> findByEmailWithTipoUsuario(@Param("email") String email);
+
+    /**
+     * Bloqueo pessimista de la fila del empleado (SELECT ... FOR UPDATE). Usado por
+     * VacacionesService.solicitar para serializar, por empleado, el chequeo de dias
+     * disponibles seguido del INSERT de la solicitud: la regla de negocio es una suma
+     * agregada (no una unicidad simple como en fichajes), asi que no hay un indice unico
+     * que la proteja por si solo — se serializa a nivel de fila en su lugar.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Empleado e where e.id = :id")
+    Optional<Empleado> findByIdConBloqueo(@Param("id") Long id);
 
     boolean existsByEmail(String email);
 

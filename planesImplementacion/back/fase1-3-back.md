@@ -14,7 +14,7 @@ En vez de crear una vista/permiso nuevo solo para esto, estos endpoints se prote
 
 ## Análisis y supuestos (jornada parcial y umbrales semanal/mensual)
 
-- **Jornada por empleado** (confirmado con el usuario): `empleado.horasJornadaDiaria` (columna nullable de `bbdd/fase1-3-bbdd.md`) manda si tiene valor; si es `NULL`, se usa `app.fichajes.horas-jornada-default=8`. Un único método (`obtenerUmbralDiario(Empleado)`) resuelve esta prioridad en todo el documento, para no repetir el `if` en tres sitios distintos.
+- **Jornada por empleado** (confirmado con el usuario): `empleado.horasJornadaDiaria` (columna nullable de `bbdd/fase1-3-bbdd.md`) manda si tiene valor; si es `NULL`, se usa `app.fichajes.horas-jornada-default` — propiedad que **ya existe desde `fase1-1-back.md`** (se introdujo antes de lo previsto porque la vista del empleado la necesitó para mostrar "horas teóricas del turno"; aquí no se vuelve a declarar, solo se reutiliza). Un único método (`obtenerUmbralDiario(Empleado)`) resuelve esta prioridad en todo el documento, para no repetir el `if` en tres sitios distintos.
 - **Umbral semanal** = `umbralDiario × 5` (semana laboral de lunes a viernes, asunción simple). **Umbral mensual** = `umbralDiario × diasLaborablesDelMes`, reutilizando `VacacionesService.calcularDiasLaborables` (Fase 1.2) para contar días laborables del mes (excluyendo fines de semana y festivos).
 - **Simplificación conocida, documentada explícitamente**: ninguno de los dos umbrales agregados resta los días en que el empleado tuviera una solicitud de vacaciones `APROBADA` dentro del rango — un empleado que estuvo una semana de vacaciones aparecerá con esa semana "en rojo" aunque sea correcto. Se acepta como limitación de esta fase (cruzar Fichajes con Vacaciones en el cálculo del umbral es una mejora razonable pero no imprescindible para el MVP); el Admin revisa con criterio, no se bloquea nada automáticamente por esto. Ver "Riesgos".
 
@@ -33,7 +33,7 @@ Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo cam
 2. **[Backend, baja]** Añadir el mismo campo (opcional) a `EmpleadoCreateDTO`, `EmpleadoUpdateDTO` y `EmpleadoResponseDTO` (definidos en `fase0-back.md`) y a `EmpleadoMapper` — cambio aditivo y compatible con los clientes existentes del contrato (un campo `null`/ausente no rompe nada de lo ya construido en Fase 0).
 
 ### Resumen y corrección de fichajes
-3. **[Backend, baja]** Nueva propiedad `app.fichajes.horas-jornada-default=8` en `application.properties`, inyectada vía `@Value`.
+3. ~~Nueva propiedad `app.fichajes.horas-jornada-default=8`~~ — **ya existe desde `fase1-1-back.md`**, sin subtarea propia aquí.
 4. **[Backend, media]** Extender `FichajeRepository` (de `fase1-1-back.md`): `findByFiltros(Long empleadoId, LocalDate desde, LocalDate hasta, Pageable)`; `findByEmpleado_IdAndFechaBetween(Long, LocalDate, LocalDate)` (sin paginar, base de los tres resúmenes).
 5. **[Backend, alta]** Extender `FichajeService`:
    - `obtenerUmbralDiario(Empleado empleado): BigDecimal` — `empleado.horasJornadaDiaria` si no es `null`, si no `horasJornadaDefault`.

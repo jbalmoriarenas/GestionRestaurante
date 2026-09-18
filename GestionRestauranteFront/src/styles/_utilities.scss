@@ -50,6 +50,26 @@
   width: 100%;
 }
 
+// Cabecera de seccion dentro de una ui-card (usada por mi-fichaje y mis-vacaciones).
+.section-heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: var(--space-lg);
+}
+
+// Quita el estilo nativo de <a>/<button> para que solo se vea el ui-badge que lo envuelve
+// (patron "badge con accion" de empleados-list y mis-vacaciones).
+.badge-action-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 // Visualmente oculto pero accesible a lectores de pantalla (captions de tabla, labels
 // implicitos, etc.) — nunca usar display:none para este caso, anularia el anuncio por voz.
 .sr-only {

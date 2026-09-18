@@ -1,0 +1,121 @@
+<div class="mis-vacaciones-page flex flex-col gap-xl">
+  <div class="mis-vacaciones-page__resumen flex gap-lg flex-wrap">
+    <ui-card class="mis-vacaciones-page__resumen-card">
+      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.total' | translate }}</p>
+      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().total }}</p>
+    </ui-card>
+    <ui-card class="mis-vacaciones-page__resumen-card">
+      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.disponibles' | translate }}</p>
+      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().disponibles }}</p>
+    </ui-card>
+    <ui-card class="mis-vacaciones-page__resumen-card">
+      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.pendientes' | translate }}</p>
+      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().pendientes }}</p>
+    </ui-card>
+  </div>
+
+  <ui-card>
+    <ui-calendar
+      [anio]="anioMostrado()"
+      [mes]="mesMostrado()"
+      [marcadores]="marcadoresCalendario()"
+      [titulo]="tituloMes()"
+      [weekdayLabels]="'vacaciones.misVacaciones.calendario.diasSemana' | translate"
+      [previousLabel]="'common.previous' | translate"
+      [nextLabel]="'common.next' | translate"
+      (mesAnterior)="irAMesAnterior()"
+      (mesSiguiente)="irAMesSiguiente()"
+    />
+  </ui-card>
+
+  <ui-card>
+    <h2 class="section-heading">{{ 'vacaciones.misVacaciones.form.titulo' | translate }}</h2>
+    <form [formGroup]="form" (ngSubmit)="solicitar()" class="mis-vacaciones-page__form flex flex-wrap gap-lg items-end">
+      <ui-input
+        [label]="'vacaciones.misVacaciones.form.fechaInicio' | translate"
+        type="date"
+        formControlName="fechaInicio"
+      />
+      <ui-input
+        [label]="'vacaciones.misVacaciones.form.fechaFin' | translate"
+        type="date"
+        formControlName="fechaFin"
+        [min]="fechaFinMin()"
+        [max]="fechaFinMax()"
+        [errorMessage]="rangoErrorMessage()"
+      />
+      <ui-button type="submit" [loading]="enviandoSolicitud()">
+        {{ 'vacaciones.misVacaciones.form.solicitar' | translate }}
+      </ui-button>
+    </form>
+  </ui-card>
+
+  <ui-card>
+    <h2 class="section-heading">{{ 'vacaciones.misVacaciones.solicitudes.titulo' | translate }}</h2>
+    <ui-table
+      [loading]="cargandoSolicitudes()"
+      [empty]="!cargandoSolicitudes() && (pageSolicitudes()?.content?.length ?? 0) === 0"
+      [emptyMessage]="'vacaciones.misVacaciones.solicitudes.vacio' | translate"
+      [page]="pageSolicitudes()?.number ?? 0"
+      [totalPages]="pageSolicitudes()?.totalPages ?? 0"
+      [previousLabel]="'common.previous' | translate"
+      [nextLabel]="'common.next' | translate"
+      [pageLabel]="
+        'common.pageOf' | translate: { current: (pageSolicitudes()?.number ?? 0) + 1, total: pageSolicitudes()?.totalPages ?? 0 }
+      "
+    >
+      <table>
+        <caption class="sr-only">{{ 'vacaciones.misVacaciones.solicitudes.titulo' | translate }}</caption>
+        <thead>
+          <tr>
+            <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.fechaInicio' | translate }}</th>
+            <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.fechaFin' | translate }}</th>
+            <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.dias' | translate }}</th>
+            <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.estado' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (solicitud of pageSolicitudes()?.content ?? []; track solicitud.id) {
+            <tr>
+              <td>{{ solicitud.fechaInicio }}</td>
+              <td>{{ solicitud.fechaFin }}</td>
+              <td>{{ solicitud.diasSolicitados }}</td>
+              <td>
+                <ui-badge
+                  [variant]="
+                    solicitud.estado === 'APROBADA' ? 'success' : solicitud.estado === 'RECHAZADA' ? 'danger' : 'warning'
+                  "
+                >
+                  {{ ('vacaciones.misVacaciones.solicitudes.estados.' + solicitud.estado) | translate }}
+                </ui-badge>
+              </td>
+              <td>
+                @if (solicitud.estado === 'PENDIENTE') {
+                  <ui-badge variant="danger">
+                    <button type="button" class="badge-action-reset" (click)="confirmarCancelacion(solicitud)">
+                      {{ 'vacaciones.misVacaciones.solicitudes.cancelar' | translate }}
+                    </button>
+                  </ui-badge>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </ui-table>
+  </ui-card>
+</div>
+
+<ui-modal
+  [open]="solicitudACancelar() !== null"
+  [title]="'vacaciones.misVacaciones.solicitudes.modal.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarModalCancelacion()"
+>
+  <p>{{ 'vacaciones.misVacaciones.solicitudes.modal.mensaje' | translate }}</p>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarModalCancelacion()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button variant="danger" (click)="cancelar()">{{ 'vacaciones.misVacaciones.solicitudes.modal.confirmar' | translate }}</ui-button>
+  </div>
+</ui-modal>
