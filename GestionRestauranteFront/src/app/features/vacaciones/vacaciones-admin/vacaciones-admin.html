@@ -1,0 +1,316 @@
+<div class="vacaciones-admin-page flex flex-col gap-xl">
+  <h1 class="section-heading">{{ 'vacaciones.admin.titulo' | translate }}</h1>
+
+  <div class="tabs-shell" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      id="tab-pendientes"
+      [attr.aria-selected]="pestana() === 'pendientes'"
+      aria-controls="panel-pendientes"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'pendientes'"
+      (click)="cambiarPestana('pendientes')"
+    >
+      {{ 'vacaciones.admin.pestanas.pendientes' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      id="tab-porEmpleado"
+      [attr.aria-selected]="pestana() === 'porEmpleado'"
+      aria-controls="panel-porEmpleado"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'porEmpleado'"
+      (click)="cambiarPestana('porEmpleado')"
+    >
+      {{ 'vacaciones.admin.pestanas.porEmpleado' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      id="tab-configuracion"
+      [attr.aria-selected]="pestana() === 'configuracion'"
+      aria-controls="panel-configuracion"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'configuracion'"
+      (click)="cambiarPestana('configuracion')"
+    >
+      {{ 'vacaciones.admin.pestanas.configuracion' | translate }}
+    </button>
+  </div>
+
+  @switch (pestana()) {
+    @case ('pendientes') {
+      <ui-card role="tabpanel" id="panel-pendientes" aria-labelledby="tab-pendientes">
+        <ui-table
+          [loading]="cargandoPendientes()"
+          [empty]="!cargandoPendientes() && (pagePendientes()?.content?.length ?? 0) === 0"
+          [emptyMessage]="'vacaciones.admin.pendientes.vacio' | translate"
+          [page]="pagePendientes()?.number ?? 0"
+          [totalPages]="pagePendientes()?.totalPages ?? 0"
+          [previousLabel]="'common.previous' | translate"
+          [nextLabel]="'common.next' | translate"
+          [pageLabel]="
+            'common.pageOf' | translate: { current: (pagePendientes()?.number ?? 0) + 1, total: pagePendientes()?.totalPages ?? 0 }
+          "
+          (pageChange)="cambiarPaginaPendientes($event)"
+        >
+          <table>
+            <caption class="sr-only">{{ 'vacaciones.admin.pendientes.titulo' | translate }}</caption>
+            <thead>
+              <tr>
+                <th>{{ 'vacaciones.admin.pendientes.tabla.empleado' | translate }}</th>
+                <th>{{ 'vacaciones.admin.pendientes.tabla.fechaInicio' | translate }}</th>
+                <th>{{ 'vacaciones.admin.pendientes.tabla.fechaFin' | translate }}</th>
+                <th>{{ 'vacaciones.admin.pendientes.tabla.dias' | translate }}</th>
+                <th><span class="sr-only">{{ 'vacaciones.admin.pendientes.tabla.acciones' | translate }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (solicitud of pagePendientes()?.content ?? []; track solicitud.id) {
+                <tr>
+                  <td>{{ solicitud.empleadoNombre }}</td>
+                  <td>{{ solicitud.fechaInicio }}</td>
+                  <td>{{ solicitud.fechaFin }}</td>
+                  <td>{{ solicitud.diasSolicitados }}</td>
+                  <td class="vacaciones-admin-page__acciones">
+                    <button type="button" class="badge-action-reset vacaciones-admin-page__aprobar" (click)="aprobarDesdePendientes(solicitud.id)">
+                      {{ 'vacaciones.admin.pendientes.aprobar' | translate }}
+                    </button>
+                    <button type="button" class="badge-action-reset vacaciones-admin-page__rechazar" (click)="abrirRechazo(solicitud.id)">
+                      {{ 'vacaciones.admin.pendientes.rechazar' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </ui-table>
+      </ui-card>
+    }
+    @case ('porEmpleado') {
+      <div role="tabpanel" id="panel-porEmpleado" aria-labelledby="tab-porEmpleado" class="flex flex-col gap-xl">
+      <ui-card>
+        <form [formGroup]="porEmpleadoForm" class="flex flex-wrap gap-lg items-end">
+          <ui-select
+            [label]="'vacaciones.admin.porEmpleado.empleado' | translate"
+            [placeholder]="'common.selectOption' | translate"
+            [options]="empleadoOptions()"
+            formControlName="empleadoId"
+          />
+        </form>
+      </ui-card>
+
+      @if (!porEmpleadoForm.controls.empleadoId.value) {
+        <ui-card>
+          <p class="page-note">{{ 'vacaciones.admin.porEmpleado.seleccionaEmpleado' | translate }}</p>
+        </ui-card>
+      } @else {
+        <div class="vacaciones-admin-page__resumen flex gap-lg flex-wrap">
+          <ui-card class="stat-card">
+            <p class="stat-card-label">{{ 'vacaciones.admin.porEmpleado.resumen.total' | translate }}</p>
+            <p class="stat-card-value">{{ resumenEmpleado()?.total ?? '—' }}</p>
+          </ui-card>
+          <ui-card class="stat-card">
+            <p class="stat-card-label">{{ 'vacaciones.admin.porEmpleado.resumen.disponibles' | translate }}</p>
+            <p class="stat-card-value">{{ resumenEmpleado()?.disponibles ?? '—' }}</p>
+          </ui-card>
+          <ui-card class="stat-card">
+            <p class="stat-card-label">{{ 'vacaciones.admin.porEmpleado.resumen.pendientes' | translate }}</p>
+            <p class="stat-card-value">{{ resumenEmpleado()?.pendientes ?? '—' }}</p>
+          </ui-card>
+        </div>
+
+        <ui-card>
+          <ui-calendar
+            [anio]="anioMostrado()"
+            [mes]="mesMostrado()"
+            [marcadores]="marcadoresCalendarioEmpleado()"
+            [titulo]="tituloMesEmpleado()"
+            [weekdayLabels]="'vacaciones.misVacaciones.calendario.diasSemana' | translate"
+            [previousLabel]="'common.previous' | translate"
+            [nextLabel]="'common.next' | translate"
+            (mesAnterior)="irAMesAnteriorEmpleado()"
+            (mesSiguiente)="irAMesSiguienteEmpleado()"
+          />
+        </ui-card>
+
+        <ui-card>
+          <div class="vacaciones-admin-page__historial-header flex items-end justify-between flex-wrap gap-lg">
+            <h2 class="section-heading">{{ 'vacaciones.admin.porEmpleado.solicitudes.titulo' | translate }}</h2>
+            <div class="flex items-end gap-lg">
+              <ui-select
+                class="vacaciones-admin-page__filtro-select"
+                [label]="'vacaciones.admin.porEmpleado.solicitudes.filtroEstado' | translate"
+                [options]="filtroEstadoOptions()"
+                [formControl]="filtroEstadoControl"
+              />
+              <ui-button type="button" (click)="abrirAsignarOficio()">
+                {{ 'vacaciones.admin.porEmpleado.asignarOficio' | translate }}
+              </ui-button>
+            </div>
+          </div>
+
+          <ui-table
+            [loading]="cargandoSolicitudesEmpleado()"
+            [empty]="!cargandoSolicitudesEmpleado() && (pageSolicitudesEmpleado()?.content?.length ?? 0) === 0"
+            [emptyMessage]="'vacaciones.admin.porEmpleado.solicitudes.vacio' | translate"
+            [page]="pageSolicitudesEmpleado()?.number ?? 0"
+            [totalPages]="pageSolicitudesEmpleado()?.totalPages ?? 0"
+            [previousLabel]="'common.previous' | translate"
+            [nextLabel]="'common.next' | translate"
+            [pageLabel]="
+              'common.pageOf'
+                | translate: { current: (pageSolicitudesEmpleado()?.number ?? 0) + 1, total: pageSolicitudesEmpleado()?.totalPages ?? 0 }
+            "
+            (pageChange)="cambiarPaginaSolicitudesEmpleado($event)"
+          >
+            <table>
+              <caption class="sr-only">{{ 'vacaciones.admin.porEmpleado.solicitudes.titulo' | translate }}</caption>
+              <thead>
+                <tr>
+                  <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.fechaInicio' | translate }}</th>
+                  <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.fechaFin' | translate }}</th>
+                  <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.dias' | translate }}</th>
+                  <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.estado' | translate }}</th>
+                  <th><span class="sr-only">{{ 'vacaciones.admin.pendientes.tabla.acciones' | translate }}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (solicitud of pageSolicitudesEmpleado()?.content ?? []; track solicitud.id) {
+                  <tr>
+                    <td>{{ solicitud.fechaInicio }}</td>
+                    <td>{{ solicitud.fechaFin }}</td>
+                    <td>{{ solicitud.diasSolicitados }}</td>
+                    <td>
+                      <ui-badge
+                        [variant]="
+                          solicitud.estado === 'APROBADA' ? 'success' : solicitud.estado === 'RECHAZADA' ? 'danger' : 'warning'
+                        "
+                      >
+                        {{ ('vacaciones.misVacaciones.solicitudes.estados.' + solicitud.estado) | translate }}
+                      </ui-badge>
+                    </td>
+                    <td class="vacaciones-admin-page__acciones">
+                      @if (solicitud.estado === 'PENDIENTE') {
+                        <button type="button" class="badge-action-reset vacaciones-admin-page__aprobar" (click)="aprobarSolicitudEmpleado(solicitud.id)">
+                          {{ 'vacaciones.admin.pendientes.aprobar' | translate }}
+                        </button>
+                        <button type="button" class="badge-action-reset vacaciones-admin-page__rechazar" (click)="abrirRechazo(solicitud.id)">
+                          {{ 'vacaciones.admin.pendientes.rechazar' | translate }}
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </ui-table>
+        </ui-card>
+      }
+      </div>
+    }
+    @case ('configuracion') {
+      <div role="tabpanel" id="panel-configuracion" aria-labelledby="tab-configuracion" class="flex flex-col gap-xl">
+      <ui-card>
+        <h2 class="section-heading">{{ 'vacaciones.admin.configuracion.global.titulo' | translate }}</h2>
+        <p class="page-note">{{ 'vacaciones.admin.configuracion.global.ayuda' | translate }}</p>
+        <form [formGroup]="configuracionGlobalForm" (ngSubmit)="guardarConfiguracionGlobal()" class="flex flex-wrap gap-lg items-end">
+          <ui-input
+            [label]="'vacaciones.admin.configuracion.global.dias' | translate"
+            type="number"
+            formControlName="diasAnualesDefecto"
+          />
+          <ui-button type="submit" [loading]="guardandoConfiguracionGlobal()">
+            {{ 'vacaciones.admin.configuracion.global.guardar' | translate }}
+          </ui-button>
+        </form>
+      </ui-card>
+
+      <ui-card>
+        <h2 class="section-heading">{{ 'vacaciones.admin.configuracion.override.titulo' | translate }}</h2>
+        <p class="page-note">
+          {{ 'vacaciones.admin.configuracion.override.ayuda' | translate: { defecto: diasAnualesGlobal() } }}
+        </p>
+        <form [formGroup]="overrideForm" (ngSubmit)="guardarOverride()" class="flex flex-wrap gap-lg items-end">
+          <ui-select
+            [label]="'vacaciones.admin.porEmpleado.empleado' | translate"
+            [placeholder]="'common.selectOption' | translate"
+            [options]="empleadoOptions()"
+            formControlName="empleadoId"
+          />
+          <ui-input
+            [label]="'vacaciones.admin.configuracion.override.dias' | translate"
+            [placeholder]="'vacaciones.admin.configuracion.override.diasPlaceholder' | translate"
+            [errorMessage]="overrideDiasErrorMessage()"
+            formControlName="dias"
+          />
+          <ui-button
+            type="submit"
+            [loading]="guardandoOverride()"
+            [disabled]="!overrideForm.controls.empleadoId.value"
+          >
+            {{ 'vacaciones.admin.configuracion.override.guardar' | translate }}
+          </ui-button>
+        </form>
+        @if (!overrideForm.controls.empleadoId.value) {
+          <p class="page-note">{{ 'vacaciones.admin.porEmpleado.seleccionaEmpleado' | translate }}</p>
+        } @else {
+          @if (!cargandoOverride() && empleadoOverride()?.diasVacacionesAnuales == null) {
+            <p class="page-note">
+              {{ 'vacaciones.admin.configuracion.override.usaValorGlobal' | translate: { defecto: diasAnualesGlobal() } }}
+            </p>
+          }
+          @if (resumenOverride(); as resumen) {
+            <p class="page-note">
+              {{ 'vacaciones.admin.configuracion.override.disponiblesEsteAnio' | translate }}: <strong>{{ resumen.disponibles }}</strong>
+            </p>
+          }
+        }
+      </ui-card>
+      </div>
+    }
+  }
+</div>
+
+<ui-modal
+  [open]="solicitudARechazar() !== null"
+  [title]="'vacaciones.admin.rechazo.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarRechazo()"
+>
+  <form [formGroup]="rechazoForm" class="flex flex-col gap-lg">
+    <ui-select
+      [label]="'vacaciones.admin.rechazo.motivo' | translate"
+      [placeholder]="'common.selectOption' | translate"
+      [options]="motivoRechazoOptions()"
+      formControlName="motivo"
+    />
+  </form>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarRechazo()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button variant="danger" [loading]="guardandoRechazo()" (click)="guardarRechazo()">
+      {{ 'vacaciones.admin.pendientes.rechazar' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>
+
+<ui-modal
+  [open]="mostrarAsignarOficio()"
+  [title]="'vacaciones.admin.asignarOficio.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarAsignarOficio()"
+>
+  <form [formGroup]="asignarOficioForm" class="flex flex-col gap-lg">
+    <p class="notice-banner">{{ 'vacaciones.admin.asignarOficio.aviso' | translate }}</p>
+    <ui-input [label]="'vacaciones.admin.asignarOficio.fechaInicio' | translate" type="date" formControlName="fechaInicio" />
+    <ui-input [label]="'vacaciones.admin.asignarOficio.fechaFin' | translate" type="date" formControlName="fechaFin" />
+  </form>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarAsignarOficio()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button [loading]="guardandoAsignacion()" (click)="guardarAsignacionOficio()">
+      {{ 'vacaciones.admin.asignarOficio.asignar' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>

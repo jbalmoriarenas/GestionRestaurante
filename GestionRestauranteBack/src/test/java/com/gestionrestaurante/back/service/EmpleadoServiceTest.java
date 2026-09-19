@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.gestionrestaurante.back.dto.EmpleadoResponseDTO;
+import com.gestionrestaurante.back.entity.ConfiguracionVacaciones;
 import com.gestionrestaurante.back.entity.Empleado;
 import com.gestionrestaurante.back.entity.TipoUsuario;
+import com.gestionrestaurante.back.exception.DiasVacacionesAnualesFueraDeRangoException;
 import com.gestionrestaurante.back.exception.EmpleadoNotFoundException;
 import com.gestionrestaurante.back.repository.EmpleadoRepository;
 import com.gestionrestaurante.back.repository.TipoUsuarioRepository;
@@ -32,12 +34,15 @@ class EmpleadoServiceTest {
     private TipoUsuarioRepository tipoUsuarioRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private ConfiguracionVacacionesService configuracionVacacionesService;
 
     private EmpleadoService empleadoService;
 
     @BeforeEach
     void setUp() {
-        empleadoService = new EmpleadoService(empleadoRepository, tipoUsuarioRepository, passwordEncoder);
+        empleadoService = new EmpleadoService(
+                empleadoRepository, tipoUsuarioRepository, passwordEncoder, configuracionVacacionesService);
     }
 
     @Test
@@ -71,6 +76,56 @@ class EmpleadoServiceTest {
 
         assertThatThrownBy(() -> empleadoService.actualizarHorarioTeorico(EMPLEADO_ID, BigDecimal.valueOf(6)))
                 .isInstanceOf(EmpleadoNotFoundException.class);
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_conValorValido_loPersisteYLoDevuelve() {
+        Empleado empleado = empleadoDePrueba();
+        when(empleadoRepository.findById(EMPLEADO_ID)).thenReturn(Optional.of(empleado));
+        when(empleadoRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(configuracionVacacionesService.obtener()).thenReturn(configuracionConDefecto(23));
+
+        EmpleadoResponseDTO respuesta = empleadoService.actualizarDiasVacacionesAnuales(EMPLEADO_ID, 15);
+
+        assertThat(empleado.getDiasVacacionesAnuales()).isEqualTo(15);
+        assertThat(respuesta.diasVacacionesAnuales()).isEqualTo(15);
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_conNull_vuelveAUsarElValorGlobal() {
+        Empleado empleado = empleadoDePrueba();
+        empleado.setDiasVacacionesAnuales(15);
+        when(empleadoRepository.findById(EMPLEADO_ID)).thenReturn(Optional.of(empleado));
+        when(empleadoRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EmpleadoResponseDTO respuesta = empleadoService.actualizarDiasVacacionesAnuales(EMPLEADO_ID, null);
+
+        assertThat(empleado.getDiasVacacionesAnuales()).isNull();
+        assertThat(respuesta.diasVacacionesAnuales()).isNull();
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_porEncimaDelGlobalLanzaFueraDeRango() {
+        Empleado empleado = empleadoDePrueba();
+        when(empleadoRepository.findById(EMPLEADO_ID)).thenReturn(Optional.of(empleado));
+        when(configuracionVacacionesService.obtener()).thenReturn(configuracionConDefecto(23));
+
+        assertThatThrownBy(() -> empleadoService.actualizarDiasVacacionesAnuales(EMPLEADO_ID, 30))
+                .isInstanceOf(DiasVacacionesAnualesFueraDeRangoException.class);
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_empleadoInexistenteLanzaEmpleadoNotFound() {
+        when(empleadoRepository.findById(EMPLEADO_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> empleadoService.actualizarDiasVacacionesAnuales(EMPLEADO_ID, 15))
+                .isInstanceOf(EmpleadoNotFoundException.class);
+    }
+
+    private static ConfiguracionVacaciones configuracionConDefecto(int diasAnualesDefecto) {
+        ConfiguracionVacaciones configuracion = new ConfiguracionVacaciones();
+        configuracion.setDiasAnualesDefecto(diasAnualesDefecto);
+        return configuracion;
     }
 
     private static Empleado empleadoDePrueba() {

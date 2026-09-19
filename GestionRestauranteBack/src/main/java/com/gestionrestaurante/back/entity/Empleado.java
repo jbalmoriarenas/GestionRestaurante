@@ -22,13 +22,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Empleado {
 
-    /**
-     * Mismo valor que el DEFAULT de la columna en BBDD (V14). Hibernate siempre envia un
-     * valor explicito en el INSERT, por lo que el DEFAULT de la columna nunca se aplica al
-     * crear un empleado desde Java; hay que fijarlo aqui a mano.
-     */
-    public static final short DIAS_VACACIONES_ANUALES_DEFECTO = 23;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -60,8 +53,13 @@ public class Empleado {
     @Column(nullable = false)
     private boolean activo;
 
-    @Column(name = "dias_vacaciones_anuales", nullable = false)
-    private short diasVacacionesAnuales;
+    /**
+     * Jornada anual de vacaciones propia de este empleado; NULL significa "usa el valor
+     * global por defecto" (configuracion_vacaciones), no "0 dias" — ver
+     * VacacionesService.obtenerDiasVacacionesAnuales. Mismo patron que horasJornadaDiaria.
+     */
+    @Column(name = "dias_vacaciones_anuales")
+    private Integer diasVacacionesAnuales;
 
     /**
      * Jornada diaria propia de este empleado (jornada parcial); NULL significa "usa el

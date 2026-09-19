@@ -1,43 +1,63 @@
 <div class="fichajes-admin-page flex flex-col gap-xl">
   <h1 class="section-heading">{{ 'fichajes.admin.titulo' | translate }}</h1>
 
-  <div class="fichajes-admin-page__tabs" role="tablist">
+  <div class="tabs-shell" role="tablist">
     <button
       type="button"
-      class="fichajes-admin-page__tab"
-      [class.fichajes-admin-page__tab--activa]="pestana() === 'diario'"
+      role="tab"
+      id="tab-diario"
+      [attr.aria-selected]="pestana() === 'diario'"
+      aria-controls="panel-diario"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'diario'"
       (click)="cambiarPestana('diario')"
     >
       {{ 'fichajes.admin.pestanas.diario' | translate }}
     </button>
     <button
       type="button"
-      class="fichajes-admin-page__tab"
-      [class.fichajes-admin-page__tab--activa]="pestana() === 'semanal'"
+      role="tab"
+      id="tab-semanal"
+      [attr.aria-selected]="pestana() === 'semanal'"
+      aria-controls="panel-semanal"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'semanal'"
       (click)="cambiarPestana('semanal')"
     >
       {{ 'fichajes.admin.pestanas.semanal' | translate }}
     </button>
     <button
       type="button"
-      class="fichajes-admin-page__tab"
-      [class.fichajes-admin-page__tab--activa]="pestana() === 'mensual'"
+      role="tab"
+      id="tab-mensual"
+      [attr.aria-selected]="pestana() === 'mensual'"
+      aria-controls="panel-mensual"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'mensual'"
       (click)="cambiarPestana('mensual')"
     >
       {{ 'fichajes.admin.pestanas.mensual' | translate }}
     </button>
     <button
       type="button"
-      class="fichajes-admin-page__tab"
-      [class.fichajes-admin-page__tab--activa]="pestana() === 'horarios'"
+      role="tab"
+      id="tab-horarios"
+      [attr.aria-selected]="pestana() === 'horarios'"
+      aria-controls="panel-horarios"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'horarios'"
       (click)="cambiarPestana('horarios')"
     >
       {{ 'fichajes.admin.pestanas.horarios' | translate }}
     </button>
     <button
       type="button"
-      class="fichajes-admin-page__tab"
-      [class.fichajes-admin-page__tab--activa]="pestana() === 'ubicacion'"
+      role="tab"
+      id="tab-ubicacion"
+      [attr.aria-selected]="pestana() === 'ubicacion'"
+      aria-controls="panel-ubicacion"
+      class="tab-button"
+      [class.tab-button--activa]="pestana() === 'ubicacion'"
       (click)="cambiarPestana('ubicacion')"
     >
       {{ 'fichajes.admin.pestanas.ubicacion' | translate }}
@@ -66,7 +86,7 @@
 
   @switch (pestana()) {
     @case ('diario') {
-      <ui-card>
+      <ui-card role="tabpanel" id="panel-diario" aria-labelledby="tab-diario">
         <ui-table
           [loading]="cargando()"
           [empty]="consultado() && !cargando() && resumenDiario().length === 0"
@@ -101,8 +121,8 @@
       </ui-card>
     }
     @case ('semanal') {
-      <ui-card>
-        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
+      <ui-card role="tabpanel" id="panel-semanal" aria-labelledby="tab-semanal">
+        <p class="page-note">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
         <ui-table
           [loading]="cargando()"
           [empty]="consultado() && !cargando() && resumenSemanal().length === 0"
@@ -131,8 +151,8 @@
       </ui-card>
     }
     @case ('mensual') {
-      <ui-card>
-        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
+      <ui-card role="tabpanel" id="panel-mensual" aria-labelledby="tab-mensual">
+        <p class="page-note">{{ 'fichajes.admin.notaVacaciones' | translate }}</p>
         <ui-table
           [loading]="cargando()"
           [empty]="consultado() && !cargando() && resumenMensual().length === 0"
@@ -161,8 +181,8 @@
       </ui-card>
     }
     @case ('horarios') {
-      <ui-card>
-        <p class="fichajes-admin-page__nota">
+      <ui-card role="tabpanel" id="panel-horarios" aria-labelledby="tab-horarios">
+        <p class="page-note">
           {{ 'fichajes.admin.horarios.ayuda' | translate: { horas: horasJornadaDefault } }}
         </p>
         <form [formGroup]="horarioTeoricoForm" (ngSubmit)="guardarHorarioTeorico()" class="flex flex-wrap gap-lg items-end">
@@ -187,20 +207,20 @@
           </ui-button>
         </form>
         @if (!horarioTeoricoForm.controls.empleadoId.value) {
-          <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.horarios.seleccionaEmpleado' | translate }}</p>
+          <p class="page-note">{{ 'fichajes.admin.horarios.seleccionaEmpleado' | translate }}</p>
         } @else if (!cargandoHorarioTeorico() && horarioTeoricoEmpleado()?.horasJornadaDiaria == null) {
-          <p class="fichajes-admin-page__nota">
+          <p class="page-note">
             {{ 'fichajes.admin.horarios.usaValorGlobal' | translate: { horas: horasJornadaDefault } }}
           </p>
         }
       </ui-card>
     }
     @case ('ubicacion') {
-      <ui-card>
+      <ui-card role="tabpanel" id="panel-ubicacion" aria-labelledby="tab-ubicacion">
         @if (ubicacionSinConfigurar()) {
-          <p class="fichajes-admin-page__aviso">{{ 'fichajes.admin.ubicacion.sinConfigurar' | translate }}</p>
+          <p class="notice-banner">{{ 'fichajes.admin.ubicacion.sinConfigurar' | translate }}</p>
         }
-        <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.ubicacion.ayuda' | translate }}</p>
+        <p class="page-note">{{ 'fichajes.admin.ubicacion.ayuda' | translate }}</p>
         <form [formGroup]="ubicacionForm" (ngSubmit)="guardarUbicacion()" class="flex flex-wrap gap-lg items-end">
           <ui-input [label]="'fichajes.admin.ubicacion.lat' | translate" type="number" formControlName="lat" />
           <ui-input [label]="'fichajes.admin.ubicacion.lng' | translate" type="number" formControlName="lng" />
@@ -208,7 +228,7 @@
           <ui-button type="submit" [loading]="guardandoUbicacion()">{{ 'common.save' | translate }}</ui-button>
         </form>
         @if (ubicacionActual(); as ubicacion) {
-          <p class="fichajes-admin-page__actualizado">
+          <p class="page-note">
             {{ 'fichajes.admin.ubicacion.actualizadoEl' | translate }} {{ ubicacion.updatedAt }}
           </p>
         }

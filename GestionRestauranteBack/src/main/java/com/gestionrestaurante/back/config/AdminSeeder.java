@@ -48,7 +48,6 @@ public class AdminSeeder implements CommandLineRunner {
         admin.setPuesto("Administrador");
         admin.setFechaAlta(LocalDate.now());
         admin.setActivo(true);
-        admin.setDiasVacacionesAnuales(Empleado.DIAS_VACACIONES_ANUALES_DEFECTO);
         admin.setTipoUsuario(tipoUsuarioAdmin);
         admin.setPasswordHash(passwordEncoder.encode(adminPassword));
 

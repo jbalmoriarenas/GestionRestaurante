@@ -8,6 +8,7 @@
     "fichajesAdmin": "Time tracking (Admin)",
     "vacaciones": "Time off",
     "vacacionesMias": "My time off",
+    "vacacionesAdmin": "Time off (Admin)",
     "empleados": "Employees",
     "facturas": "Invoices",
     "nominas": "Payroll"
@@ -107,7 +108,7 @@
     "miFichaje": {
       "iniciar": "Clock in",
       "finalizar": "Clock out",
-      "turnoFinalizado": "Shift finished: {{horas}} h worked",
+      "turnoFinalizado": "Shift finished: {{horas}} worked",
       "fichajesHoy": "Today's clock-ins",
       "fichajesHoyVacio": "You haven't clocked in today yet",
       "tabla": {
@@ -210,6 +211,11 @@
     }
   },
   "vacaciones": {
+    "motivosRechazo": {
+      "FALTA_DISPONIBILIDAD": "Lack of availability",
+      "YA_SELECCIONADAS_COMPANEROS": "Already taken by colleagues",
+      "OTROS": "Other"
+    },
     "misVacaciones": {
       "resumen": {
         "total": "Total days",
@@ -244,13 +250,88 @@
           "fechaInicio": "Start",
           "fechaFin": "End",
           "dias": "Days",
-          "estado": "Status"
+          "estado": "Status",
+          "motivo": "Reason"
         },
         "estados": {
           "PENDIENTE": "Pending",
           "APROBADA": "Approved",
           "RECHAZADA": "Rejected"
         }
+      }
+    },
+    "admin": {
+      "titulo": "Time off (Admin)",
+      "pestanas": {
+        "pendientes": "Pending",
+        "porEmpleado": "By employee",
+        "configuracion": "Settings"
+      },
+      "pendientes": {
+        "titulo": "Pending requests",
+        "vacio": "No pending requests",
+        "aprobar": "Approve",
+        "rechazar": "Reject",
+        "tabla": {
+          "empleado": "Employee",
+          "fechaInicio": "Start",
+          "fechaFin": "End",
+          "dias": "Days",
+          "acciones": "Actions"
+        }
+      },
+      "porEmpleado": {
+        "empleado": "Employee",
+        "seleccionaEmpleado": "Select an employee to see their calendar and requests",
+        "asignarOficio": "Assign time off",
+        "resumen": {
+          "total": "Total days",
+          "disponibles": "Available",
+          "pendientes": "Pending"
+        },
+        "solicitudes": {
+          "titulo": "Request history",
+          "vacio": "This employee has no requests",
+          "filtroEstado": "Filter by status",
+          "todos": "All"
+        }
+      },
+      "asignarOficio": {
+        "titulo": "Assign time off",
+        "aviso": "These days will be approved immediately and deducted from the employee's balance",
+        "fechaInicio": "Start date",
+        "fechaFin": "End date",
+        "asignar": "Assign"
+      },
+      "rechazo": {
+        "titulo": "Reject request",
+        "motivo": "Rejection reason"
+      },
+      "configuracion": {
+        "global": {
+          "titulo": "Default annual time off days",
+          "ayuda": "Applies to every employee without a schedule of their own.",
+          "dias": "Annual days",
+          "guardar": "Save"
+        },
+        "override": {
+          "titulo": "Correct an employee's total days",
+          "ayuda": "Select an employee to directly set their total available days this year (for example, if the automatic proration of their hire year isn't the right one). It can never exceed the global value ({{defecto}} days/year).",
+          "dias": "Total days available this year",
+          "diasPlaceholder": "Empty = calculated automatically",
+          "usaValorGlobal": "This employee has no total of their own: it's calculated automatically (prorated if it's their hire year), capped at {{defecto}} days/year",
+          "disponiblesEsteAnio": "Current total for this year",
+          "guardar": "Save",
+          "formatoInvalido": "Enter a whole number of days",
+          "fueraDeRango": "It can't exceed the global default ({{defecto}} days/year)"
+        }
+      },
+      "notificaciones": {
+        "aprobada": "Request approved",
+        "rechazada": "Request rejected",
+        "asignada": "Time off assigned",
+        "configuracionGuardada": "Settings updated",
+        "overrideGuardado": "Employee's total days updated"
       }
     }
   }

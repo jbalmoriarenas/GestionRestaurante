@@ -1,16 +1,16 @@
 <div class="mis-vacaciones-page flex flex-col gap-xl">
   <div class="mis-vacaciones-page__resumen flex gap-lg flex-wrap">
-    <ui-card class="mis-vacaciones-page__resumen-card">
-      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.total' | translate }}</p>
-      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().total }}</p>
+    <ui-card class="stat-card">
+      <p class="stat-card-label">{{ 'vacaciones.misVacaciones.resumen.total' | translate }}</p>
+      <p class="stat-card-value">{{ resumen().total }}</p>
     </ui-card>
-    <ui-card class="mis-vacaciones-page__resumen-card">
-      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.disponibles' | translate }}</p>
-      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().disponibles }}</p>
+    <ui-card class="stat-card">
+      <p class="stat-card-label">{{ 'vacaciones.misVacaciones.resumen.disponibles' | translate }}</p>
+      <p class="stat-card-value">{{ resumen().disponibles }}</p>
     </ui-card>
-    <ui-card class="mis-vacaciones-page__resumen-card">
-      <p class="mis-vacaciones-page__resumen-label">{{ 'vacaciones.misVacaciones.resumen.pendientes' | translate }}</p>
-      <p class="mis-vacaciones-page__resumen-valor">{{ resumen().pendientes }}</p>
+    <ui-card class="stat-card">
+      <p class="stat-card-label">{{ 'vacaciones.misVacaciones.resumen.pendientes' | translate }}</p>
+      <p class="stat-card-value">{{ resumen().pendientes }}</p>
     </ui-card>
   </div>
 
@@ -74,6 +74,7 @@
             <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.fechaFin' | translate }}</th>
             <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.dias' | translate }}</th>
             <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.estado' | translate }}</th>
+            <th>{{ 'vacaciones.misVacaciones.solicitudes.tabla.motivo' | translate }}</th>
             <th></th>
           </tr>
         </thead>
@@ -92,6 +93,7 @@
                   {{ ('vacaciones.misVacaciones.solicitudes.estados.' + solicitud.estado) | translate }}
                 </ui-badge>
               </td>
+              <td>{{ motivoRechazoLabel(solicitud.motivoRechazo) }}</td>
               <td>
                 @if (solicitud.estado === 'PENDIENTE') {
                   <ui-badge variant="danger">

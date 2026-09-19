@@ -3,8 +3,11 @@ package com.gestionrestaurante.back.controller;
 import com.gestionrestaurante.back.Wuris;
 import com.gestionrestaurante.back.dto.ConfiguracionUbicacionRequestDTO;
 import com.gestionrestaurante.back.dto.ConfiguracionUbicacionResponseDTO;
+import com.gestionrestaurante.back.dto.ConfiguracionVacacionesRequestDTO;
+import com.gestionrestaurante.back.dto.ConfiguracionVacacionesResponseDTO;
 import com.gestionrestaurante.back.security.CurrentUser;
 import com.gestionrestaurante.back.service.ConfiguracionUbicacionService;
+import com.gestionrestaurante.back.service.ConfiguracionVacacionesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConfiguracionController {
 
     private final ConfiguracionUbicacionService configuracionUbicacionService;
+    private final ConfiguracionVacacionesService configuracionVacacionesService;
 
     @GetMapping(Wuris.Configuracion.UBICACION)
     @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
@@ -37,5 +41,19 @@ public class ConfiguracionController {
             @Valid @RequestBody ConfiguracionUbicacionRequestDTO request, Authentication authentication) {
         return ConfiguracionUbicacionResponseDTO.from(configuracionUbicacionService.actualizar(
                 request.lat(), request.lng(), request.radioMetros(), CurrentUser.empleadoId(authentication)));
+    }
+
+    @GetMapping(Wuris.Configuracion.VACACIONES)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public ConfiguracionVacacionesResponseDTO obtenerVacaciones() {
+        return ConfiguracionVacacionesResponseDTO.from(configuracionVacacionesService.obtener());
+    }
+
+    @PutMapping(Wuris.Configuracion.VACACIONES)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public ConfiguracionVacacionesResponseDTO actualizarVacaciones(
+            @Valid @RequestBody ConfiguracionVacacionesRequestDTO request, Authentication authentication) {
+        return ConfiguracionVacacionesResponseDTO.from(configuracionVacacionesService.actualizar(
+                request.diasAnualesDefecto(), CurrentUser.empleadoId(authentication)));
     }
 }

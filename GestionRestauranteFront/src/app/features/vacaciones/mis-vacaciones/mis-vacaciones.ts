@@ -4,7 +4,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { VacacionesService } from '../../../core/services/vacaciones.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Page } from '../../../core/models/page.model';
-import { ResumenVacaciones, SolicitudVacaciones } from '../../../core/models/vacaciones.model';
+import { MOTIVOS_RECHAZO_VACACIONES, ResumenVacaciones, SolicitudVacaciones } from '../../../core/models/vacaciones.model';
 import { CalendarioMarcador, UiCalendar } from '../../../shared/ui/ui-calendar/ui-calendar';
 import { UiBadge } from '../../../shared/ui/ui-badge/ui-badge';
 import { UiButton } from '../../../shared/ui/ui-button/ui-button';
@@ -88,6 +88,18 @@ export class MisVacaciones implements OnInit {
 
   irAMesSiguiente(): void {
     this.navegarMes(1);
+  }
+
+  // El motivo se guarda como uno de los codigos fijos de MOTIVOS_RECHAZO_VACACIONES (seleccionable
+  // en vacaciones-admin), pero se traduce con fallback al texto tal cual para no romper solicitudes
+  // antiguas que aun guardasen un motivo libre de antes de este cambio.
+  motivoRechazoLabel(motivo: string | null): string {
+    if (!motivo) {
+      return '—';
+    }
+    return (MOTIVOS_RECHAZO_VACACIONES as readonly string[]).includes(motivo)
+      ? this.translateService.instant(`vacaciones.motivosRechazo.${motivo}`)
+      : motivo;
   }
 
   rangoErrorMessage(): string | null {

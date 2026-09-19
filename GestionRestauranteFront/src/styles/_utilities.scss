@@ -57,6 +57,74 @@
   margin-bottom: var(--space-lg);
 }
 
+// Cabecera de pestañas de una pagina admin con varias vistas (fichajes-admin, vacaciones-admin).
+.tabs-shell {
+  display: flex;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+
+  &--activa {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+}
+
+// Texto secundario de ayuda/estado bajo un titulo o formulario (fichajes-admin, vacaciones-admin).
+.page-note {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+// Aviso de advertencia con fondo (fichajes-admin, vacaciones-admin).
+.notice-banner {
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+// Tarjeta de estadistica/resumen (numero grande + etiqueta) usada en mis-vacaciones y vacaciones-admin.
+.stat-card {
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+}
+
+.stat-card-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-xs);
+}
+
+.stat-card-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
 // Quita el estilo nativo de <a>/<button> para que solo se vea el ui-badge que lo envuelve
 // (patron "badge con accion" de empleados-list y mis-vacaciones).
 .badge-action-reset {

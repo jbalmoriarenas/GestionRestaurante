@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { VacacionesService } from '../../../core/services/vacaciones.service';
@@ -190,5 +190,28 @@ describe('MisVacaciones', () => {
     expect(vacacionesServiceMock.cancelar).toHaveBeenCalledWith(7);
     expect(componente.solicitudACancelar()).toBeNull();
     expect(notificationServiceMock.success).toHaveBeenCalled();
+  });
+
+  it('motivoRechazoLabel(): sin motivo, muestra un guion', () => {
+    const componente = crearComponente();
+
+    expect(componente.motivoRechazoLabel(null)).toBe('—');
+  });
+
+  it('motivoRechazoLabel(): con un codigo conocido, pasa por el traductor en vez de devolverlo tal cual', () => {
+    const componente = crearComponente();
+    const translateService = TestBed.inject(TranslateService);
+    const instantSpy = vi.spyOn(translateService, 'instant');
+
+    const resultado = componente.motivoRechazoLabel('FALTA_DISPONIBILIDAD');
+
+    expect(instantSpy).toHaveBeenCalledWith('vacaciones.motivosRechazo.FALTA_DISPONIBILIDAD');
+    expect(resultado).not.toBe('FALTA_DISPONIBILIDAD');
+  });
+
+  it('motivoRechazoLabel(): con un motivo libre de antes de este cambio, lo muestra tal cual', () => {
+    const componente = crearComponente();
+
+    expect(componente.motivoRechazoLabel('no queda cupo')).toBe('no queda cupo');
   });
 });

@@ -1,10 +1,14 @@
 package com.gestionrestaurante.back.controller;
 
 import com.gestionrestaurante.back.Wuris;
+import com.gestionrestaurante.back.dto.AsignacionOficioCreateDTO;
 import com.gestionrestaurante.back.dto.DiaCalendarioDTO;
+import com.gestionrestaurante.back.dto.RechazarSolicitudRequestDTO;
 import com.gestionrestaurante.back.dto.ResumenVacacionesDTO;
+import com.gestionrestaurante.back.dto.SolicitudVacacionesAdminResponseDTO;
 import com.gestionrestaurante.back.dto.SolicitudVacacionesCreateDTO;
 import com.gestionrestaurante.back.dto.SolicitudVacacionesResponseDTO;
+import com.gestionrestaurante.back.entity.EstadoSolicitud;
 import com.gestionrestaurante.back.security.CurrentUser;
 import com.gestionrestaurante.back.service.VacacionesService;
 import jakarta.validation.Valid;
@@ -20,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,5 +76,56 @@ public class VacacionesController {
     @PreAuthorize("hasAuthority('VACACIONES:EDICION')")
     public void cancelar(Authentication authentication, @PathVariable Long id) {
         vacacionesService.cancelar(CurrentUser.empleadoId(authentication), id);
+    }
+
+    @GetMapping(Wuris.Vacaciones.ADMIN_CALENDARIO)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public List<DiaCalendarioDTO> obtenerCalendarioComoAdmin(
+            @RequestParam Long empleadoId, @RequestParam @Min(ANIO_MINIMO) @Max(ANIO_MAXIMO) int anio) {
+        return vacacionesService.obtenerCalendario(empleadoId, anio);
+    }
+
+    @GetMapping(Wuris.Vacaciones.ADMIN_RESUMEN)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public ResumenVacacionesDTO obtenerResumenComoAdmin(
+            @RequestParam Long empleadoId, @RequestParam @Min(ANIO_MINIMO) @Max(ANIO_MAXIMO) int anio) {
+        return vacacionesService.obtenerResumenAnual(empleadoId, anio);
+    }
+
+    @GetMapping(Wuris.Vacaciones.ADMIN_SOLICITUDES)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public Page<SolicitudVacacionesResponseDTO> listarSolicitudesComoAdmin(
+            @RequestParam Long empleadoId,
+            @RequestParam(required = false) EstadoSolicitud estado,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return vacacionesService.listarSolicitudesComoAdmin(empleadoId, estado, pageable);
+    }
+
+    @GetMapping(Wuris.Vacaciones.ADMIN_SOLICITUDES_PENDIENTES)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public Page<SolicitudVacacionesAdminResponseDTO> listarTodasPendientes(@PageableDefault(size = 20) Pageable pageable) {
+        return vacacionesService.listarTodasPendientes(pageable);
+    }
+
+    @PatchMapping(Wuris.Vacaciones.ADMIN_SOLICITUD_APROBAR)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public SolicitudVacacionesResponseDTO aprobar(Authentication authentication, @PathVariable Long id) {
+        return vacacionesService.aprobar(id, CurrentUser.empleadoId(authentication));
+    }
+
+    @PatchMapping(Wuris.Vacaciones.ADMIN_SOLICITUD_RECHAZAR)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public SolicitudVacacionesResponseDTO rechazar(
+            Authentication authentication, @PathVariable Long id, @Valid @RequestBody RechazarSolicitudRequestDTO request) {
+        return vacacionesService.rechazar(id, CurrentUser.empleadoId(authentication), request.motivo());
+    }
+
+    @PostMapping(Wuris.Vacaciones.ADMIN_SOLICITUDES)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public SolicitudVacacionesResponseDTO asignarDeOficio(
+            Authentication authentication, @Valid @RequestBody AsignacionOficioCreateDTO request) {
+        return vacacionesService.asignarDeOficio(
+                request.empleadoId(), request.fechaInicio(), request.fechaFin(), CurrentUser.empleadoId(authentication));
     }
 }

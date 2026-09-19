@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.gestionrestaurante.back.dto.EmpleadoResponseDTO;
 import com.gestionrestaurante.back.dto.TipoUsuarioDTO;
+import com.gestionrestaurante.back.exception.DiasVacacionesAnualesFueraDeRangoException;
 import com.gestionrestaurante.back.exception.EmpleadoNotFoundException;
 import com.gestionrestaurante.back.security.JwtAuthFilter;
 import com.gestionrestaurante.back.service.EmpleadoService;
@@ -98,10 +99,65 @@ class EmpleadoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void actualizarDiasVacacionesAnuales_conValorValidoDevuelveElEmpleadoActualizado() throws Exception {
+        when(empleadoService.actualizarDiasVacacionesAnuales(eq(2L), eq(15)))
+                .thenReturn(empleadoResponseConDias(15));
+
+        mockMvc.perform(patch("/api/empleados/2/dias-vacaciones-anuales")
+                        .principal(autenticacionDeAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"diasVacacionesAnuales\":15}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.diasVacacionesAnuales").value(15));
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_porEncimaDelGlobalResponde400() throws Exception {
+        when(empleadoService.actualizarDiasVacacionesAnuales(eq(2L), eq(30)))
+                .thenThrow(new DiasVacacionesAnualesFueraDeRangoException(23));
+
+        mockMvc.perform(patch("/api/empleados/2/dias-vacaciones-anuales")
+                        .principal(autenticacionDeAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"diasVacacionesAnuales\":30}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_conValorPorDebajoDe1Responde400SinLlamarAlServicio() throws Exception {
+        mockMvc.perform(patch("/api/empleados/2/dias-vacaciones-anuales")
+                        .principal(autenticacionDeAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"diasVacacionesAnuales\":0}"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(empleadoService);
+    }
+
+    @Test
+    void actualizarDiasVacacionesAnuales_conNullVuelveAUsarElValorGlobal() throws Exception {
+        when(empleadoService.actualizarDiasVacacionesAnuales(eq(2L), eq(null)))
+                .thenReturn(empleadoResponseConDias(null));
+
+        mockMvc.perform(patch("/api/empleados/2/dias-vacaciones-anuales")
+                        .principal(autenticacionDeAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk());
+    }
+
     private static EmpleadoResponseDTO empleadoResponseConHoras(BigDecimal horas) {
         return new EmpleadoResponseDTO(
                 2L, "Ana", "Lopez", "ana@test.com", "12345678A", null, null,
                 LocalDate.of(2026, 1, 1), null, true,
-                new TipoUsuarioDTO("EMPLEADO", "Empleado"), horas);
+                new TipoUsuarioDTO("EMPLEADO", "Empleado"), horas, null);
+    }
+
+    private static EmpleadoResponseDTO empleadoResponseConDias(Integer dias) {
+        return new EmpleadoResponseDTO(
+                2L, "Ana", "Lopez", "ana@test.com", "12345678A", null, null,
+                LocalDate.of(2026, 1, 1), null, true,
+                new TipoUsuarioDTO("EMPLEADO", "Empleado"), null, dias);
     }
 }

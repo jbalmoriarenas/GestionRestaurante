@@ -31,6 +31,7 @@ public final class Wuris {
         public static final String BAJA = BASE + "/{id}/baja";
         public static final String PASSWORD = BASE + "/{id}/password";
         public static final String HORARIO_TEORICO = BASE + "/{id}/horario-teorico";
+        public static final String DIAS_VACACIONES_ANUALES = BASE + "/{id}/dias-vacaciones-anuales";
     }
 
     public static final class TiposUsuarios {
@@ -63,6 +64,7 @@ public final class Wuris {
         }
 
         public static final String UBICACION = API + "/configuracion/ubicacion";
+        public static final String VACACIONES = API + "/configuracion/vacaciones";
     }
 
     public static final class Vacaciones {
@@ -74,5 +76,13 @@ public final class Wuris {
         public static final String CALENDARIO = BASE + "/calendario";
         public static final String SOLICITUDES = BASE + "/solicitudes";
         public static final String SOLICITUD_BY_ID = SOLICITUDES + "/{id}";
+
+        public static final String ADMIN = BASE + "/admin";
+        public static final String ADMIN_CALENDARIO = ADMIN + "/calendario";
+        public static final String ADMIN_RESUMEN = ADMIN + "/resumen";
+        public static final String ADMIN_SOLICITUDES = ADMIN + "/solicitudes";
+        public static final String ADMIN_SOLICITUDES_PENDIENTES = ADMIN_SOLICITUDES + "/pendientes";
+        public static final String ADMIN_SOLICITUD_APROBAR = ADMIN_SOLICITUDES + "/{id}/aprobar";
+        public static final String ADMIN_SOLICITUD_RECHAZAR = ADMIN_SOLICITUDES + "/{id}/rechazar";
     }
 }

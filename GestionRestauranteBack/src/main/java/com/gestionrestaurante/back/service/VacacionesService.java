@@ -2,6 +2,7 @@ package com.gestionrestaurante.back.service;
 
 import com.gestionrestaurante.back.dto.DiaCalendarioDTO;
 import com.gestionrestaurante.back.dto.ResumenVacacionesDTO;
+import com.gestionrestaurante.back.dto.SolicitudVacacionesAdminResponseDTO;
 import com.gestionrestaurante.back.dto.SolicitudVacacionesResponseDTO;
 import com.gestionrestaurante.back.dto.TipoDiaCalendario;
 import com.gestionrestaurante.back.entity.DiaFestivo;
@@ -13,6 +14,7 @@ import com.gestionrestaurante.back.exception.EmpleadoNotFoundException;
 import com.gestionrestaurante.back.exception.RangoFechasInvalidoException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesNoEditableException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesNoPropiaException;
+import com.gestionrestaurante.back.exception.SolicitudVacacionesNotFoundException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesSolapadaException;
 import com.gestionrestaurante.back.repository.DiaFestivoRepository;
 import com.gestionrestaurante.back.repository.EmpleadoRepository;
@@ -42,6 +44,7 @@ public class VacacionesService {
     private final SolicitudVacacionesRepository solicitudVacacionesRepository;
     private final DiaFestivoRepository diaFestivoRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final ConfiguracionVacacionesService configuracionVacacionesService;
 
     @Transactional
     public SolicitudVacacionesResponseDTO solicitar(Long empleadoId, LocalDate inicio, LocalDate fin) {
@@ -136,6 +139,91 @@ public class VacacionesService {
                 .map(this::toResponse);
     }
 
+    public Page<SolicitudVacacionesResponseDTO> listarSolicitudesComoAdmin(
+            Long empleadoId, EstadoSolicitud estadoOpcional, Pageable pageable) {
+        Page<SolicitudVacaciones> pagina = estadoOpcional != null
+                ? solicitudVacacionesRepository.findByEmpleado_IdAndEstadoOrderByFechaSolicitudDesc(
+                        empleadoId, estadoOpcional, pageable)
+                : solicitudVacacionesRepository.findByEmpleado_IdOrderByFechaSolicitudDesc(empleadoId, pageable);
+        return pagina.map(this::toResponse);
+    }
+
+    public Page<SolicitudVacacionesAdminResponseDTO> listarTodasPendientes(Pageable pageable) {
+        return solicitudVacacionesRepository.findByEstadoOrderByFechaSolicitudAsc(EstadoSolicitud.PENDIENTE, pageable)
+                .map(this::toAdminResponse);
+    }
+
+    @Transactional
+    public SolicitudVacacionesResponseDTO aprobar(Long solicitudId, Long adminId) {
+        SolicitudVacaciones solicitud = buscarSolicitudOrThrow(solicitudId);
+        if (solicitud.getEstado() != EstadoSolicitud.PENDIENTE) {
+            throw new SolicitudVacacionesNoEditableException();
+        }
+        solicitud.setEstado(EstadoSolicitud.APROBADA);
+        solicitud.setFechaResolucion(LocalDateTime.now());
+        solicitud.setResueltaPorAdminId(adminId);
+        return toResponse(solicitudVacacionesRepository.save(solicitud));
+    }
+
+    @Transactional
+    public SolicitudVacacionesResponseDTO rechazar(Long solicitudId, Long adminId, String motivo) {
+        SolicitudVacaciones solicitud = buscarSolicitudOrThrow(solicitudId);
+        if (solicitud.getEstado() != EstadoSolicitud.PENDIENTE) {
+            throw new SolicitudVacacionesNoEditableException();
+        }
+        solicitud.setEstado(EstadoSolicitud.RECHAZADA);
+        solicitud.setFechaResolucion(LocalDateTime.now());
+        solicitud.setResueltaPorAdminId(adminId);
+        solicitud.setMotivoRechazo(motivo);
+        return toResponse(solicitudVacacionesRepository.save(solicitud));
+    }
+
+    /**
+     * Misma validacion que solicitar (rango valido, dentro del año en curso, dia laborable,
+     * sin solape, cupo suficiente), pero crea la solicitud ya APROBADA en vez de PENDIENTE
+     * (fase1-4-back.md: "asignacion de oficio", ej. cierre obligatorio de la empresa).
+     */
+    @Transactional
+    public SolicitudVacacionesResponseDTO asignarDeOficio(Long empleadoId, LocalDate inicio, LocalDate fin, Long adminId) {
+        if (fin.isBefore(inicio)) {
+            throw new RangoFechasInvalidoException();
+        }
+        int anioActual = LocalDate.now().getYear();
+        if (inicio.getYear() != anioActual || fin.getYear() != anioActual) {
+            throw new RangoFechasInvalidoException("El rango de vacaciones debe estar dentro del año en curso");
+        }
+
+        Empleado empleado = empleadoRepository.findByIdConBloqueo(empleadoId)
+                .orElseThrow(() -> new EmpleadoNotFoundException(empleadoId));
+
+        int diasSolicitados = calcularDiasLaborables(inicio, fin);
+        if (diasSolicitados == 0) {
+            throw new RangoFechasInvalidoException("El rango seleccionado no incluye ningun dia laborable");
+        }
+
+        if (!solicitudVacacionesRepository.findSolapadas(empleadoId, ESTADOS_QUE_CONSUMEN_CUPO, inicio, fin).isEmpty()) {
+            throw new SolicitudVacacionesSolapadaException();
+        }
+
+        ResumenVacacionesDTO resumen = obtenerResumenAnual(empleado, inicio.getYear());
+        if (diasSolicitados > resumen.disponibles()) {
+            throw new DiasVacacionesInsuficientesException();
+        }
+
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setEmpleado(empleado);
+        solicitud.setFechaInicio(inicio);
+        solicitud.setFechaFin(fin);
+        solicitud.setDiasSolicitados((short) diasSolicitados);
+        solicitud.setEstado(EstadoSolicitud.APROBADA);
+        LocalDateTime ahora = LocalDateTime.now();
+        solicitud.setFechaSolicitud(ahora);
+        solicitud.setFechaResolucion(ahora);
+        solicitud.setResueltaPorAdminId(adminId);
+
+        return toResponse(solicitudVacacionesRepository.save(solicitud));
+    }
+
     /**
      * Unica fuente de verdad del calculo de dias laborables (lunes-viernes, sin festivos
      * sembrados en dias_festivos). Reutilizado tambien por la vista Admin (fase1-4-back.md)
@@ -162,17 +250,40 @@ public class VacacionesService {
      * valor completo (o 0 si el año consultado es anterior al de alta). Redondeo al entero
      * mas cercano, coherente con la decision de "solo dias completos" (ver
      * back/fase1-2-back.md).
+     *
+     * Excepcion (confirmado con el usuario tras una primera implementacion que no hacia
+     * esta distincion): si el empleado tiene un override propio de
+     * {@code diasVacacionesAnuales} (fijado por el Admin, back/fase1-4-back.md), ese valor
+     * NUNCA se prorratea, ni siquiera en el año de alta — el Admin ya esta fijando el total
+     * exacto de ese empleado para este año, no un baseline generico a prorratear. El
+     * prorrateo solo se aplica al valor GLOBAL por defecto, cuando el empleado no tiene
+     * ningun valor propio.
      */
     int calcularCupoAnual(Empleado empleado, int anio) {
         int anioAlta = empleado.getFechaAlta().getYear();
         if (anioAlta > anio) {
             return 0;
         }
-        if (anioAlta < anio) {
-            return empleado.getDiasVacacionesAnuales();
+        int diasAnuales = obtenerDiasVacacionesAnuales(empleado);
+        boolean tieneOverridePropio = empleado.getDiasVacacionesAnuales() != null;
+        if (anioAlta < anio || tieneOverridePropio) {
+            return diasAnuales;
         }
         int mesesRestantes = 12 - empleado.getFechaAlta().getMonthValue() + 1;
-        return Math.round(empleado.getDiasVacacionesAnuales() * mesesRestantes / 12.0f);
+        return Math.round(diasAnuales * mesesRestantes / 12.0f);
+    }
+
+    /**
+     * empleado.diasVacacionesAnuales manda si tiene valor; si es null, se usa el valor
+     * global (configuracion_vacaciones). Unico metodo fuente de verdad, reutilizado por
+     * calcularCupoAnual para que no pueda divergir del techo que valida
+     * EmpleadoService.actualizarDiasVacacionesAnuales. Mismo patron que
+     * FichajeService.obtenerUmbralDiario.
+     */
+    public int obtenerDiasVacacionesAnuales(Empleado empleado) {
+        return empleado.getDiasVacacionesAnuales() != null
+                ? empleado.getDiasVacacionesAnuales()
+                : configuracionVacacionesService.obtener().getDiasAnualesDefecto();
     }
 
     private ResumenVacacionesDTO obtenerResumenAnual(Empleado empleado, int anio) {
@@ -199,9 +310,28 @@ public class VacacionesService {
                 .sum();
     }
 
+    private SolicitudVacaciones buscarSolicitudOrThrow(Long solicitudId) {
+        return solicitudVacacionesRepository.findById(solicitudId)
+                .orElseThrow(() -> new SolicitudVacacionesNotFoundException(solicitudId));
+    }
+
     private SolicitudVacacionesResponseDTO toResponse(SolicitudVacaciones solicitud) {
         return new SolicitudVacacionesResponseDTO(
                 solicitud.getId(),
+                solicitud.getFechaInicio(),
+                solicitud.getFechaFin(),
+                solicitud.getDiasSolicitados(),
+                solicitud.getEstado(),
+                solicitud.getFechaSolicitud(),
+                solicitud.getMotivoRechazo());
+    }
+
+    private SolicitudVacacionesAdminResponseDTO toAdminResponse(SolicitudVacaciones solicitud) {
+        Empleado empleado = solicitud.getEmpleado();
+        return new SolicitudVacacionesAdminResponseDTO(
+                solicitud.getId(),
+                empleado.getId(),
+                empleado.getNombre() + " " + empleado.getApellidos(),
                 solicitud.getFechaInicio(),
                 solicitud.getFechaFin(),
                 solicitud.getDiasSolicitados(),

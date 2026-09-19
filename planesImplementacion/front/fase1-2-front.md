@@ -61,6 +61,7 @@ export type SolicitudVacacionesRequest = Pick<SolicitudVacaciones, 'fechaInicio'
    - `ui-calendar` con los `marcadores` construidos a partir de `obtenerCalendario(anioActual)`.
    - Formulario de solicitud: dos `ui-input type="date"` (fechaInicio/fechaFin) + `ui-button` "Solicitar"; validación básica en el front (fechaFin ≥ fechaInicio) antes de llamar al backend, que es quien valida disponibilidad real.
    - `ui-table` con el listado de `listarMisSolicitudes()` (fechas, días, estado vía `ui-badge`, motivo de rechazo si aplica) y botón "Cancelar" visible solo si `estado === 'PENDIENTE'`.
+   - **Revisión post-implementación (a petición del usuario)**: se añade una columna **"Motivo"** dedicada a la tabla (antes el motivo de rechazo no se mostraba en ningún sitio del listado del empleado). Muestra `'—'` si `motivoRechazo` es `null`; si tiene valor, lo traduce a través de `motivoRechazoLabel(motivo)`, que comprueba si el valor pertenece al catálogo cerrado `MOTIVOS_RECHAZO_VACACIONES` (introducido en `fase1-4-front.md` para el selector de motivo del Admin) y, si es así, lo traduce vía `vacaciones.motivosRechazo.<código>`; si no pertenece al catálogo (una solicitud rechazada antes de ese cambio, con un motivo de texto libre), se muestra tal cual, sin intentar traducir una clave que no existe — evita imprimir una clave i18n sin resolver para datos anteriores al cambio.
 5. **[Frontend, baja]** Tras solicitar/cancelar con éxito, refrescar resumen + calendario + listado (tres llamadas, sin estado compartido complejo — el volumen de datos no justifica más que eso).
 
 ## Decisiones técnicas
@@ -72,6 +73,7 @@ export type SolicitudVacacionesRequest = Pick<SolicitudVacaciones, 'fechaInicio'
 ## Riesgos y dependencias
 
 - **Dependencia dura** con `back/fase1-2-back.md`: sin los 5 endpoints de ese documento, esta vista no puede probarse end-to-end.
+- **Dependencia (añadida en revisión posterior)** con `front/fase1-4-front.md`: la columna "Motivo" de esta vista traduce `motivoRechazo` usando el catálogo `MOTIVOS_RECHAZO_VACACIONES`, que vive en `vacaciones.model.ts` (este documento) pero cuyos valores los define el selector de rechazo de la vista Admin — si esa fase añade/renombra un motivo, esta columna hay que revisarla también.
 - **Riesgo bajo**: si el empleado solicita un rango que abarca cambio de año (p.ej. 28 dic–3 ene), el resumen anual mostrado corresponde al año de `fechaInicio` (coherente con cómo lo calcula el backend) — dejar claro en el copy de la UI para que no resulte confuso.
 
 ## Criterios de aceptación técnicos
@@ -82,3 +84,4 @@ export type SolicitudVacacionesRequest = Pick<SolicitudVacaciones, 'fechaInicio'
 - Cancelar una solicitud pendiente la hace desaparecer del calendario y devuelve esos días a "disponibles" en el resumen, sin recargar la página.
 - Una solicitud ya `APROBADA` o `RECHAZADA` no muestra el botón "Cancelar".
 - Un empleado dado de alta a mitad del año en curso ve en la tarjeta "Total" el cupo ya prorrateado que devuelve el backend, no los días completos de `dias_vacaciones_anuales`.
+- La columna "Motivo" muestra un guion cuando la solicitud no está rechazada, y el texto traducido del motivo (en el idioma activo) cuando sí lo está.

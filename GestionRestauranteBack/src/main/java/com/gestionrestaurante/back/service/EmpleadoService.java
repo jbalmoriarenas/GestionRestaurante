@@ -5,6 +5,7 @@ import com.gestionrestaurante.back.dto.EmpleadoResponseDTO;
 import com.gestionrestaurante.back.dto.EmpleadoUpdateDTO;
 import com.gestionrestaurante.back.entity.Empleado;
 import com.gestionrestaurante.back.entity.TipoUsuario;
+import com.gestionrestaurante.back.exception.DiasVacacionesAnualesFueraDeRangoException;
 import com.gestionrestaurante.back.exception.DniYaExisteException;
 import com.gestionrestaurante.back.exception.EmailYaExisteException;
 import com.gestionrestaurante.back.exception.EmpleadoNotFoundException;
@@ -29,6 +30,7 @@ public class EmpleadoService {
     private final EmpleadoRepository empleadoRepository;
     private final TipoUsuarioRepository tipoUsuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConfiguracionVacacionesService configuracionVacacionesService;
 
     public Page<EmpleadoResponseDTO> listar(Boolean activo, Pageable pageable) {
         Page<Empleado> pagina = (activo != null)
@@ -95,6 +97,24 @@ public class EmpleadoService {
     public EmpleadoResponseDTO actualizarHorarioTeorico(Long id, BigDecimal horasJornadaDiaria) {
         Empleado empleado = buscarOrThrow(id);
         empleado.setHorasJornadaDiaria(horasJornadaDiaria);
+        return EmpleadoMapper.toResponse(empleadoRepository.save(empleado));
+    }
+
+    /**
+     * dias == null vuelve a "usa el valor global" (configuracion_vacaciones). El techo (no
+     * superar el valor global) es dinamico, no una constante, por lo que se valida aqui y no
+     * con un @Max en el DTO de entrada.
+     */
+    @Transactional
+    public EmpleadoResponseDTO actualizarDiasVacacionesAnuales(Long id, Integer dias) {
+        Empleado empleado = buscarOrThrow(id);
+        if (dias != null) {
+            int defecto = configuracionVacacionesService.obtener().getDiasAnualesDefecto();
+            if (dias > defecto) {
+                throw new DiasVacacionesAnualesFueraDeRangoException(defecto);
+            }
+        }
+        empleado.setDiasVacacionesAnuales(dias);
         return EmpleadoMapper.toResponse(empleadoRepository.save(empleado));
     }
 

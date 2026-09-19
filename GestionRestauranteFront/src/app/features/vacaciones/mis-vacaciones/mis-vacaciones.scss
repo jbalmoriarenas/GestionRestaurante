@@ -1,23 +1,4 @@
 .mis-vacaciones-page {
-  &__resumen-card {
-    flex: 1;
-    min-width: 140px;
-    text-align: center;
-  }
-
-  &__resumen-label {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--space-xs);
-  }
-
-  &__resumen-valor {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin: 0;
-  }
-
   &__form {
     ui-input {
       flex: 1;

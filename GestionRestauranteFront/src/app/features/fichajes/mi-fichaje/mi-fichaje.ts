@@ -112,7 +112,7 @@ export class MiFichaje implements OnInit {
         this.segundosTranscurridos.set(0);
         this.notificationService.success(
           this.translateService.instant('fichajes.miFichaje.turnoFinalizado', {
-            horas: fichaje.horasCalculadas,
+            horas: fichaje.horasCalculadas !== null ? horasATiempo(fichaje.horasCalculadas) : '—',
           }),
         );
         this.cargarResumenHoy();

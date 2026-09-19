@@ -42,7 +42,12 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     labelKey: 'vacaciones',
     icono: 'vacaciones',
-    children: [{ ruta: '/vacaciones', labelKey: 'vacacionesMias', vista: 'VACACIONES', nivelMinimo: 'EDICION' }],
+    children: [
+      { ruta: '/vacaciones', labelKey: 'vacacionesMias', vista: 'VACACIONES', nivelMinimo: 'EDICION' },
+      // EMPLEADOS, no VACACIONES: mismo razonamiento que fichajesAdmin — aprobar/asignar
+      // vacaciones de cualquiera es una capacidad de gestion de empleados (fase1-4-back.md).
+      { ruta: '/vacaciones/admin', labelKey: 'vacacionesAdmin', vista: 'EMPLEADOS', nivelMinimo: 'EDICION' },
+    ],
   },
   { vista: 'EMPLEADOS', ruta: '/empleados', labelKey: 'empleados', icono: 'empleados' },
   { vista: 'FACTURAS', ruta: '/facturas', labelKey: 'facturas', icono: 'facturas' },

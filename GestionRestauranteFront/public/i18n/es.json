@@ -8,6 +8,7 @@
     "fichajesAdmin": "Fichajes (Admin)",
     "vacaciones": "Vacaciones",
     "vacacionesMias": "Mis vacaciones",
+    "vacacionesAdmin": "Vacaciones (Admin)",
     "empleados": "Empleados",
     "facturas": "Facturas",
     "nominas": "Nóminas"
@@ -107,7 +108,7 @@
     "miFichaje": {
       "iniciar": "Iniciar",
       "finalizar": "Finalizar turno",
-      "turnoFinalizado": "Turno finalizado: {{horas}} h trabajadas",
+      "turnoFinalizado": "Turno finalizado: {{horas}} trabajadas",
       "fichajesHoy": "Fichajes de hoy",
       "fichajesHoyVacio": "Todavía no has fichado hoy",
       "tabla": {
@@ -210,6 +211,11 @@
     }
   },
   "vacaciones": {
+    "motivosRechazo": {
+      "FALTA_DISPONIBILIDAD": "Falta de disponibilidad",
+      "YA_SELECCIONADAS_COMPANEROS": "Ya seleccionadas por compañeros",
+      "OTROS": "Otros"
+    },
     "misVacaciones": {
       "resumen": {
         "total": "Días totales",
@@ -244,13 +250,88 @@
           "fechaInicio": "Inicio",
           "fechaFin": "Fin",
           "dias": "Días",
-          "estado": "Estado"
+          "estado": "Estado",
+          "motivo": "Motivo"
         },
         "estados": {
           "PENDIENTE": "Pendiente",
           "APROBADA": "Aprobada",
           "RECHAZADA": "Rechazada"
         }
+      }
+    },
+    "admin": {
+      "titulo": "Vacaciones (Admin)",
+      "pestanas": {
+        "pendientes": "Pendientes",
+        "porEmpleado": "Por empleado",
+        "configuracion": "Configuración"
+      },
+      "pendientes": {
+        "titulo": "Solicitudes pendientes",
+        "vacio": "No hay solicitudes pendientes",
+        "aprobar": "Aprobar",
+        "rechazar": "Rechazar",
+        "tabla": {
+          "empleado": "Empleado",
+          "fechaInicio": "Inicio",
+          "fechaFin": "Fin",
+          "dias": "Días",
+          "acciones": "Acciones"
+        }
+      },
+      "porEmpleado": {
+        "empleado": "Empleado",
+        "seleccionaEmpleado": "Selecciona un empleado para ver su calendario y sus solicitudes",
+        "asignarOficio": "Asignar días de vacaciones",
+        "resumen": {
+          "total": "Días totales",
+          "disponibles": "Disponibles",
+          "pendientes": "Pendientes"
+        },
+        "solicitudes": {
+          "titulo": "Historial de solicitudes",
+          "vacio": "Este empleado no tiene solicitudes",
+          "filtroEstado": "Filtrar por estado",
+          "todos": "Todos"
+        }
+      },
+      "asignarOficio": {
+        "titulo": "Asignar días de vacaciones",
+        "aviso": "Estos días se aprobarán directamente y restarán del cupo del empleado",
+        "fechaInicio": "Fecha de inicio",
+        "fechaFin": "Fecha de fin",
+        "asignar": "Asignar"
+      },
+      "rechazo": {
+        "titulo": "Rechazar solicitud",
+        "motivo": "Motivo del rechazo"
+      },
+      "configuracion": {
+        "global": {
+          "titulo": "Días de vacaciones anuales por defecto",
+          "ayuda": "Se aplica a todos los empleados que no tengan un valor propio asignado.",
+          "dias": "Días anuales",
+          "guardar": "Guardar"
+        },
+        "override": {
+          "titulo": "Corregir el total de días de un empleado",
+          "ayuda": "Selecciona un empleado para fijar directamente su total de días disponibles este año (por ejemplo, si el prorrateo automático de su año de alta no es el que corresponde). Nunca puede superar el valor global ({{defecto}} días/año).",
+          "dias": "Total de días disponibles este año",
+          "diasPlaceholder": "Vacío = se calcula automáticamente",
+          "usaValorGlobal": "Este empleado no tiene un total propio: se calcula automáticamente (prorrateado si es su año de alta), con un máximo de {{defecto}} días/año",
+          "disponiblesEsteAnio": "Total actual para este año",
+          "guardar": "Guardar",
+          "formatoInvalido": "Introduce un número entero de días",
+          "fueraDeRango": "No puede superar el valor global ({{defecto}} días/año)"
+        }
+      },
+      "notificaciones": {
+        "aprobada": "Solicitud aprobada",
+        "rechazada": "Solicitud rechazada",
+        "asignada": "Días de vacaciones asignados",
+        "configuracionGuardada": "Configuración actualizada",
+        "overrideGuardado": "Total de días del empleado actualizado"
       }
     }
   }

@@ -140,7 +140,7 @@ Dividida en 4 vistas independientes, cada una con su propio plan de detalle (BBD
 | **1.1** | Fichaje — empleado (botón Iniciar/Finalizar tipo Woffu) | [`bbdd/fase1-1-bbdd.md`](./bbdd/fase1-1-bbdd.md) · [`back/fase1-1-back.md`](./back/fase1-1-back.md) · [`front/fase1-1-front.md`](./front/fase1-1-front.md) |
 | **1.2** | Vacaciones — empleado (calendario, cupo anual, solicitud) | [`bbdd/fase1-2-bbdd.md`](./bbdd/fase1-2-bbdd.md) · [`back/fase1-2-back.md`](./back/fase1-2-back.md) · [`front/fase1-2-front.md`](./front/fase1-2-front.md) |
 | **1.3** | Fichaje — Admin (todos los empleados, corrección, umbral de horas por empleado, resumen diario/semanal/mensual) | [`bbdd/fase1-3-bbdd.md`](./bbdd/fase1-3-bbdd.md) · [`back/fase1-3-back.md`](./back/fase1-3-back.md) · [`front/fase1-3-front.md`](./front/fase1-3-front.md) *(añade solo una columna a `empleados`; el resto reutiliza el esquema de 1.1)* |
-| **1.4** | Vacaciones — Admin (bandeja global de pendientes, por empleado, aprobar/rechazar, asignación de oficio) | [`back/fase1-4-back.md`](./back/fase1-4-back.md) · [`front/fase1-4-front.md`](./front/fase1-4-front.md) *(reutiliza el esquema de 1.2, sin migraciones nuevas)* |
+| **1.4** | Vacaciones — Admin (bandeja global de pendientes, por empleado, aprobar/rechazar, asignación de oficio, configuración de días anuales global y por empleado) | [`bbdd/fase1-4-bbdd.md`](./bbdd/fase1-4-bbdd.md) · [`back/fase1-4-back.md`](./back/fase1-4-back.md) · [`front/fase1-4-front.md`](./front/fase1-4-front.md) *(la capacidad de configuración, añadida en una revisión posterior, sí requirió migraciones nuevas — tabla `configuracion_vacaciones` y `empleados.dias_vacaciones_anuales` pasa a nullable)* |
 
 Resumen (ver cada documento para el desglose completo de subtareas):
 

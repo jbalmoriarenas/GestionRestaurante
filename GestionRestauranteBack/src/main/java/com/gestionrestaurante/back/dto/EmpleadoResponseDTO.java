@@ -15,6 +15,7 @@ public record EmpleadoResponseDTO(
         LocalDate fechaBaja,
         boolean activo,
         TipoUsuarioDTO tipoUsuario,
-        BigDecimal horasJornadaDiaria
+        BigDecimal horasJornadaDiaria,
+        Integer diasVacacionesAnuales
 ) {
 }

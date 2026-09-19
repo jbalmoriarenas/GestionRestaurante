@@ -10,8 +10,10 @@ import static org.mockito.Mockito.when;
 
 import com.gestionrestaurante.back.dto.DiaCalendarioDTO;
 import com.gestionrestaurante.back.dto.ResumenVacacionesDTO;
+import com.gestionrestaurante.back.dto.SolicitudVacacionesAdminResponseDTO;
 import com.gestionrestaurante.back.dto.SolicitudVacacionesResponseDTO;
 import com.gestionrestaurante.back.dto.TipoDiaCalendario;
+import com.gestionrestaurante.back.entity.ConfiguracionVacaciones;
 import com.gestionrestaurante.back.entity.DiaFestivo;
 import com.gestionrestaurante.back.entity.Empleado;
 import com.gestionrestaurante.back.entity.EstadoSolicitud;
@@ -20,6 +22,7 @@ import com.gestionrestaurante.back.exception.DiasVacacionesInsuficientesExceptio
 import com.gestionrestaurante.back.exception.RangoFechasInvalidoException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesNoEditableException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesNoPropiaException;
+import com.gestionrestaurante.back.exception.SolicitudVacacionesNotFoundException;
 import com.gestionrestaurante.back.exception.SolicitudVacacionesSolapadaException;
 import com.gestionrestaurante.back.repository.DiaFestivoRepository;
 import com.gestionrestaurante.back.repository.EmpleadoRepository;
@@ -32,6 +35,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class VacacionesServiceTest {
@@ -42,12 +47,15 @@ class VacacionesServiceTest {
     private DiaFestivoRepository diaFestivoRepository;
     @Mock
     private EmpleadoRepository empleadoRepository;
+    @Mock
+    private ConfiguracionVacacionesService configuracionVacacionesService;
 
     private VacacionesService vacacionesService;
 
     @BeforeEach
     void setUp() {
-        vacacionesService = new VacacionesService(solicitudVacacionesRepository, diaFestivoRepository, empleadoRepository);
+        vacacionesService = new VacacionesService(
+                solicitudVacacionesRepository, diaFestivoRepository, empleadoRepository, configuracionVacacionesService);
     }
 
     @Test
@@ -72,11 +80,23 @@ class VacacionesServiceTest {
     }
 
     @Test
-    void calcularCupoAnual_altaEnJulioDelAnioConsultadoProrratea() {
-        Empleado empleado = empleadoConAltaYDias(LocalDate.of(2026, 7, 1), 23);
+    void calcularCupoAnual_altaEnJulioSinOverridePropioProrrateaElGlobal() {
+        Empleado empleado = new Empleado();
+        empleado.setFechaAlta(LocalDate.of(2026, 7, 1));
+        when(configuracionVacacionesService.obtener()).thenReturn(configuracionConDefecto(23));
 
         // meses restantes: julio a diciembre inclusive = 6 -> round(23 * 6/12) = round(11.5) = 12
         assertThat(vacacionesService.calcularCupoAnual(empleado, 2026)).isEqualTo(12);
+    }
+
+    @Test
+    void calcularCupoAnual_altaEnJulioConOverridePropioNoSeProrratea() {
+        // Un override explicito del Admin (fase1-4-back.md) es el total exacto de ese
+        // empleado para este año, incluso en su propio año de alta: no se recalcula con la
+        // formula de prorrateo.
+        Empleado empleado = empleadoConAltaYDias(LocalDate.of(2026, 7, 1), 10);
+
+        assertThat(vacacionesService.calcularCupoAnual(empleado, 2026)).isEqualTo(10);
     }
 
     @Test
@@ -265,11 +285,149 @@ class VacacionesServiceTest {
                 new DiaCalendarioDTO(LocalDate.of(2026, 6, 2), TipoDiaCalendario.APROBADO));
     }
 
+    @Test
+    void obtenerDiasVacacionesAnuales_sinValorPropioUsaElGlobal() {
+        Empleado empleado = new Empleado();
+        when(configuracionVacacionesService.obtener()).thenReturn(configuracionConDefecto(25));
+
+        assertThat(vacacionesService.obtenerDiasVacacionesAnuales(empleado)).isEqualTo(25);
+    }
+
+    @Test
+    void obtenerDiasVacacionesAnuales_conValorPropioLoUsaEnVezDelGlobal() {
+        Empleado empleado = new Empleado();
+        empleado.setDiasVacacionesAnuales(15);
+
+        assertThat(vacacionesService.obtenerDiasVacacionesAnuales(empleado)).isEqualTo(15);
+    }
+
+    @Test
+    void aprobar_solicitudPendienteLaDejaAprobadaConTraza() {
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setId(10L);
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        when(solicitudVacacionesRepository.findById(10L)).thenReturn(Optional.of(solicitud));
+        when(solicitudVacacionesRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitudVacacionesResponseDTO respuesta = vacacionesService.aprobar(10L, 99L);
+
+        assertThat(respuesta.estado()).isEqualTo(EstadoSolicitud.APROBADA);
+        assertThat(solicitud.getFechaResolucion()).isNotNull();
+        assertThat(solicitud.getResueltaPorAdminId()).isEqualTo(99L);
+    }
+
+    @Test
+    void aprobar_solicitudYaResueltaLanza409() {
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setEstado(EstadoSolicitud.RECHAZADA);
+        when(solicitudVacacionesRepository.findById(10L)).thenReturn(Optional.of(solicitud));
+
+        assertThatThrownBy(() -> vacacionesService.aprobar(10L, 99L))
+                .isInstanceOf(SolicitudVacacionesNoEditableException.class);
+
+        verify(solicitudVacacionesRepository, never()).save(any());
+    }
+
+    @Test
+    void aprobar_solicitudInexistenteLanzaNotFound() {
+        when(solicitudVacacionesRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> vacacionesService.aprobar(10L, 99L))
+                .isInstanceOf(SolicitudVacacionesNotFoundException.class);
+    }
+
+    @Test
+    void rechazar_solicitudPendienteLaDejaRechazadaConMotivo() {
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setId(10L);
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        when(solicitudVacacionesRepository.findById(10L)).thenReturn(Optional.of(solicitud));
+        when(solicitudVacacionesRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitudVacacionesResponseDTO respuesta = vacacionesService.rechazar(10L, 99L, "no queda cupo");
+
+        assertThat(respuesta.estado()).isEqualTo(EstadoSolicitud.RECHAZADA);
+        assertThat(respuesta.motivoRechazo()).isEqualTo("no queda cupo");
+        assertThat(solicitud.getResueltaPorAdminId()).isEqualTo(99L);
+    }
+
+    @Test
+    void rechazar_solicitudYaResueltaLanza409() {
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setEstado(EstadoSolicitud.APROBADA);
+        when(solicitudVacacionesRepository.findById(10L)).thenReturn(Optional.of(solicitud));
+
+        assertThatThrownBy(() -> vacacionesService.rechazar(10L, 99L, "motivo"))
+                .isInstanceOf(SolicitudVacacionesNoEditableException.class);
+    }
+
+    @Test
+    void listarTodasPendientes_mapeaElEmpleadoDeCadaSolicitud() {
+        Empleado empleado = new Empleado();
+        empleado.setId(5L);
+        empleado.setNombre("Ana");
+        empleado.setApellidos("Lopez");
+        SolicitudVacaciones solicitud = new SolicitudVacaciones();
+        solicitud.setId(1L);
+        solicitud.setEmpleado(empleado);
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        when(solicitudVacacionesRepository.findByEstadoOrderByFechaSolicitudAsc(eq(EstadoSolicitud.PENDIENTE), any()))
+                .thenReturn(new PageImpl<>(List.of(solicitud)));
+
+        List<SolicitudVacacionesAdminResponseDTO> resultado =
+                vacacionesService.listarTodasPendientes(PageRequest.of(0, 20)).getContent();
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).empleadoId()).isEqualTo(5L);
+        assertThat(resultado.get(0).empleadoNombre()).isEqualTo("Ana Lopez");
+    }
+
+    @Test
+    void asignarDeOficio_conCupoSuficienteCreaLaSolicitudYaAprobada() {
+        Empleado empleado = empleadoConAltaYDias(LocalDate.of(2020, 1, 1), 23);
+        when(empleadoRepository.findByIdConBloqueo(1L)).thenReturn(Optional.of(empleado));
+        LocalDate inicio = LocalDate.of(2026, 1, 5);
+        LocalDate fin = LocalDate.of(2026, 1, 9);
+        when(diaFestivoRepository.findByFechaBetween(any(), any())).thenReturn(List.of());
+        when(solicitudVacacionesRepository.findSolapadas(eq(1L), any(), any(), any())).thenReturn(List.of());
+        when(solicitudVacacionesRepository.findByEmpleado_IdAndEstadoInAndFechaInicioBetween(
+                eq(1L), any(), any(), any())).thenReturn(List.of());
+        when(solicitudVacacionesRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SolicitudVacacionesResponseDTO respuesta = vacacionesService.asignarDeOficio(1L, inicio, fin, 99L);
+
+        assertThat(respuesta.estado()).isEqualTo(EstadoSolicitud.APROBADA);
+    }
+
+    @Test
+    void asignarDeOficio_sinCupoSuficienteLanza409SinCrearNada() {
+        Empleado empleado = empleadoConAltaYDias(LocalDate.of(2020, 1, 1), 5);
+        when(empleadoRepository.findByIdConBloqueo(1L)).thenReturn(Optional.of(empleado));
+        when(diaFestivoRepository.findByFechaBetween(any(), any())).thenReturn(List.of());
+        when(solicitudVacacionesRepository.findSolapadas(eq(1L), any(), any(), any())).thenReturn(List.of());
+        when(solicitudVacacionesRepository.findByEmpleado_IdAndEstadoInAndFechaInicioBetween(
+                eq(1L), any(), any(), any())).thenReturn(List.of());
+
+        LocalDate inicio = LocalDate.of(2026, 1, 5);
+        LocalDate fin = LocalDate.of(2026, 1, 12); // 6 dias laborables > 5 disponibles
+
+        assertThatThrownBy(() -> vacacionesService.asignarDeOficio(1L, inicio, fin, 99L))
+                .isInstanceOf(DiasVacacionesInsuficientesException.class);
+
+        verify(solicitudVacacionesRepository, never()).save(any());
+    }
+
     private static Empleado empleadoConAltaYDias(LocalDate fechaAlta, int diasVacacionesAnuales) {
         Empleado empleado = new Empleado();
         empleado.setId(1L);
         empleado.setFechaAlta(fechaAlta);
-        empleado.setDiasVacacionesAnuales((short) diasVacacionesAnuales);
+        empleado.setDiasVacacionesAnuales(diasVacacionesAnuales);
         return empleado;
+    }
+
+    private static ConfiguracionVacaciones configuracionConDefecto(int diasAnualesDefecto) {
+        ConfiguracionVacaciones configuracion = new ConfiguracionVacaciones();
+        configuracion.setDiasAnualesDefecto(diasAnualesDefecto);
+        return configuracion;
     }
 }

@@ -33,6 +33,12 @@ export const routes: Routes = [
           import('./features/vacaciones/mis-vacaciones/mis-vacaciones').then((m) => m.MisVacaciones),
       },
       {
+        path: 'vacaciones/admin',
+        canActivate: [permissionGuard('EMPLEADOS', 'EDICION')],
+        loadComponent: () =>
+          import('./features/vacaciones/vacaciones-admin/vacaciones-admin').then((m) => m.VacacionesAdmin),
+      },
+      {
         path: 'empleados',
         canActivate: [permissionGuard('EMPLEADOS')],
         loadComponent: () =>

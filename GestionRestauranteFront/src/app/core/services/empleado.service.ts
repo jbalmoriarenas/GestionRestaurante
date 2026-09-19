@@ -42,4 +42,8 @@ export class EmpleadoService {
   actualizarHorarioTeorico(id: number, horasJornadaDiaria: number | null): Observable<Empleado> {
     return this.http.patch<Empleado>(`${BASE_URL}/${id}/horario-teorico`, { horasJornadaDiaria });
   }
+
+  actualizarDiasVacacionesAnuales(id: number, diasVacacionesAnuales: number | null): Observable<Empleado> {
+    return this.http.patch<Empleado>(`${BASE_URL}/${id}/dias-vacaciones-anuales`, { diasVacacionesAnuales });
+  }
 }

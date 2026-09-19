@@ -16,6 +16,7 @@ export interface Empleado {
   activo: boolean;
   tipoUsuario: TipoUsuario;
   horasJornadaDiaria: number | null;
+  diasVacacionesAnuales: number | null;
 }
 
 export interface EmpleadoCreateRequest {

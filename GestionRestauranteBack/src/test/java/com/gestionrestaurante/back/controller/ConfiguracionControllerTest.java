@@ -7,8 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.gestionrestaurante.back.entity.ConfiguracionUbicacion;
+import com.gestionrestaurante.back.entity.ConfiguracionVacaciones;
 import com.gestionrestaurante.back.security.JwtAuthFilter;
 import com.gestionrestaurante.back.service.ConfiguracionUbicacionService;
+import com.gestionrestaurante.back.service.ConfiguracionVacacionesService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +42,8 @@ class ConfiguracionControllerTest {
 
     @MockitoBean
     private ConfiguracionUbicacionService configuracionUbicacionService;
+    @MockitoBean
+    private ConfiguracionVacacionesService configuracionVacacionesService;
 
     private static Authentication autenticacionDeAdmin() {
         var authentication = new UsernamePasswordAuthenticationToken(
@@ -68,6 +72,27 @@ class ConfiguracionControllerTest {
                         .principal(autenticacionDeAdmin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"lat\":200,\"lng\":0,\"radioMetros\":150}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void obtenerVacaciones_devuelveElValorGlobalActual() throws Exception {
+        ConfiguracionVacaciones configuracion = new ConfiguracionVacaciones();
+        configuracion.setDiasAnualesDefecto(23);
+        configuracion.setUpdatedAt(LocalDateTime.of(2026, 1, 1, 0, 0));
+        when(configuracionVacacionesService.obtener()).thenReturn(configuracion);
+
+        mockMvc.perform(get("/api/configuracion/vacaciones").principal(autenticacionDeAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.diasAnualesDefecto").value(23));
+    }
+
+    @Test
+    void actualizarVacaciones_conValorFueraDeRangoResponde400SinLlamarAlServicio() throws Exception {
+        mockMvc.perform(put("/api/configuracion/vacaciones")
+                        .principal(autenticacionDeAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"diasAnualesDefecto\":0}"))
                 .andExpect(status().isBadRequest());
     }
 }
