@@ -116,8 +116,8 @@ GestionRestaurante/
 **Factura**
 `id, proveedor_id (FK), numero_factura, fecha_factura, fecha_vencimiento, importe_base, iva, importe_total, mes, anio, ruta_archivo, estado_extraccion (PENDIENTE|PROCESADA|ERROR|REVISADA), datos_extraidos_raw (JSON, lo que devolvió el OCR sin editar), fecha_subida`
 
-**Nomina**
-`id, empleado_id (FK), periodo_mes, periodo_anio, ruta_archivo, estado (PENDIENTE_ENVIO|ENVIADA), fecha_subida, fecha_envio (nullable), enviada_por_admin_id (FK, nullable)`
+**Nomina** (esquema definitivo, ver [`bbdd/fase3-1-bbdd.md`](./bbdd/fase3-1-bbdd.md))
+`id, empleado_id (FK), periodo_mes, periodo_anio, ruta_archivo, nombre_archivo_original, estado (ADJUNTADA|ENVIADA), fecha_subida, subida_por_admin_id (FK), fecha_envio (nullable), enviada_por_admin_id (FK, nullable)` — el tercer estado que ve el Admin en la UI, "pendiente" (sin nómina subida), **no es un valor de esta columna**: es la ausencia de fila para un empleado activo en un periodo dado, calculada al listar (ver `back/fase3-1-back.md`).
 
 Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N SolicitudVacaciones`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`.
 
@@ -172,11 +172,24 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 - **Riesgo alto** — ver sección de riesgos. Se recomienda no bloquear las Fases 0-2 esperando a tener el OCR funcionando; el flujo manual de la Fase 2 debe funcionar de forma autónoma.
 
 ### Fase 3 — Gestión de nóminas
-- [Backend, media] Modelo `Nomina`, endpoint de subida de un PDF individual o un ZIP.
-- [Backend, alta] Lógica de extracción de un ZIP y asociación de cada PDF a un empleado (por convención de nombre de fichero, p.ej. `DNI_Periodo.pdf`; si no se puede matchear automáticamente, dejarlo pendiente de asignación manual en el listado).
-- [Backend, media] Spring Boot Starter Mail: servicio de envío con el PDF adjunto, plantilla de email, registro de `fecha_envio` y `enviada_por_admin_id`.
-- [Backend, baja] Endpoint "enviar" (individual o en lote) — nunca automático al subir.
-- [Frontend, media] Vista Admin: listado de empleados por periodo con estado de nómina (sin subir / pendiente de envío / enviada), botón de envío individual y masivo. Módulo completo (ruta, menú y endpoints) exclusivo del rol Admin; el Empleado no tiene ninguna vista de nóminas en la app.
+
+**Implementada antes que la Fase 2** (decisión del usuario: es más rápida de construir y ambos módulos son independientes entre sí, ver "Notas adicionales"). Dividida en 3 bloques, cada uno con su propio plan de detalle (BBDD + Backend + Frontend, cuando aplica):
+
+| Bloque | Qué es | Planes de detalle |
+|---|---|---|
+| **3.1** | Listado con filtros (empleado, periodo mes/año, estado) y paginación, subida individual de un PDF y descarga | [`bbdd/fase3-1-bbdd.md`](./bbdd/fase3-1-bbdd.md) · [`back/fase3-1-back.md`](./back/fase3-1-back.md) · [`front/fase3-1-front.md`](./front/fase3-1-front.md) |
+| **3.2** | Subida masiva vía ZIP con matching automático por convención de nombre de fichero, y asignación manual de los archivos que no se pudieron matchear | [`back/fase3-2-back.md`](./back/fase3-2-back.md) · [`front/fase3-2-front.md`](./front/fase3-2-front.md) *(sin migraciones nuevas, reutiliza el esquema de 3.1)* |
+| **3.3** | Envío por email con modal de confirmación, registro de `fecha_envio`/`enviada_por_admin_id` | [`back/fase3-3-back.md`](./back/fase3-3-back.md) · [`front/fase3-3-front.md`](./front/fase3-3-front.md) *(sin migraciones nuevas, reutiliza el esquema de 3.1)* |
+
+Resumen (ver cada documento para el desglose completo de subtareas):
+
+- [Backend, baja] Modelo `Nomina` — una fila solo existe una vez se sube un archivo; "pendiente" (sin subir) es un estado calculado al listar, no un valor persistido (ver `bbdd/fase3-1-bbdd.md`).
+- [Backend, media] `FileStorageService` (primera implementación real del proyecto, ya prevista desde Fase 0) + endpoint de subida de un PDF individual, asignado manualmente a un empleado y periodo concretos, y de descarga para verificar el contenido antes de enviarlo.
+- [Backend, alta] Subida de un ZIP con varias nóminas: extracción y asociación de cada PDF a un empleado por convención de nombre de fichero (`DNI_AAAA-MM.pdf`); lo que no se pueda matchear automáticamente queda disponible para asignación manual, sin perder el archivo.
+- [Backend, media] Spring Boot Starter Mail (primera vez que el proyecto envía email): servicio de envío con el PDF adjunto, registro de `fecha_envio` y `enviada_por_admin_id`.
+- [Backend, baja] Endpoint "enviar" individual — nunca automático al subir; reenviar una nómina ya enviada está permitido. Envío masivo no incluido en esta ronda de planificación (queda como extensión natural si se pide más adelante, ver `back/fase3-3-back.md`).
+- [Frontend, media] Vista Admin: filtros por empleado y periodo, tabla paginada con nombre/email/estado de cada empleado (pendiente / adjuntada / enviada), subida individual y por ZIP, descarga, y envío con modal de verificación. Módulo completo (ruta, menú y endpoints) exclusivo del rol Admin; el Empleado no tiene ninguna vista de nóminas en la app — la ruta, el icono y la entrada de menú ya existían desde Fase 0, solo faltaba el componente.
+- [Frontend, media] Nuevo componente reutilizable `ui-file-input` (primero del proyecto para subir ficheros), envolviendo un `<input type="file">` nativo con el mismo patrón `ControlValueAccessor` que `ui-select`/`ui-input`.
 
 ### Fase 4 — Pulido y cierre
 - [Frontend, baja] Dashboard/resumen (horas del mes, facturas pendientes de revisar, nóminas pendientes de enviar).
@@ -219,6 +232,7 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 
 ## Notas adicionales
 
+- **Orden real de implementación (revisado tras cerrar la Fase 1)**: este plan asumía originalmente 0→1→2→2.1→3→4, pero el usuario decidió implementar la **Fase 3 (Nóminas) antes que la Fase 2 (Facturas)** por ser más rápida de construir — ambas son independientes entre sí (ninguna depende de datos ni de clases de la otra, solo de la Fase 0), así que el orden entre ellas no tiene impacto técnico, solo de priorización. El orden real pasa a ser 0→1→3→2→2.1→4.
 - Este plan asume que las Fases se implementan en el orden 0→1→2→2.1→3→4, pero Fichajes/Vacaciones (Fase 1) y Facturas (Fase 2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
 - Dentro de la Fase 1, las vistas 1.1 (Fichaje empleado) y 1.2 (Vacaciones empleado) son independientes entre sí y se pueden desarrollar en paralelo; 1.3 depende de que 1.1 esté terminada (reutiliza su esquema y sus clases) y 1.4 depende de que 1.2 esté terminada, por la misma razón.
 - Antes de arrancar la Fase 2.1 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas para decidir entre las tres opciones de extracción listadas en "Decisiones técnicas", en vez de comprometerse a una de antemano.
