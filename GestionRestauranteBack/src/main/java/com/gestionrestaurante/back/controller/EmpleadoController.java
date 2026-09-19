@@ -4,6 +4,7 @@ import com.gestionrestaurante.back.Wuris;
 import com.gestionrestaurante.back.dto.EmpleadoCreateDTO;
 import com.gestionrestaurante.back.dto.EmpleadoResponseDTO;
 import com.gestionrestaurante.back.dto.EmpleadoUpdateDTO;
+import com.gestionrestaurante.back.dto.HorarioTeoricoUpdateDTO;
 import com.gestionrestaurante.back.dto.PasswordResetDTO;
 import com.gestionrestaurante.back.service.EmpleadoService;
 import jakarta.validation.Valid;
@@ -68,5 +69,12 @@ public class EmpleadoController {
     @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
     public void resetearPassword(@PathVariable Long id, @Valid @RequestBody PasswordResetDTO request) {
         empleadoService.resetearPassword(id, request.password());
+    }
+
+    @PatchMapping(Wuris.Empleados.HORARIO_TEORICO)
+    @PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")
+    public EmpleadoResponseDTO actualizarHorarioTeorico(
+            @PathVariable Long id, @Valid @RequestBody HorarioTeoricoUpdateDTO request) {
+        return empleadoService.actualizarHorarioTeorico(id, request.horasJornadaDiaria());
     }
 }

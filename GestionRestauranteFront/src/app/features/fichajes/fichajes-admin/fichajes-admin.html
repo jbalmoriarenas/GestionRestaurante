@@ -29,6 +29,14 @@
     <button
       type="button"
       class="fichajes-admin-page__tab"
+      [class.fichajes-admin-page__tab--activa]="pestana() === 'horarios'"
+      (click)="cambiarPestana('horarios')"
+    >
+      {{ 'fichajes.admin.pestanas.horarios' | translate }}
+    </button>
+    <button
+      type="button"
+      class="fichajes-admin-page__tab"
       [class.fichajes-admin-page__tab--activa]="pestana() === 'ubicacion'"
       (click)="cambiarPestana('ubicacion')"
     >
@@ -36,7 +44,7 @@
     </button>
   </div>
 
-  @if (pestana() !== 'ubicacion') {
+  @if (pestana() === 'diario' || pestana() === 'semanal' || pestana() === 'mensual') {
     <ui-card>
       <form [formGroup]="filtros" (ngSubmit)="consultar()" class="fichajes-admin-page__filtros flex flex-wrap gap-lg items-end">
         <ui-select
@@ -61,38 +69,28 @@
       <ui-card>
         <ui-table
           [loading]="cargando()"
-          [empty]="consultado() && !cargando() && (pageFichajes()?.content?.length ?? 0) === 0"
+          [empty]="consultado() && !cargando() && resumenDiario().length === 0"
           [emptyMessage]="'fichajes.admin.diario.vacio' | translate"
-          [page]="pageFichajes()?.number ?? 0"
-          [totalPages]="pageFichajes()?.totalPages ?? 0"
-          [previousLabel]="'common.previous' | translate"
-          [nextLabel]="'common.next' | translate"
-          [pageLabel]="
-            'common.pageOf' | translate: { current: (pageFichajes()?.number ?? 0) + 1, total: pageFichajes()?.totalPages ?? 0 }
-          "
-          (pageChange)="cambiarPaginaDiario($event)"
         >
           <table>
             <caption class="sr-only">{{ 'fichajes.admin.diario.titulo' | translate }}</caption>
             <thead>
               <tr>
                 <th>{{ 'fichajes.admin.diario.tabla.fecha' | translate }}</th>
-                <th>{{ 'fichajes.admin.diario.tabla.entrada' | translate }}</th>
-                <th>{{ 'fichajes.admin.diario.tabla.salida' | translate }}</th>
+                <th>{{ 'fichajes.admin.diario.tabla.horarioTeorico' | translate }}</th>
                 <th>{{ 'fichajes.admin.diario.tabla.horas' | translate }}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              @for (fichaje of pageFichajes()?.content ?? []; track fichaje.id) {
-                <tr [class.fichajes-admin-page__fila--bajoMinimo]="esDiaPorDebajoDelMinimo(fichaje.fecha)">
-                  <td>{{ fichaje.fecha }}</td>
-                  <td>{{ fichaje.horaEntrada.substring(11, 16) }}</td>
-                  <td>{{ fichaje.horaSalida ? fichaje.horaSalida.substring(11, 16) : '—' }}</td>
-                  <td>{{ fichaje.horasCalculadas ?? '—' }}</td>
+              @for (dia of resumenDiario(); track dia.fecha) {
+                <tr [class.fichajes-admin-page__fila--bajoMinimo]="!dia.cumpleMinimo">
+                  <td>{{ dia.fecha }}</td>
+                  <td>{{ formatearHorasComoTiempo(dia.horasTeoricas) }}</td>
+                  <td>{{ formatearHorasComoTiempo(dia.horasCalculadas) }}</td>
                   <td>
-                    <button type="button" class="badge-action-reset fichajes-admin-page__corregir" (click)="abrirCorreccion(fichaje)">
-                      {{ 'fichajes.admin.diario.corregir' | translate }}
+                    <button type="button" class="badge-action-reset fichajes-admin-page__corregir" (click)="abrirDetalleDia(dia.fecha)">
+                      {{ 'fichajes.admin.diario.verDetalle' | translate }}
                     </button>
                   </td>
                 </tr>
@@ -115,6 +113,7 @@
             <thead>
               <tr>
                 <th>{{ 'fichajes.admin.semanal.tabla.semana' | translate }}</th>
+                <th>{{ 'fichajes.admin.semanal.tabla.horarioTeorico' | translate }}</th>
                 <th>{{ 'fichajes.admin.semanal.tabla.horas' | translate }}</th>
               </tr>
             </thead>
@@ -122,7 +121,8 @@
               @for (semana of resumenSemanal(); track semana.inicioSemana) {
                 <tr [class.fichajes-admin-page__fila--bajoMinimo]="!semana.cumpleMinimo">
                   <td>{{ semana.inicioSemana }} – {{ semana.finSemana }}</td>
-                  <td>{{ semana.horasCalculadas }}</td>
+                  <td>{{ semana.horasTeoricas }}</td>
+                  <td>{{ formatearHorasComoTiempo(semana.horasCalculadas) }}</td>
                 </tr>
               }
             </tbody>
@@ -143,6 +143,7 @@
             <thead>
               <tr>
                 <th>{{ 'fichajes.admin.mensual.tabla.mes' | translate }}</th>
+                <th>{{ 'fichajes.admin.mensual.tabla.horarioTeorico' | translate }}</th>
                 <th>{{ 'fichajes.admin.mensual.tabla.horas' | translate }}</th>
               </tr>
             </thead>
@@ -150,12 +151,48 @@
               @for (mes of resumenMensual(); track mes.mes) {
                 <tr [class.fichajes-admin-page__fila--bajoMinimo]="!mes.cumpleMinimo">
                   <td>{{ mes.mes }}/{{ mes.anio }}</td>
-                  <td>{{ mes.horasCalculadas }}</td>
+                  <td>{{ mes.horasTeoricas }}</td>
+                  <td>{{ formatearHorasComoTiempo(mes.horasCalculadas) }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </ui-table>
+      </ui-card>
+    }
+    @case ('horarios') {
+      <ui-card>
+        <p class="fichajes-admin-page__nota">
+          {{ 'fichajes.admin.horarios.ayuda' | translate: { horas: horasJornadaDefault } }}
+        </p>
+        <form [formGroup]="horarioTeoricoForm" (ngSubmit)="guardarHorarioTeorico()" class="flex flex-wrap gap-lg items-end">
+          <ui-select
+            [label]="'fichajes.admin.filtros.empleado' | translate"
+            [placeholder]="'common.selectOption' | translate"
+            [options]="empleadoOptions()"
+            formControlName="empleadoId"
+          />
+          <ui-input
+            [label]="'fichajes.admin.horarios.horas' | translate"
+            [placeholder]="'fichajes.admin.horarios.horasPlaceholder' | translate"
+            [errorMessage]="horarioTeoricoHorasErrorMessage()"
+            formControlName="horas"
+          />
+          <ui-button
+            type="submit"
+            [loading]="guardandoHorarioTeorico()"
+            [disabled]="!horarioTeoricoForm.controls.empleadoId.value"
+          >
+            {{ 'fichajes.admin.horarios.guardar' | translate }}
+          </ui-button>
+        </form>
+        @if (!horarioTeoricoForm.controls.empleadoId.value) {
+          <p class="fichajes-admin-page__nota">{{ 'fichajes.admin.horarios.seleccionaEmpleado' | translate }}</p>
+        } @else if (!cargandoHorarioTeorico() && horarioTeoricoEmpleado()?.horasJornadaDiaria == null) {
+          <p class="fichajes-admin-page__nota">
+            {{ 'fichajes.admin.horarios.usaValorGlobal' | translate: { horas: horasJornadaDefault } }}
+          </p>
+        }
       </ui-card>
     }
     @case ('ubicacion') {
@@ -179,6 +216,43 @@
     }
   }
 </div>
+
+<ui-modal
+  [open]="detalleDia() !== null"
+  [title]="'fichajes.admin.diario.detalle.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarDetalleDia()"
+>
+  @if (detalleDia(); as detalle) {
+    <ui-table [loading]="cargandoDetalle()" [empty]="!cargandoDetalle() && detalle.fichajes.length === 0" [emptyMessage]="'fichajes.admin.diario.detalle.vacio' | translate">
+      <table>
+        <caption class="sr-only">{{ 'fichajes.admin.diario.detalle.titulo' | translate }}</caption>
+        <thead>
+          <tr>
+            <th>{{ 'fichajes.admin.diario.tabla.entrada' | translate }}</th>
+            <th>{{ 'fichajes.admin.diario.tabla.salida' | translate }}</th>
+            <th>{{ 'fichajes.admin.diario.tabla.horas' | translate }}</th>
+            <th><span class="sr-only">{{ 'fichajes.admin.diario.tabla.acciones' | translate }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fichaje of detalle.fichajes; track fichaje.id) {
+            <tr>
+              <td>{{ fichaje.horaEntrada.substring(11, 19) }}</td>
+              <td>{{ fichaje.horaSalida ? fichaje.horaSalida.substring(11, 19) : '—' }}</td>
+              <td>{{ fichaje.horasCalculadas !== null ? formatearHorasComoTiempo(fichaje.horasCalculadas) : '—' }}</td>
+              <td>
+                <button type="button" class="badge-action-reset fichajes-admin-page__corregir" (click)="abrirCorreccion(fichaje)">
+                  {{ 'fichajes.admin.diario.corregir' | translate }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </ui-table>
+  }
+</ui-modal>
 
 <ui-modal
   [open]="fichajeACorregir() !== null"

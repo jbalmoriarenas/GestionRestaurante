@@ -113,7 +113,7 @@
       "tabla": {
         "entrada": "Clock in",
         "salida": "Clock out",
-        "horas": "Hours"
+        "horas": "Time"
       },
       "resumen": {
         "imputadas": "Hours worked",
@@ -132,6 +132,7 @@
         "diario": "Daily",
         "semanal": "Weekly",
         "mensual": "Monthly",
+        "horarios": "Schedules",
         "ubicacion": "Location"
       },
       "filtros": {
@@ -145,11 +146,18 @@
         "titulo": "Daily clock-ins",
         "vacio": "No clock-ins in that range",
         "corregir": "Fix",
+        "verDetalle": "View detail",
         "tabla": {
           "fecha": "Date",
           "entrada": "Clock in",
           "salida": "Clock out",
-          "horas": "Hours"
+          "horas": "Time worked",
+          "horarioTeorico": "Theoretical hours",
+          "acciones": "Actions"
+        },
+        "detalle": {
+          "titulo": "Clock-ins for the day",
+          "vacio": "No clock-ins that day"
         }
       },
       "semanal": {
@@ -157,7 +165,8 @@
         "vacio": "No clock-ins in that range",
         "tabla": {
           "semana": "Week",
-          "horas": "Total hours"
+          "horas": "Total hours",
+          "horarioTeorico": "Theoretical hours"
         }
       },
       "mensual": {
@@ -165,8 +174,22 @@
         "vacio": "No clock-ins in that year",
         "tabla": {
           "mes": "Month",
-          "horas": "Total hours"
+          "horas": "Total hours",
+          "horarioTeorico": "Theoretical hours"
         }
+      },
+      "horarios": {
+        "titulo": "Theoretical schedule per employee",
+        "ayuda": "Select an employee to set their theoretical daily hours. If none is saved, the global default is used ({{horas}} h/day).",
+        "seleccionaEmpleado": "Select an employee to view and edit their theoretical schedule",
+        "horas": "Daily shift hours",
+        "horasPlaceholder": "8.5 or 8:30",
+        "horasRequerida": "Enter the daily shift hours",
+        "horasFormatoInvalido": "Invalid format. Use a decimal (8.5) or hours:minutes format (8:30)",
+        "horasFueraDeRango": "The shift must be between 1 and 12 hours",
+        "usaValorGlobal": "This employee has no schedule of their own: the global default is used ({{horas}} h/day)",
+        "guardar": "Save schedule",
+        "exito": "Theoretical schedule updated"
       },
       "correccion": {
         "titulo": "Fix clock-in",

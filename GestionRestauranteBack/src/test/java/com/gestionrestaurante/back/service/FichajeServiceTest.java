@@ -81,8 +81,10 @@ class FichajeServiceTest {
 
         assertThat(resumen).hasSize(2);
         assertThat(resumen.get(0).fecha()).isEqualTo(desde);
+        assertThat(resumen.get(0).horasTeoricas()).isEqualByComparingTo("6");
         assertThat(resumen.get(0).cumpleMinimo()).isFalse();
         assertThat(resumen.get(1).fecha()).isEqualTo(hasta);
+        assertThat(resumen.get(1).horasTeoricas()).isEqualByComparingTo("6");
         assertThat(resumen.get(1).cumpleMinimo()).isTrue();
     }
 
@@ -108,6 +110,7 @@ class FichajeServiceTest {
         assertThat(resumen.get(0).inicioSemana()).isEqualTo(LocalDate.of(2026, 1, 5));
         assertThat(resumen.get(0).finSemana()).isEqualTo(LocalDate.of(2026, 1, 11));
         assertThat(resumen.get(0).horasCalculadas()).isEqualByComparingTo("29.00");
+        assertThat(resumen.get(0).horasTeoricas()).isEqualByComparingTo("30");
         assertThat(resumen.get(0).cumpleMinimo()).isFalse();
     }
 
@@ -129,6 +132,7 @@ class FichajeServiceTest {
         assertThat(resumen.get(0).mes()).isEqualTo(1);
         assertThat(resumen.get(0).anio()).isEqualTo(2026);
         // umbral mensual = 6 * 20 = 120 -> 120 horas cumple justo el minimo
+        assertThat(resumen.get(0).horasTeoricas()).isEqualByComparingTo("120");
         assertThat(resumen.get(0).cumpleMinimo()).isTrue();
     }
 

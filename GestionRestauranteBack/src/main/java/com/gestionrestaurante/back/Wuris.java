@@ -30,6 +30,7 @@ public final class Wuris {
         public static final String BY_ID = BASE + "/{id}";
         public static final String BAJA = BASE + "/{id}/baja";
         public static final String PASSWORD = BASE + "/{id}/password";
+        public static final String HORARIO_TEORICO = BASE + "/{id}/horario-teorico";
     }
 
     public static final class TiposUsuarios {

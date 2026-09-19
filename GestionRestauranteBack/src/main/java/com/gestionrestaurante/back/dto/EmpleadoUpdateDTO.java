@@ -17,8 +17,8 @@ public record EmpleadoUpdateDTO(
         String telefono,
         String puesto,
         @NotBlank(message = "El tipo de usuario es obligatorio") String tipoUsuarioCodigo,
-        @DecimalMin(value = "1", message = "La jornada minima es de 1 hora")
-        @DecimalMax(value = "12", message = "La jornada maxima es de 12 horas")
+        @DecimalMin(value = JornadaValidationMessages.JORNADA_MINIMA, message = JornadaValidationMessages.MENSAJE_JORNADA_MINIMA)
+        @DecimalMax(value = JornadaValidationMessages.JORNADA_MAXIMA, message = JornadaValidationMessages.MENSAJE_JORNADA_MAXIMA)
         BigDecimal horasJornadaDiaria
 ) {
 }

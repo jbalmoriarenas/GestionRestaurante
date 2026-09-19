@@ -38,4 +38,8 @@ export class EmpleadoService {
   resetearPassword(id: number, password: string): Observable<void> {
     return this.http.patch<void>(`${BASE_URL}/${id}/password`, { password });
   }
+
+  actualizarHorarioTeorico(id: number, horasJornadaDiaria: number | null): Observable<Empleado> {
+    return this.http.patch<Empleado>(`${BASE_URL}/${id}/horario-teorico`, { horasJornadaDiaria });
+  }
 }

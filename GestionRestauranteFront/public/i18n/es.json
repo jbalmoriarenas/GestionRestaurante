@@ -113,7 +113,7 @@
       "tabla": {
         "entrada": "Entrada",
         "salida": "Salida",
-        "horas": "Horas"
+        "horas": "Tiempo"
       },
       "resumen": {
         "imputadas": "Horas imputadas",
@@ -132,6 +132,7 @@
         "diario": "Diario",
         "semanal": "Semanal",
         "mensual": "Mensual",
+        "horarios": "Horarios",
         "ubicacion": "Ubicación"
       },
       "filtros": {
@@ -145,11 +146,18 @@
         "titulo": "Fichajes diarios",
         "vacio": "No hay fichajes en ese rango",
         "corregir": "Corregir",
+        "verDetalle": "Ver detalle",
         "tabla": {
           "fecha": "Fecha",
           "entrada": "Entrada",
           "salida": "Salida",
-          "horas": "Horas"
+          "horas": "Tiempo trabajado",
+          "horarioTeorico": "Horario teórico",
+          "acciones": "Acciones"
+        },
+        "detalle": {
+          "titulo": "Fichajes del día",
+          "vacio": "No hay fichajes ese día"
         }
       },
       "semanal": {
@@ -157,7 +165,8 @@
         "vacio": "No hay fichajes en ese rango",
         "tabla": {
           "semana": "Semana",
-          "horas": "Horas totales"
+          "horas": "Horas totales",
+          "horarioTeorico": "Horario teórico"
         }
       },
       "mensual": {
@@ -165,8 +174,22 @@
         "vacio": "No hay fichajes en ese año",
         "tabla": {
           "mes": "Mes",
-          "horas": "Horas totales"
+          "horas": "Horas totales",
+          "horarioTeorico": "Horario teórico"
         }
+      },
+      "horarios": {
+        "titulo": "Horario teórico por empleado",
+        "ayuda": "Selecciona un empleado para asignarle su jornada teórica diaria. Si no se guarda ninguna, se usa el valor global por defecto ({{horas}} h/día).",
+        "seleccionaEmpleado": "Selecciona un empleado para ver y editar su horario teórico",
+        "horas": "Horas de la jornada diaria",
+        "horasPlaceholder": "8,5 u 8:30",
+        "horasRequerida": "Introduce la jornada diaria",
+        "horasFormatoInvalido": "Formato no válido. Usa un decimal (8,5) o el formato horas:minutos (8:30)",
+        "horasFueraDeRango": "La jornada debe estar entre 1 y 12 horas",
+        "usaValorGlobal": "Este empleado no tiene horario propio: usa el valor global por defecto ({{horas}} h/día)",
+        "guardar": "Guardar horario",
+        "exito": "Horario teórico actualizado"
       },
       "correccion": {
         "titulo": "Corregir fichaje",

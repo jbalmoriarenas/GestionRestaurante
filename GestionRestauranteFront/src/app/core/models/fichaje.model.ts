@@ -21,6 +21,7 @@ export interface FichajeResumenHoy {
 export interface FichajeResumenDia {
   fecha: string; // yyyy-MM-dd
   horasCalculadas: number;
+  horasTeoricas: number;
   cumpleMinimo: boolean;
 }
 
@@ -28,6 +29,7 @@ export interface FichajeResumenSemana {
   inicioSemana: string; // yyyy-MM-dd
   finSemana: string; // yyyy-MM-dd
   horasCalculadas: number;
+  horasTeoricas: number;
   cumpleMinimo: boolean;
 }
 
@@ -35,6 +37,7 @@ export interface FichajeResumenMes {
   mes: number; // 1-12
   anio: number;
   horasCalculadas: number;
+  horasTeoricas: number;
   cumpleMinimo: boolean;
 }
 

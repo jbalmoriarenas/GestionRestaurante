@@ -142,7 +142,7 @@ public class FichajeService {
 
         return horasPorDia.entrySet().stream()
                 .map(entry -> new FichajeResumenDiaDTO(
-                        entry.getKey(), entry.getValue(), entry.getValue().compareTo(umbralDiario) >= 0))
+                        entry.getKey(), entry.getValue(), umbralDiario, entry.getValue().compareTo(umbralDiario) >= 0))
                 .toList();
     }
 
@@ -162,6 +162,7 @@ public class FichajeService {
                         entry.getKey(),
                         entry.getKey().plusDays(6),
                         entry.getValue(),
+                        umbralSemanal,
                         entry.getValue().compareTo(umbralSemanal) >= 0))
                 .toList();
     }
@@ -185,7 +186,7 @@ public class FichajeService {
                     int diasLaborables = vacacionesService.calcularDiasLaborables(mes.atDay(1), mes.atEndOfMonth());
                     BigDecimal umbralMes = umbralDiario.multiply(BigDecimal.valueOf(diasLaborables));
                     return new FichajeResumenMesDTO(
-                            mes.getMonthValue(), mes.getYear(), entry.getValue(),
+                            mes.getMonthValue(), mes.getYear(), entry.getValue(), umbralMes,
                             entry.getValue().compareTo(umbralMes) >= 0);
                 })
                 .toList();

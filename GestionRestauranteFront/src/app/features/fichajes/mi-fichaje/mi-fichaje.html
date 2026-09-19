@@ -34,9 +34,9 @@
         <tbody>
           @for (fichaje of fichajesHoy(); track fichaje.id) {
             <tr>
-              <td>{{ fichaje.horaEntrada | date: 'HH:mm' }}</td>
-              <td>{{ fichaje.horaSalida ? (fichaje.horaSalida | date: 'HH:mm') : '—' }}</td>
-              <td>{{ fichaje.horasCalculadas ?? '—' }}</td>
+              <td>{{ fichaje.horaEntrada | date: 'HH:mm:ss' }}</td>
+              <td>{{ fichaje.horaSalida ? (fichaje.horaSalida | date: 'HH:mm:ss') : '—' }}</td>
+              <td>{{ fichaje.horasCalculadas !== null ? formatearHorasComoTiempo(fichaje.horasCalculadas) : '—' }}</td>
             </tr>
           }
         </tbody>

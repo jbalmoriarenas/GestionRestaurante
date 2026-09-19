@@ -9,6 +9,7 @@ import { Fichaje } from '../../../core/models/fichaje.model';
 import { UiButton } from '../../../shared/ui/ui-button/ui-button';
 import { UiCard } from '../../../shared/ui/ui-card/ui-card';
 import { UiTable } from '../../../shared/ui/ui-table/ui-table';
+import { horasATiempo, segundosATiempo } from '../../../shared/utils/tiempo.util';
 
 @Component({
   selector: 'app-mi-fichaje',
@@ -29,7 +30,8 @@ export class MiFichaje implements OnInit {
   readonly segundosTranscurridos = signal(0);
   readonly obteniendoUbicacion = signal(false);
   readonly finalizandoTurno = signal(false);
-  readonly tiempoFormateado = computed(() => this.formatearTiempo(this.segundosTranscurridos()));
+  readonly tiempoFormateado = computed(() => segundosATiempo(this.segundosTranscurridos()));
+  readonly formatearHorasComoTiempo = horasATiempo;
 
   // Ademas de recalcularse si cambia el idioma, se refresca al volver a la pestaña
   // (visibilitychange): si alguien la deja abierta pasada la medianoche, no se queda
@@ -167,13 +169,5 @@ export class MiFichaje implements OnInit {
     return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(
       new Date(),
     );
-  }
-
-  private formatearTiempo(totalSegundos: number): string {
-    const horas = Math.floor(totalSegundos / 3600);
-    const minutos = Math.floor((totalSegundos % 3600) / 60);
-    const segundos = totalSegundos % 60;
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${pad(horas)}:${pad(minutos)}:${pad(segundos)}`;
   }
 }

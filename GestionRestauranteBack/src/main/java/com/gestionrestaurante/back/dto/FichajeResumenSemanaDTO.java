@@ -7,6 +7,7 @@ public record FichajeResumenSemanaDTO(
         LocalDate inicioSemana,
         LocalDate finSemana,
         BigDecimal horasCalculadas,
+        BigDecimal horasTeoricas,
         boolean cumpleMinimo
 ) {
 }

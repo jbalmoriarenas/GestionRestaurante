@@ -4,7 +4,9 @@ Depende de [`../bbdd/fase1-3-bbdd.md`](../bbdd/fase1-3-bbdd.md) (columna `horas_
 
 ## Contexto y objetivo
 
-Endpoints para que el Admin: (a) consulte y corrija los fichajes de **cualquier** empleado, con tres niveles de resumen (diario, semanal, mensual) marcando si se llegó al mínimo de horas esperado (mínimo que puede ser distinto por empleado, jornada parcial); (b) **edite la ubicación y el radio de la geovalla** del restaurante (confirmado con el usuario: la ubicación debe poder cambiarla el Admin, sin redesplegar el backend).
+Endpoints para que el Admin: (a) consulte y corrija los fichajes de **cualquier** empleado, con tres niveles de resumen (diario, semanal, mensual) marcando si se llegó al mínimo de horas esperado (mínimo que puede ser distinto por empleado, jornada parcial); (b) **edite la ubicación y el radio de la geovalla** del restaurante (confirmado con el usuario: la ubicación debe poder cambiarla el Admin, sin redesplegar el backend); (c) **edite el horario teórico (jornada diaria) de cualquier empleado directamente desde esta vista**, sin pasar por el alta/edición completa de `fase0-back.md` (añadido a petición del usuario tras la primera implementación de esta fase, ver subtarea 8-bis).
+
+Revisión posterior a la primera implementación (a petición del usuario, ver subtareas marcadas "añadido"): los tres DTOs de resumen pasan de exponer solo el booleano `cumpleMinimo` a exponer también el valor numérico del umbral (`horasTeoricas`) que ya se calculaba internamente y se descartaba — el front lo necesita para pintar una columna "Horario teórico" en las tres pestañas.
 
 ## Análisis y decisión de autorización (importante)
 
@@ -22,9 +24,10 @@ En vez de crear una vista/permiso nuevo solo para esto, estos endpoints se prote
 
 ```
 dto/   FichajeResumenDiaDTO, FichajeResumenSemanaDTO, FichajeResumenMesDTO
+dto/   HorarioTeoricoUpdateDTO (añadido en revisión post-implementación)
 ```
 
-Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo campo), `EmpleadoCreateDTO`/`EmpleadoUpdateDTO`/`EmpleadoResponseDTO` (Fase 0), `FichajeService`/`FichajeRepository` (Fase 1.1).
+Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo campo), `EmpleadoCreateDTO`/`EmpleadoUpdateDTO`/`EmpleadoResponseDTO` (Fase 0), `EmpleadoController`/`EmpleadoService` (Fase 0, nuevo endpoint), `FichajeService`/`FichajeRepository` (Fase 1.1).
 
 ## Desglose de subtareas
 
@@ -48,7 +51,10 @@ Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo cam
    - `GET /api/fichajes/admin/resumen/semanal?empleadoId=&desde=&hasta=` → `List<FichajeResumenSemanaDTO>`
    - `GET /api/fichajes/admin/resumen/mensual?empleadoId=&anio=` → `List<FichajeResumenMesDTO>`
    - `PUT /api/fichajes/admin/{id}` `{horaEntrada, horaSalida, observaciones}` → `FichajeResponseDTO`
-7. **[Backend, baja]** DTOs: `FichajeResumenDiaDTO {fecha, horasCalculadas, cumpleMinimo}`, `FichajeResumenSemanaDTO {inicioSemana, finSemana, horasCalculadas, cumpleMinimo}`, `FichajeResumenMesDTO {mes, anio, horasCalculadas, cumpleMinimo}`.
+7. **[Backend, baja]** DTOs: `FichajeResumenDiaDTO {fecha, horasCalculadas, horasTeoricas, cumpleMinimo}`, `FichajeResumenSemanaDTO {inicioSemana, finSemana, horasCalculadas, horasTeoricas, cumpleMinimo}`, `FichajeResumenMesDTO {mes, anio, horasCalculadas, horasTeoricas, cumpleMinimo}` — **`horasTeoricas` añadido en revisión post-implementación**: es el mismo `umbralDiario`/`umbralSemanal`/`umbralMes` que el punto 5 ya calculaba para producir `cumpleMinimo`, simplemente se deja de descartar y se incluye también en la respuesta (mismo cálculo, cero lógica nueva).
+
+### Horario teórico editable desde la vista Admin de fichajes (añadido en revisión post-implementación, a petición del usuario)
+8-bis. **[Backend, baja]** `PATCH /api/empleados/{id}/horario-teorico` `{horasJornadaDiaria: BigDecimal | null}` → `EmpleadoResponseDTO`, `@PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")` (mismo criterio de autorización que el resto del documento). `EmpleadoService.actualizarHorarioTeorico(id, horas)` carga el empleado, asigna `horasJornadaDiaria` (mismo campo de `bbdd/fase1-3-bbdd.md`, `null` = usa el valor global, igual que en el resto del documento) y guarda — no reutiliza `EmpleadoService.actualizar`/`EmpleadoUpdateDTO` (Fase 0) porque ese DTO exige `nombre`/`apellidos`/`email`/`dniNie`/`tipoUsuarioCodigo` obligatorios; forzar al front a reenviarlos solo para cambiar un número sería innecesario y además arriesgado (un valor obsoleto de esos campos en el front podría pisar el real). DTO: `HorarioTeoricoUpdateDTO {horasJornadaDiaria: BigDecimal}` con `@DecimalMin(1)`/`@DecimalMax(12)` (idéntico rango al de `EmpleadoUpdateDTO`/`EmpleadoCreateDTO` de `fase0-back.md`, sin duplicar la decisión de rango, solo la validación).
 
 ### Edición de la ubicación del restaurante (confirmado con el usuario)
 8. **[Backend, baja]** `GET /api/configuracion/ubicacion` → `ConfiguracionUbicacionResponseDTO {lat, lng, radioMetros, updatedAt}`, `@PreAuthorize("hasAuthority('EMPLEADOS:EDICION')")` — mismo razonamiento de autorización que el resto de este documento: es una capacidad de Admin, no del módulo de fichajes en sí.
@@ -57,7 +63,7 @@ Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo cam
 11. **[Backend, baja]** Test `@WebMvcTest`: token `EMPLEADO` recibe 403 en ambos endpoints; `PUT` con `lat=200` (fuera de rango) responde 400; `PUT` válido seguido de un `POST /api/fichajes/entrada` con esas nuevas coordenadas responde 201 (verifica end-to-end que el cambio del Admin se aplica de inmediato).
 
 ### Transversal
-12. **[Backend, baja]** Test `@WebMvcTest` general: un token `EMPLEADO` (con `FICHAJES:EDICION` pero sin `EMPLEADOS:EDICION`) recibe 403 en los siete endpoints de este documento; unit test de `obtenerUmbralDiario` (con y sin `horasJornadaDiaria` seteado) y de los tres niveles de resumen con un empleado de jornada parcial (ej. 6h/día → semanal 30h, mensual `6 × diasLaborablesDelMes`).
+12. **[Backend, baja]** Test `@WebMvcTest` general: un token `EMPLEADO` (con `FICHAJES:EDICION` pero sin `EMPLEADOS:EDICION`) recibe 403 en los ocho endpoints de este documento (los siete originales + `PATCH .../horario-teorico`); unit test de `obtenerUmbralDiario` (con y sin `horasJornadaDiaria` seteado) y de los tres niveles de resumen con un empleado de jornada parcial (ej. 6h/día → semanal 30h, mensual `6 × diasLaborablesDelMes`), verificando también que `horasTeoricas` del DTO coincide con el umbral usado para `cumpleMinimo`.
 
 ## Decisiones técnicas
 
@@ -68,12 +74,15 @@ Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo cam
 - **Corrección manual reutiliza el mismo cálculo de horas** que `FichajeService.finalizar()` (Fase 1.1).
 - **La edición de ubicación reutiliza `ConfiguracionUbicacionService` de `fase1-1-back.md`** en vez de que este documento hable directamente con el repositorio — el controller de Admin es un cliente más de ese servicio, igual que `FichajeService.iniciar(...)`.
 - **Validación de rangos en el DTO de entrada** (`lat`/`lng`/`radioMetros`), no solo confiar en que el Admin introduzca valores sensatos desde el front: un 400 claro es mejor que dejar el fichaje inservible para todo el restaurante por un valor mal tecleado.
+- **`horasTeoricas` se expone en los tres DTOs de resumen en vez de solo el booleano `cumpleMinimo`** (revisión post-implementación): evita que el front tenga que recalcular o adivinar el umbral por su cuenta para pintarlo — reutiliza el mismo valor que ya calcula `obtenerUmbralDiario`/las multiplicaciones semanal/mensual, cero riesgo de divergencia entre el número mostrado y el que decide el resaltado en rojo.
+- **Endpoint `PATCH /api/empleados/{id}/horario-teorico` dedicado, en vez de reutilizar `PUT /api/empleados/{id}`** (revisión post-implementación): permite editar la jornada teórica de un empleado desde la vista de fichajes sin tener que cargar y reenviar el resto de su ficha (nombre, email, DNI, tipo de usuario), que es justo el flujo que pidió el usuario ("selecciono un empleado en el filtro y le asigno el horario teórico") sin salir de `/fichajes/admin`.
 
 ## Riesgos y dependencias
 
 - **Dependencia dura** con `bbdd/fase1-3-bbdd.md`: sin la columna `horas_jornada_diaria`, no hay jornada parcial que resolver (todo caería al global, sin romper nada, pero sin cumplir el requisito confirmado).
 - **Dependencia dura** con `fase1-1-back.md`: reutiliza `Fichaje`, `FichajeRepository`, el cálculo de horas, y ahora también `ConfiguracionUbicacion`/`ConfiguracionUbicacionService` para el endpoint de edición de ubicación.
 - **Dependencia dura** con `fase1-2-back.md`: reutiliza `calcularDiasLaborables` para el umbral mensual — si ese método cambia de firma, revisar aquí también.
+- **`PATCH .../horario-teorico` y `PUT /api/empleados/{id}` (Fase 0) editan el mismo campo por dos caminos distintos**: no hay inconsistencia de datos (ambos escriben `Empleado.horasJornadaDiaria`), pero si en el futuro `EmpleadoUpdateDTO` cambia su rango de validación (`fase0-back.md`), hay que recordar actualizar también `HorarioTeoricoUpdateDTO` para que no diverjan.
 - **Riesgo medio (documentado arriba)**: los umbrales semanal/mensual no descuentan vacaciones aprobadas del período — puede generar falsos "en rojo" en semanas/meses con vacaciones. Mitigación mínima para esta fase: mostrar en la misma vista (o en un tooltip) si el empleado tuvo vacaciones aprobadas ese período, para que el Admin lo tenga en cuenta antes de actuar sobre el aviso.
 - **Riesgo medio — un cambio de ubicación afecta a todos los empleados a la vez**: si el Admin comete un error al guardar (p.ej. invierte `lat`/`lng`), todos los fichajes de entrada empiezan a fallar hasta que alguien lo note y lo corrija — no hay validación semántica posible más allá de los rangos numéricos (el backend no puede saber si una coordenada válida es la correcta). Mitigación: mostrar en el front (`fase1-3-front.md`) la ubicación actual de forma clara antes de guardar, y considerar (fuera de alcance de esta fase) una confirmación con "doble check" o un enlace a un mapa para verificar visualmente antes de guardar.
 - **Riesgo bajo**: si un empleado tiene fichajes en distinta zona horaria (no aplica hoy) habría que revisar el agrupado por `fecha`.
@@ -87,3 +96,5 @@ Además, extiende (no sustituye) las clases ya existentes: `Empleado` (nuevo cam
 - Corregir un fichaje recalcula `horasCalculadas` de forma consistente y deja traza (`corregidoPorAdmin`, `corregidoPorAdminId`, `fechaCorreccion`); el resumen diario/semanal/mensual de ese rango refleja el cambio en la siguiente consulta.
 - `PUT /api/configuracion/ubicacion` con valores válidos actualiza `lat`/`lng`/`radioMetros` y `updatedAt`/`actualizadoPorAdminId`; el siguiente `POST /api/fichajes/entrada` de cualquier empleado valida ya contra la nueva ubicación, sin reiniciar el backend.
 - `PUT /api/configuracion/ubicacion` con `lat`, `lng` o `radioMetros` fuera de rango responde 400 y no modifica la fila existente.
+- `GET /api/fichajes/admin/resumen/{diario,semanal,mensual}` devuelve también `horasTeoricas` (el mismo umbral usado para `cumpleMinimo`), no solo el booleano.
+- `PATCH /api/empleados/{id}/horario-teorico` con un valor entre 1 y 12 actualiza `horasJornadaDiaria` de ese empleado sin exigir el resto de sus campos; con un valor fuera de `[1, 12]` responde 400; un token `EMPLEADO` recibe 403.

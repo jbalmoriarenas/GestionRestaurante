@@ -12,6 +12,7 @@ import com.gestionrestaurante.back.exception.TipoUsuarioNotFoundException;
 import com.gestionrestaurante.back.mapper.EmpleadoMapper;
 import com.gestionrestaurante.back.repository.EmpleadoRepository;
 import com.gestionrestaurante.back.repository.TipoUsuarioRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -88,6 +89,13 @@ public class EmpleadoService {
         Empleado empleado = buscarOrThrow(id);
         empleado.setPasswordHash(passwordEncoder.encode(nuevaPassword));
         empleadoRepository.save(empleado);
+    }
+
+    @Transactional
+    public EmpleadoResponseDTO actualizarHorarioTeorico(Long id, BigDecimal horasJornadaDiaria) {
+        Empleado empleado = buscarOrThrow(id);
+        empleado.setHorasJornadaDiaria(horasJornadaDiaria);
+        return EmpleadoMapper.toResponse(empleadoRepository.save(empleado));
     }
 
     private Empleado buscarOrThrow(Long id) {

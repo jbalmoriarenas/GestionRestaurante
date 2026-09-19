@@ -6,6 +6,7 @@ public record FichajeResumenMesDTO(
         int mes,
         int anio,
         BigDecimal horasCalculadas,
+        BigDecimal horasTeoricas,
         boolean cumpleMinimo
 ) {
 }
