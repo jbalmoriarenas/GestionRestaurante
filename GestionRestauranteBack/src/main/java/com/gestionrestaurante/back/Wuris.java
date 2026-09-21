@@ -85,4 +85,15 @@ public final class Wuris {
         public static final String ADMIN_SOLICITUD_APROBAR = ADMIN_SOLICITUDES + "/{id}/aprobar";
         public static final String ADMIN_SOLICITUD_RECHAZAR = ADMIN_SOLICITUDES + "/{id}/rechazar";
     }
+
+    public static final class Nominas {
+        private Nominas() {
+        }
+
+        public static final String BASE = API + "/nominas";
+        public static final String ZIP = BASE + "/zip";
+        public static final String PENDIENTE_ASIGNAR = BASE + "/pendientes/{tempId}/asignar";
+        public static final String BY_ID_DESCARGAR = BASE + "/{id}/descargar";
+        public static final String BY_ID_ENVIAR = BASE + "/{id}/enviar";
+    }
 }

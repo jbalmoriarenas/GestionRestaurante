@@ -334,5 +334,78 @@
         "overrideGuardado": "Total de días del empleado actualizado"
       }
     }
+  },
+  "nominas": {
+    "admin": {
+      "titulo": "Nóminas (Admin)",
+      "filtros": {
+        "empleado": "Empleado",
+        "periodo": "Periodo",
+        "estado": "Estado",
+        "todos": "Todos"
+      },
+      "tabla": {
+        "empleado": "Empleado",
+        "email": "Email",
+        "estado": "Estado",
+        "acciones": "Acciones",
+        "vacio": "No hay empleados para mostrar"
+      },
+      "estados": {
+        "PENDIENTE": "Pendiente",
+        "ADJUNTADA": "Adjuntada",
+        "ENVIADA": "Enviada"
+      },
+      "acciones": {
+        "subir": "Subir",
+        "reemplazar": "Reemplazar",
+        "descargar": "Descargar",
+        "enviar": "Enviar",
+        "reenviar": "Reenviar"
+      },
+      "subida": {
+        "tituloSubir": "Subir nómina",
+        "tituloReemplazar": "Reemplazar nómina",
+        "archivo": "Archivo PDF",
+        "ningunArchivo": "Ningún archivo seleccionado",
+        "archivoRequerido": "Selecciona un archivo PDF",
+        "formatoInvalido": "El archivo debe ser un PDF (.pdf)",
+        "subir": "Subir",
+        "reemplazar": "Reemplazar"
+      },
+      "zip": {
+        "titulo": "Subir nóminas (ZIP)",
+        "subir": "Subir nóminas (ZIP)",
+        "archivo": "Archivo ZIP",
+        "avisoFormato": "Cada PDF dentro del ZIP debe llamarse DNI/NIE_AAAA-MM.pdf (ejemplo: 12345678A_2026-01.pdf). Los archivos que no sigan ese formato quedarán como pendientes para asignar manualmente.",
+        "resumen": "Se asignaron {{n}} nóminas automáticamente",
+        "pendientes": {
+          "titulo": "Sin asignar",
+          "motivo": {
+            "NO_ES_PDF": "El archivo no es un PDF",
+            "NOMBRE_NO_VALIDO": "El nombre del archivo no sigue el formato esperado",
+            "EMPLEADO_NO_ENCONTRADO": "No se encontró ningún empleado con ese DNI/NIE"
+          },
+          "asignar": "Asignar",
+          "campoRequerido": "Obligatorio para asignar"
+        },
+        "confirmarCierre": {
+          "titulo": "Nóminas sin asignar",
+          "mensaje": "Quedan {{n}} nóminas sin asignar; si cierras ahora, tendrás que volver a subir esos archivos",
+          "confirmar": "Cerrar de todos modos",
+          "cancelar": "Volver"
+        }
+      },
+      "envio": {
+        "titulo": "Enviar nómina",
+        "aviso": "Se enviará la nómina de {{periodo}} a {{nombre}} ({{email}}). ¿Confirmar?",
+        "confirmar": "Confirmar",
+        "enviadaEl": "Enviada el {{fecha}}"
+      },
+      "notificaciones": {
+        "subidaExito": "Nómina subida correctamente",
+        "envioExito": "Nómina enviada por email"
+      }
+    }
   }
 }

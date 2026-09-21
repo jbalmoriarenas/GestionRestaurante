@@ -1,5 +1,8 @@
 HELP.md
 target/
+
+### Nominas (Fase 3) - almacenamiento local de PDFs subidos, nunca a control de versiones ###
+/uploads/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

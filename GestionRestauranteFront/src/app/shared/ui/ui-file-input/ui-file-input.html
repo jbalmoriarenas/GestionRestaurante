@@ -1,0 +1,19 @@
+<div class="ui-field">
+  @if (label()) {
+    <label [for]="id">{{ label() }}</label>
+  }
+  <input
+    #input
+    type="file"
+    [id]="id"
+    [accept]="accept()"
+    [disabled]="disabled()"
+    [class.invalid]="errorMessage()"
+    (change)="handleChange($event)"
+    (blur)="handleBlur()"
+  />
+  <span class="ui-file-input__nombre">{{ fileName() ?? noFileLabel() }}</span>
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
+</div>

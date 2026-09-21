@@ -1,6 +1,7 @@
 package com.gestionrestaurante.back.repository;
 
 import com.gestionrestaurante.back.entity.Empleado;
+import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -45,4 +46,18 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
     @EntityGraph(attributePaths = "tipoUsuario")
     Page<Empleado> findByActivo(boolean activo, Pageable pageable);
+
+    /**
+     * Usado por NominaService.listar para cruzar en memoria "todos los empleados activos"
+     * con las nominas del periodo consultado (back/fase3-1-back.md): el estado "pendiente"
+     * de un empleado se calcula por ausencia de fila, no se persiste.
+     */
+    List<Empleado> findByActivoTrueOrderByApellidosAscNombreAsc();
+
+    /**
+     * Usado por NominaService.procesarZip para matchear cada entrada del ZIP con su empleado
+     * por convencion de nombre de fichero ({dniNie}_{periodoAnio}-{periodoMes}.pdf,
+     * back/fase3-2-back.md). Solo empleados activos son candidatos.
+     */
+    Optional<Empleado> findByDniNieAndActivoTrue(String dniNie);
 }

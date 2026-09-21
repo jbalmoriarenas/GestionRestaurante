@@ -334,5 +334,78 @@
         "overrideGuardado": "Employee's total days updated"
       }
     }
+  },
+  "nominas": {
+    "admin": {
+      "titulo": "Payroll (Admin)",
+      "filtros": {
+        "empleado": "Employee",
+        "periodo": "Period",
+        "estado": "Status",
+        "todos": "All"
+      },
+      "tabla": {
+        "empleado": "Employee",
+        "email": "Email",
+        "estado": "Status",
+        "acciones": "Actions",
+        "vacio": "No employees to display"
+      },
+      "estados": {
+        "PENDIENTE": "Pending",
+        "ADJUNTADA": "Attached",
+        "ENVIADA": "Sent"
+      },
+      "acciones": {
+        "subir": "Upload",
+        "reemplazar": "Replace",
+        "descargar": "Download",
+        "enviar": "Send",
+        "reenviar": "Resend"
+      },
+      "subida": {
+        "tituloSubir": "Upload payslip",
+        "tituloReemplazar": "Replace payslip",
+        "archivo": "PDF file",
+        "ningunArchivo": "No file selected",
+        "archivoRequerido": "Select a PDF file",
+        "formatoInvalido": "The file must be a PDF (.pdf)",
+        "subir": "Upload",
+        "reemplazar": "Replace"
+      },
+      "zip": {
+        "titulo": "Upload payslips (ZIP)",
+        "subir": "Upload payslips (ZIP)",
+        "archivo": "ZIP file",
+        "avisoFormato": "Each PDF inside the ZIP must be named ID/NIE_YYYY-MM.pdf (example: 12345678A_2026-01.pdf). Files that don't follow that format will be left unassigned for manual assignment.",
+        "resumen": "{{n}} payslips were assigned automatically",
+        "pendientes": {
+          "titulo": "Unassigned",
+          "motivo": {
+            "NO_ES_PDF": "The file is not a PDF",
+            "NOMBRE_NO_VALIDO": "The file name doesn't follow the expected format",
+            "EMPLEADO_NO_ENCONTRADO": "No employee found with that ID number"
+          },
+          "asignar": "Assign",
+          "campoRequerido": "Required to assign"
+        },
+        "confirmarCierre": {
+          "titulo": "Unassigned payslips",
+          "mensaje": "There are {{n}} unassigned payslips left; if you close now, you'll have to upload those files again",
+          "confirmar": "Close anyway",
+          "cancelar": "Go back"
+        }
+      },
+      "envio": {
+        "titulo": "Send payslip",
+        "aviso": "The payslip for {{periodo}} will be sent to {{nombre}} ({{email}}). Confirm?",
+        "confirmar": "Confirm",
+        "enviadaEl": "Sent on {{fecha}}"
+      },
+      "notificaciones": {
+        "subidaExito": "Payslip uploaded successfully",
+        "envioExito": "Payslip sent by email"
+      }
+    }
   }
 }

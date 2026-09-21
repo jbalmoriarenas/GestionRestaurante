@@ -1,0 +1,224 @@
+<div class="nominas-admin-page flex flex-col gap-xl">
+  <h1 class="section-heading">{{ 'nominas.admin.titulo' | translate }}</h1>
+
+  <ui-card>
+    <form [formGroup]="filtrosForm" class="flex flex-wrap gap-lg items-end">
+      <ui-select
+        class="nominas-admin-page__filtro-select"
+        [label]="'nominas.admin.filtros.empleado' | translate"
+        [options]="empleadoFiltroOptions()"
+        formControlName="empleadoId"
+      />
+      <ui-input [label]="'nominas.admin.filtros.periodo' | translate" type="month" formControlName="periodo" />
+      <ui-select
+        class="nominas-admin-page__filtro-select"
+        [label]="'nominas.admin.filtros.estado' | translate"
+        [options]="estadoFiltroOptions()"
+        formControlName="estado"
+      />
+      <ui-button type="button" variant="secondary" (click)="abrirZip()">
+        {{ 'nominas.admin.zip.subir' | translate }}
+      </ui-button>
+    </form>
+  </ui-card>
+
+  <ui-card>
+    <ui-table
+      [loading]="cargando()"
+      [empty]="!cargando() && (pagina()?.content?.length ?? 0) === 0"
+      [emptyMessage]="'nominas.admin.tabla.vacio' | translate"
+      [page]="pagina()?.number ?? 0"
+      [totalPages]="pagina()?.totalPages ?? 0"
+      [previousLabel]="'common.previous' | translate"
+      [nextLabel]="'common.next' | translate"
+      [pageLabel]="'common.pageOf' | translate: { current: (pagina()?.number ?? 0) + 1, total: pagina()?.totalPages ?? 0 }"
+      (pageChange)="cambiarPagina($event)"
+    >
+      <table>
+        <caption class="sr-only">{{ 'nominas.admin.titulo' | translate }}</caption>
+        <thead>
+          <tr>
+            <th>{{ 'nominas.admin.tabla.empleado' | translate }}</th>
+            <th>{{ 'nominas.admin.tabla.email' | translate }}</th>
+            <th>{{ 'nominas.admin.tabla.estado' | translate }}</th>
+            <th><span class="sr-only">{{ 'nominas.admin.tabla.acciones' | translate }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of pagina()?.content ?? []; track fila.empleadoId) {
+            <tr>
+              <td>{{ fila.nombreEmpleado }}</td>
+              <td class="nominas-admin-page__email" [attr.title]="fila.email">{{ fila.email }}</td>
+              <td>
+                <ui-badge [variant]="badgeVariant(fila.estado)">
+                  {{ ('nominas.admin.estados.' + fila.estado) | translate }}
+                </ui-badge>
+              </td>
+              <td class="nominas-admin-page__acciones">
+                @if (fila.estado === 'PENDIENTE') {
+                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--primary" (click)="abrirSubida(fila)">
+                    {{ 'nominas.admin.acciones.subir' | translate }}
+                  </button>
+                } @else {
+                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--amarillo" (click)="abrirSubida(fila)">
+                    {{ 'nominas.admin.acciones.reemplazar' | translate }}
+                  </button>
+                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--azul" (click)="descargar(fila)">
+                    {{ 'nominas.admin.acciones.descargar' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="nominas-admin-page__accion nominas-admin-page__accion--primary"
+                    [attr.title]="fila.estado === 'ENVIADA' ? ('nominas.admin.envio.enviadaEl' | translate: { fecha: fila.fechaEnvio }) : null"
+                    (click)="abrirEnvio(fila)"
+                  >
+                    {{ (fila.estado === 'ENVIADA' ? 'nominas.admin.acciones.reenviar' : 'nominas.admin.acciones.enviar') | translate }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </ui-table>
+  </ui-card>
+</div>
+
+<ui-modal
+  [open]="filaSubida() !== null"
+  [title]="
+    (filaSubida()?.estado === 'PENDIENTE' ? 'nominas.admin.subida.tituloSubir' : 'nominas.admin.subida.tituloReemplazar') | translate
+  "
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarSubida()"
+>
+  @if (filaSubida(); as fila) {
+    <div class="flex flex-col gap-lg">
+      <p class="page-note">{{ fila.nombreEmpleado }} — {{ fila.periodoMes }}/{{ fila.periodoAnio }}</p>
+      <ui-file-input
+        [label]="'nominas.admin.subida.archivo' | translate"
+        accept="application/pdf"
+        [noFileLabel]="'nominas.admin.subida.ningunArchivo' | translate"
+        [errorMessage]="
+          archivoSubida.touched && archivoSubida.hasError('required')
+            ? ('nominas.admin.subida.archivoRequerido' | translate)
+            : archivoSubida.touched && archivoSubida.hasError('formatoInvalido')
+              ? ('nominas.admin.subida.formatoInvalido' | translate)
+              : null
+        "
+        [formControl]="archivoSubida"
+      />
+    </div>
+  }
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarSubida()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button [loading]="guardandoSubida()" (click)="confirmarSubida()">
+      {{ (filaSubida()?.estado === 'PENDIENTE' ? 'nominas.admin.subida.subir' : 'nominas.admin.subida.reemplazar') | translate }}
+    </ui-button>
+  </div>
+</ui-modal>
+
+<ui-modal
+  [open]="mostrarZip()"
+  [title]="'nominas.admin.zip.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="intentarCerrarZip()"
+>
+  <div class="flex flex-col gap-lg">
+    <p class="page-note">{{ 'nominas.admin.zip.avisoFormato' | translate }}</p>
+    <ui-file-input
+      [label]="'nominas.admin.zip.archivo' | translate"
+      accept="application/zip"
+      [noFileLabel]="'nominas.admin.subida.ningunArchivo' | translate"
+      [errorMessage]="archivoZip.invalid && archivoZip.touched ? ('nominas.admin.subida.archivoRequerido' | translate) : null"
+      [formControl]="archivoZip"
+    />
+    @if (resumenZip(); as resumen) {
+      <p class="page-note">{{ 'nominas.admin.zip.resumen' | translate: { n: resumen } }}</p>
+    }
+    @if (pendientesZip().length > 0) {
+      <div class="nominas-admin-page__pendientes flex flex-col gap-md">
+        <h3 class="section-heading">{{ 'nominas.admin.zip.pendientes.titulo' | translate }}</h3>
+        @for (fila of pendientesZip(); track fila.pendiente.tempId) {
+          <div class="nominas-admin-page__pendiente-fila flex flex-wrap gap-md items-end">
+            <div class="nominas-admin-page__pendiente-info">
+              <p>{{ fila.pendiente.nombreArchivoOriginal }}</p>
+              <p class="page-note">{{ motivoPendienteKey(fila.pendiente.motivo) | translate }}</p>
+            </div>
+            <ui-select
+              [label]="'nominas.admin.filtros.empleado' | translate"
+              [placeholder]="'common.selectOption' | translate"
+              [options]="empleadosBase()"
+              [errorMessage]="
+                fila.empleadoIdControl.invalid && fila.empleadoIdControl.touched
+                  ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
+                  : null
+              "
+              [formControl]="fila.empleadoIdControl"
+            />
+            <ui-input
+              [label]="'nominas.admin.filtros.periodo' | translate"
+              type="month"
+              [errorMessage]="
+                fila.periodoControl.invalid && fila.periodoControl.touched
+                  ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
+                  : null
+              "
+              [formControl]="fila.periodoControl"
+            />
+            <ui-button type="button" [loading]="asignandoPendiente() === fila.pendiente.tempId" (click)="asignarPendiente(fila)">
+              {{ 'nominas.admin.zip.pendientes.asignar' | translate }}
+            </ui-button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="intentarCerrarZip()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button [loading]="subiendoZip()" (click)="confirmarSubidaZip()">
+      {{ 'nominas.admin.zip.subir' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>
+
+<ui-modal
+  [open]="mostrarConfirmarCierreZip()"
+  [title]="'nominas.admin.zip.confirmarCierre.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cancelarCierreZip()"
+>
+  <p class="page-note">
+    {{ 'nominas.admin.zip.confirmarCierre.mensaje' | translate: { n: pendientesZip().length } }}
+  </p>
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cancelarCierreZip()">
+      {{ 'nominas.admin.zip.confirmarCierre.cancelar' | translate }}
+    </ui-button>
+    <ui-button variant="danger" (click)="confirmarCierreZip()">
+      {{ 'nominas.admin.zip.confirmarCierre.confirmar' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>
+
+<ui-modal
+  [open]="filaEnvio() !== null"
+  [title]="'nominas.admin.envio.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarEnvio()"
+>
+  @if (filaEnvio(); as fila) {
+    <p class="page-note">
+      {{
+        'nominas.admin.envio.aviso'
+          | translate: { periodo: fila.periodoMes + '/' + fila.periodoAnio, email: fila.email, nombre: fila.nombreEmpleado }
+      }}
+    </p>
+  }
+  <div modal-footer>
+    <ui-button variant="secondary" (click)="cerrarEnvio()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button [loading]="guardandoEnvio()" (click)="confirmarEnvio()">
+      {{ 'nominas.admin.envio.confirmar' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>
