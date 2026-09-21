@@ -17,6 +17,7 @@ let nextId = 0;
 })
 export class UiFileInput implements ControlValueAccessor {
   readonly id = `ui-file-input-${nextId++}`;
+  readonly errorId = `${this.id}-error`;
   readonly label = input('');
   readonly accept = input('');
   readonly errorMessage = input<string | null>(null);

@@ -40,11 +40,17 @@
   --color-success-light: #e7f9ee;
   --color-success-border: #a7e8c1;
   --color-warning: #f59e0b;
+  --color-warning-hover: #dc8f0a;
   --color-warning-light: #fef3e2;
   --color-warning-border: #fbd9a3;
   --color-danger: #dc2626;
   --color-danger-light: #fdecec;
   --color-danger-border: #f6b8b8;
+
+  /* Info: usado como fondo solido con texto blanco (p.ej. acciones secundarias tipo
+     "Descargar"), verificado >=4.5:1 de contraste con texto blanco igual que primary/danger. */
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
 
   /* Bordes y sombras */
   --color-border: var(--neutral-90);

@@ -29,13 +29,6 @@
     white-space: nowrap;
   }
 
-  &__acciones {
-    display: flex;
-    gap: var(--space-sm);
-    flex-wrap: nowrap;
-    align-items: center;
-  }
-
   &__accion {
     display: inline-flex;
     align-items: center;
@@ -66,16 +59,16 @@
       }
     }
 
-    // Azul y amarillo no forman parte de la paleta semantica del proyecto (_tokens.scss):
-    // son un pedido puntual de color para diferenciar Descargar/Reemplazar de las acciones
-    // principales (teal), asi que se definen aqui en vez de anadir tokens globales de un solo uso.
+    // Azul/amarillo diferencian Descargar/Reemplazar de las acciones principales (teal):
+    // --color-info/--color-info-hover y --color-warning-hover viven ahora en _tokens.scss,
+    // reutilizables por cualquier otro componente que necesite este mismo matiz.
     &--azul {
-      border-color: #2563eb;
-      background: #2563eb;
+      border-color: var(--color-info);
+      background: var(--color-info);
       color: var(--color-surface);
 
       &:hover {
-        background: #1d4ed8;
+        background: var(--color-info-hover);
       }
     }
 
@@ -85,7 +78,7 @@
       color: var(--color-text-primary);
 
       &:hover {
-        background: #dc8f0a;
+        background: var(--color-warning-hover);
       }
     }
   }
@@ -97,6 +90,12 @@
   &__pendientes {
     border-top: 1px solid var(--color-border);
     padding-top: var(--space-md);
+  }
+
+  &__pendiente-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
 
   &__pendiente-fila {

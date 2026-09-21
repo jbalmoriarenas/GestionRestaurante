@@ -54,7 +54,7 @@
                   {{ ('nominas.admin.estados.' + fila.estado) | translate }}
                 </ui-badge>
               </td>
-              <td class="nominas-admin-page__acciones">
+              <td class="nominas-admin-page__acciones flex gap-sm items-center">
                 @if (fila.estado === 'PENDIENTE') {
                   <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--primary" (click)="abrirSubida(fila)">
                     {{ 'nominas.admin.acciones.subir' | translate }}
@@ -139,38 +139,40 @@
     @if (pendientesZip().length > 0) {
       <div class="nominas-admin-page__pendientes flex flex-col gap-md">
         <h3 class="section-heading">{{ 'nominas.admin.zip.pendientes.titulo' | translate }}</h3>
-        @for (fila of pendientesZip(); track fila.pendiente.tempId) {
-          <div class="nominas-admin-page__pendiente-fila flex flex-wrap gap-md items-end">
-            <div class="nominas-admin-page__pendiente-info">
-              <p>{{ fila.pendiente.nombreArchivoOriginal }}</p>
-              <p class="page-note">{{ motivoPendienteKey(fila.pendiente.motivo) | translate }}</p>
-            </div>
-            <ui-select
-              [label]="'nominas.admin.filtros.empleado' | translate"
-              [placeholder]="'common.selectOption' | translate"
-              [options]="empleadosBase()"
-              [errorMessage]="
-                fila.empleadoIdControl.invalid && fila.empleadoIdControl.touched
-                  ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
-                  : null
-              "
-              [formControl]="fila.empleadoIdControl"
-            />
-            <ui-input
-              [label]="'nominas.admin.filtros.periodo' | translate"
-              type="month"
-              [errorMessage]="
-                fila.periodoControl.invalid && fila.periodoControl.touched
-                  ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
-                  : null
-              "
-              [formControl]="fila.periodoControl"
-            />
-            <ui-button type="button" [loading]="asignandoPendiente() === fila.pendiente.tempId" (click)="asignarPendiente(fila)">
-              {{ 'nominas.admin.zip.pendientes.asignar' | translate }}
-            </ui-button>
-          </div>
-        }
+        <ul class="nominas-admin-page__pendiente-lista flex flex-col gap-md">
+          @for (fila of pendientesZip(); track fila.pendiente.tempId) {
+            <li class="nominas-admin-page__pendiente-fila flex flex-wrap gap-md items-end">
+              <div class="nominas-admin-page__pendiente-info">
+                <p>{{ fila.pendiente.nombreArchivoOriginal }}</p>
+                <p class="page-note">{{ motivoPendienteKey(fila.pendiente.motivo) | translate }}</p>
+              </div>
+              <ui-select
+                [label]="'nominas.admin.filtros.empleado' | translate"
+                [placeholder]="'common.selectOption' | translate"
+                [options]="empleadosBase()"
+                [errorMessage]="
+                  fila.empleadoIdControl.invalid && fila.empleadoIdControl.touched
+                    ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
+                    : null
+                "
+                [formControl]="fila.empleadoIdControl"
+              />
+              <ui-input
+                [label]="'nominas.admin.filtros.periodo' | translate"
+                type="month"
+                [errorMessage]="
+                  fila.periodoControl.invalid && fila.periodoControl.touched
+                    ? ('nominas.admin.zip.pendientes.campoRequerido' | translate)
+                    : null
+                "
+                [formControl]="fila.periodoControl"
+              />
+              <ui-button type="button" [loading]="asignandoPendiente() === fila.pendiente.tempId" (click)="asignarPendiente(fila)">
+                {{ 'nominas.admin.zip.pendientes.asignar' | translate }}
+              </ui-button>
+            </li>
+          }
+        </ul>
       </div>
     }
   </div>

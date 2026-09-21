@@ -9,11 +9,12 @@
     [accept]="accept()"
     [disabled]="disabled()"
     [class.invalid]="errorMessage()"
+    [attr.aria-describedby]="errorMessage() ? errorId : null"
     (change)="handleChange($event)"
     (blur)="handleBlur()"
   />
   <span class="ui-file-input__nombre">{{ fileName() ?? noFileLabel() }}</span>
   @if (errorMessage()) {
-    <span class="error">{{ errorMessage() }}</span>
+    <span class="error" [id]="errorId">{{ errorMessage() }}</span>
   }
 </div>
