@@ -407,5 +407,85 @@
         "envioExito": "Nómina enviada por email"
       }
     }
+  },
+  "facturas": {
+    "admin": {
+      "titulo": "Facturas",
+      "tabs": {
+        "proveedores": "Facturas de proveedores",
+        "suministros": "Facturas de suministros"
+      },
+      "filtros": {
+        "proveedor": "Proveedor",
+        "estadoPago": "Estado",
+        "periodo": "Periodo",
+        "todos": "Todos"
+      },
+      "tabla": {
+        "empresa": "Empresa",
+        "producto": "Producto",
+        "cuantia": "Cuantía",
+        "fecha": "Fecha",
+        "estado": "Estado",
+        "acciones": "Acciones",
+        "vacio": "No hay facturas para mostrar"
+      },
+      "estados": {
+        "PENDIENTE": "Pendiente",
+        "PAGADA": "Pagada"
+      },
+      "estadosExtraccion": {
+        "MANUAL": "Manual",
+        "PENDIENTE": "Pendiente",
+        "PROCESADA": "Procesada",
+        "ERROR": "Error",
+        "REVISADA": "Revisada"
+      },
+      "acciones": {
+        "verDetalle": "Ver detalle",
+        "marcarPagada": "Marcar pagada",
+        "marcarPendiente": "Marcar pendiente",
+        "descargar": "Descargar",
+        "exportar": "Exportar a Excel",
+        "nuevaFactura": "Nueva factura"
+      },
+      "alta": {
+        "titulo": "Nueva factura",
+        "archivo": "Foto o PDF de la factura",
+        "ningunArchivo": "Ningún archivo seleccionado",
+        "archivoRequerido": "Selecciona un archivo",
+        "formatoInvalido": "El archivo debe ser una imagen (JPG/PNG/WEBP) o un PDF",
+        "extraerDatos": "Extraer datos automáticamente",
+        "avisoRevisar": "Datos detectados automáticamente — revísalos antes de guardar",
+        "proveedor": "Proveedor",
+        "nuevoProveedor": "Nuevo proveedor",
+        "proveedorNombre": "Nombre",
+        "proveedorCif": "CIF",
+        "proveedorEmail": "Email de contacto",
+        "proveedorTelefono": "Teléfono",
+        "producto": "Producto",
+        "numeroFactura": "Número de factura",
+        "fechaFactura": "Fecha de factura",
+        "fechaVencimiento": "Fecha de vencimiento",
+        "importeBase": "Base imponible",
+        "iva": "IVA",
+        "importeTotal": "Importe total",
+        "estadoPago": "Estado de pago",
+        "camposAdicionales": "Datos adicionales detectados",
+        "anadirCampo": "Añadir campo",
+        "clave": "Campo",
+        "valor": "Valor",
+        "campoRequerido": "Obligatorio",
+        "confirmar": "Guardar factura"
+      },
+      "detalle": {
+        "titulo": "Detalle de la factura",
+        "datosAdicionales": "Datos adicionales",
+        "estadoExtraccion": "Origen de los datos"
+      },
+      "notificaciones": {
+        "altaExito": "Factura guardada correctamente"
+      }
+    }
   }
 }

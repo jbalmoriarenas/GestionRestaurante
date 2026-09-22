@@ -6,7 +6,7 @@ Aplicación de gestión integral para un restaurante, compuesta por tres módulo
 
 1. **Fichaje de empleados** — registro de entrada/salida tipo Woffu simplificado, con vista propia (empleado) y vista de supervisión (Admin).
 2. **Gestión de vacaciones** — calendario de festivos y días propios, solicitud de vacaciones por el empleado (con cupo anual y disponibilidad) y aprobación/rechazo por el Admin.
-3. **Gestión de facturas de proveedores** — digitalizar, extraer datos y consultar facturas organizadas por proveedor/mes.
+3. **Gestión de facturas** — facturas de proveedores y de suministros (luz, agua...), en pestañas separadas; digitalizar, extraer datos automáticamente (OCR) y consultar facturas con filtros avanzados, paginación y exportación a Excel.
 4. **Gestión de nóminas** — mantener el listado de empleados, subir PDFs/ZIPs de nóminas y enviarlas por email.
 
 Es un único restaurante (sin multi-sede por ahora) con dos roles de usuario: **Admin** y **Empleado**.
@@ -31,7 +31,8 @@ A añadir según los módulos:
 
 - **Spring Security + JWT** — autenticación y autorización por rol (ADMIN / EMPLEADO).
 - **Spring Boot Starter Mail** — envío de nóminas por email vía SMTP.
-- **Librería de extracción OCR/IA** — para el parseo automático de facturas (ver "Decisiones técnicas").
+- **Apache POI** (`poi-ooxml`) — exportación de listados a Excel (Fase 2.2, ver `back/fase2-2-back.md`).
+- **Tess4J + Apache PDFBox + Apache Commons Text** — extracción automática (OCR) de facturas: motor Tesseract, rasterizado de PDF a imagen y *fuzzy matching* de proveedor, respectivamente. Las tres gratuitas (Apache License 2.0); decisión tomada en la Fase 2.3, ver "Decisiones técnicas" y `back/fase2-3-back.md`. Tess4J requiere el binario nativo de Tesseract instalado en cada entorno (no es una dependencia JVM autosuficiente).
 - **Spring Boot Starter Validation** (ya incluido) — validación de formularios en los distintos módulos.
 
 ## Análisis funcional y supuestos
@@ -39,7 +40,7 @@ A añadir según los módulos:
 - **Un solo restaurante**, sin necesidad de modelar "sede" en ninguna entidad (asunción confirmada).
 - **Roles**: Admin/RRHH (acceso total) y Empleado (acceso **únicamente** al módulo de Fichaje, y solo a sus propios fichajes). El Empleado **no** tiene acceso a Facturas de proveedores ni a Nóminas desde la app — las nóminas le llegan solo por email; ni la vista ni los endpoints de esos dos módulos son alcanzables por el rol Empleado.
 - **Permisos**: dos roles fijos definidos en código (ADMIN / EMPLEADO), no un sistema de permisos configurable desde la app. Cambiar qué ve cada rol implica un cambio de código (guards en Angular + `@PreAuthorize` en Spring), no una pantalla de administración de permisos.
-- **Facturas**: se quiere extracción automática de datos (OCR/IA) al escanear/subir una factura, no solo carga manual. Se asume que el usuario siempre podrá **revisar y corregir** lo extraído antes de darlo por bueno (ningún proceso automático debe ser 100% ciego).
+- **Facturas**: dos categorías — facturas de proveedores y facturas de suministros (luz, agua, gas...) — mostradas en dos pestañas de un mismo listado, con búsqueda avanzada (proveedor/estado de pago/mes), paginación de 25 en 25 y exportación a Excel con todos los campos (no solo los mostrados en el listado). Se quiere extracción automática de datos (OCR) al subir una foto/PDF de una factura, no solo carga manual — con capacidad de crear campos nuevos en BBDD automáticamente cuando el OCR detecta datos que no existían antes (implementado como tabla de campos dinámicos, no como alteración de esquema en caliente, ver `back/fase2-3-back.md`). Se asume que el usuario siempre podrá **revisar y corregir** lo extraído antes de darlo por bueno (ningún proceso automático debe ser 100% ciego). Desglose completo en `bbdd/`, `back/` y `front/fase2-1-front.md` a `fase2-3-front.md`.
 - **Nóminas**: el envío por email es **manual** (el admin sube el archivo, revisa la asignación empleado↔nómina, y pulsa "Enviar"), nunca automático al subir el archivo.
 - Se asume que los empleados tendrán login propio (usuario/contraseña) para fichar y consultar sus nóminas, no un totem/tablet compartido.
 - Se asume entorno de despliegue único (sin múltiples entornos por ahora); no se detallan pipelines de CI/CD en este plan.
@@ -110,16 +111,19 @@ GestionRestaurante/
 **SolicitudVacaciones**
 `id, empleado_id (FK), fecha_inicio, fecha_fin, dias_solicitados, estado (PENDIENTE|APROBADA|RECHAZADA), fecha_solicitud, fecha_resolucion (nullable), resuelta_por_admin_id (FK, nullable), motivo_rechazo (nullable)`
 
-**Proveedor**
-`id, nombre, cif, email_contacto, telefono`
+**Proveedor** (esquema definitivo, ver [`bbdd/fase2-1-bbdd.md`](./bbdd/fase2-1-bbdd.md))
+`id, nombre, cif (nullable), email_contacto, telefono, tipo (PROVEEDOR|SUMINISTRO)` — el tipo distingue las dos pestañas del listado de facturas (`front/fase2-1-front.md`); es una propiedad de la empresa, no de cada factura.
 
-**Factura**
-`id, proveedor_id (FK), numero_factura, fecha_factura, fecha_vencimiento, importe_base, iva, importe_total, mes, anio, ruta_archivo, estado_extraccion (PENDIENTE|PROCESADA|ERROR|REVISADA), datos_extraidos_raw (JSON, lo que devolvió el OCR sin editar), fecha_subida`
+**Factura** (esquema definitivo, ver [`bbdd/fase2-1-bbdd.md`](./bbdd/fase2-1-bbdd.md) y [`bbdd/fase2-3-bbdd.md`](./bbdd/fase2-3-bbdd.md))
+`id, proveedor_id (FK), numero_factura (nullable), producto, fecha_factura, fecha_vencimiento (nullable), importe_base (nullable), iva (nullable), importe_total, mes, anio (derivados de fecha_factura, nunca enviados por el cliente), estado_pago (PENDIENTE|PAGADA), estado_extraccion (MANUAL|PENDIENTE|PROCESADA|ERROR|REVISADA, añadido en Fase 2.3), datos_extraidos_raw (JSON, lo que devolvió el OCR sin editar, añadido en Fase 2.3), ruta_archivo, nombre_archivo_original, subida_por_admin_id, fecha_subida` — `estado_pago` (negocio: si ya se ha pagado) y `estado_extraccion` (pipeline de OCR) son conceptos independientes, no confundir.
+
+**FacturaCampoDinamico** (Fase 2.3, ver [`bbdd/fase2-3-bbdd.md`](./bbdd/fase2-3-bbdd.md))
+`id, factura_id (FK), nombre_campo, valor` — patrón Entidad-Atributo-Valor para los campos que el OCR detecta en una factura y no existen como columna fija de `Factura`; única `(factura_id, nombre_campo)`. Es la forma en que "campos nuevos se crean automáticamente" sin necesitar `ALTER TABLE` en caliente (inseguro y no compatible con una entidad JPA estática) ni redesplegar el backend.
 
 **Nomina** (esquema definitivo, ver [`bbdd/fase3-1-bbdd.md`](./bbdd/fase3-1-bbdd.md))
 `id, empleado_id (FK), periodo_mes, periodo_anio, ruta_archivo, nombre_archivo_original, estado (ADJUNTADA|ENVIADA), fecha_subida, subida_por_admin_id (FK), fecha_envio (nullable), enviada_por_admin_id (FK, nullable)` — el tercer estado que ve el Admin en la UI, "pendiente" (sin nómina subida), **no es un valor de esta columna**: es la ausencia de fila para un empleado activo en un periodo dado, calculada al listar (ver `back/fase3-1-back.md`).
 
-Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N SolicitudVacaciones`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`.
+Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N SolicitudVacaciones`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`, `Factura 1—N FacturaCampoDinamico`.
 
 ## Desglose de fases
 
@@ -159,17 +163,27 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 
 **Futuro (fuera de alcance de Fase 1)**: la IP pública del router del restaurante queda descartada como mecanismo principal (depende de IP fija, ver el análisis en `back/fase1-1-back.md`), pero podría añadirse más adelante como **factor secundario opcional** junto al GPS, si el restaurante llega a tener IP fija — no como sustituto.
 
-### Fase 2 — Gestión de facturas de proveedores (MVP sin OCR)
-- [Backend, baja] Modelo `Proveedor` + CRUD.
-- [Backend, media] Modelo `Factura`, endpoint de subida de archivo (PDF/imagen) + formulario de datos manuales, listado con filtros por proveedor/mes/año/estado.
-- [Frontend, media] Vista de subida de factura (archivo + formulario).
-- [Frontend, media] Vista de listado/consulta agrupable por proveedor y por mes, con detalle (visor de PDF/imagen + datos).
+### Fase 2 — Gestión de facturas (proveedores y suministros)
 
-### Fase 2.1 — Extracción automática (OCR/IA) sobre facturas
-- [Backend, alta] Integración del servicio de extracción elegido (ver Decisiones técnicas): al subir una factura se dispara un proceso asíncrono que rellena `datos_extraidos_raw` y propone valores para los campos estructurados.
-- [Backend, media] Manejo de estados (`PENDIENTE` → `PROCESADA`/`ERROR` → `REVISADA` cuando el admin confirma/corrige).
-- [Frontend, media] En la vista de detalle de factura, mostrar los campos propuestos por OCR como editables, con indicador visual de "pendiente de revisar".
-- **Riesgo alto** — ver sección de riesgos. Se recomienda no bloquear las Fases 0-2 esperando a tener el OCR funcionando; el flujo manual de la Fase 2 debe funcionar de forma autónoma.
+Dividida en 3 bloques, cada uno con su propio plan de detalle (BBDD + Backend + Frontend):
+
+| Bloque | Qué es | Planes de detalle |
+|---|---|---|
+| **2.1** | Modelo (`Proveedor` con `tipo`, `Factura`), listado en 2 pestañas (Facturas de proveedores / Facturas de suministros) con búsqueda avanzada (proveedor/estado de pago/mes) y paginación de 25 en 25, alta manual (datos + archivo adjunto obligatorio, sin OCR) | [`bbdd/fase2-1-bbdd.md`](./bbdd/fase2-1-bbdd.md) · [`back/fase2-1-back.md`](./back/fase2-1-back.md) · [`front/fase2-1-front.md`](./front/fase2-1-front.md) |
+| **2.2** | Exportación a Excel del listado completo filtrado (todos los campos de la factura, no solo los mostrados en pantalla) | [`back/fase2-2-back.md`](./back/fase2-2-back.md) · [`front/fase2-2-front.md`](./front/fase2-2-front.md) *(sin migraciones nuevas, reutiliza el esquema de 2.1)* |
+| **2.3** | Extracción automática (OCR) al subir una foto/PDF: propone valores para los campos del formulario y crea automáticamente campos dinámicos (tabla EAV) para los datos detectados que no existen como columna fija | [`bbdd/fase2-3-bbdd.md`](./bbdd/fase2-3-bbdd.md) · [`back/fase2-3-back.md`](./back/fase2-3-back.md) · [`front/fase2-3-front.md`](./front/fase2-3-front.md) |
+
+Resumen (ver cada documento para el desglose completo de subtareas):
+
+- [Backend, media] Modelo `Proveedor` (con `tipo`, que determina la pestaña) + alta rápida embebida en el flujo de alta de factura; modelo `Factura` con `estado_pago` (negocio) separado de `estado_extraccion` (pipeline de OCR, añadido en 2.3).
+- [Backend, media] Listado paginado a nivel de BBDD (no en memoria, a diferencia de nóminas — las facturas crecen sin límite con los años) con filtros combinables por proveedor/estado de pago/periodo, separado por `tipo`.
+- [Backend, alta] Exportación a `.xlsx` (Apache POI, *streaming*) del conjunto completo filtrado, ignorando la paginación de la UI, con todos los campos de la factura.
+- [Backend, alta] Extracción OCR gratuita (Tesseract vía Tess4J + PDFBox para PDF) detrás de una interfaz (`FacturaExtractionService`), con parseo heurístico propio (fecha, importe, *fuzzy match* de proveedor) — nunca persiste nada sin confirmación explícita del Admin; `producto` nunca se autocompleta (sin heurística fiable posible).
+- [Backend, media] Campos detectados que no encajan en ningún campo fijo se guardan en una tabla EAV (`factura_campos_dinamicos`) — así se cumple "los campos nuevos se crean automáticamente" sin alterar el esquema en caliente.
+- [Frontend, alta] Vista Admin con componente `ui-tabs` (nuevo) para las 2 pestañas, filtros avanzados, tabla paginada (Empresa/Producto/Cuantía/Fecha/Estado), modal de alta con adjunto de archivo obligatorio y alta rápida de proveedor embebida.
+- [Frontend, media] Botón de exportación a Excel que respeta los filtros activos pero no la paginación.
+- [Frontend, alta] Paso opcional de "Extraer datos automáticamente" dentro del modal de alta, con lista editable de campos adicionales detectados por OCR y aviso visual de "pendiente de revisar".
+- **Riesgo alto** en 2.3 — ver sección de riesgos. El flujo manual de 2.1/2.2 funciona de forma autónoma y no depende de que el OCR esté terminado.
 
 ### Fase 3 — Gestión de nóminas
 
@@ -201,18 +215,20 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 
 - **Monolito modular vs microservicios**: se descarta microservicios por sobreingeniería para el tamaño actual del proyecto (un restaurante, equipo pequeño). Los paquetes por dominio dejan la puerta abierta a separar el OCR más adelante si hiciera falta.
 - **Migraciones de BBDD**: se recomienda introducir **Flyway** (o Liquibase) en vez de depender de `spring.jpa.hibernate.ddl-auto=update` (configuración actual) en cuanto el modelo de datos empiece a estabilizarse. `ddl-auto=update` es cómodo en el arranque pero no es seguro para evolucionar el esquema en equipo ni en producción.
-- **Extracción OCR/IA de facturas** — tres opciones válidas, a decidir en la Fase 2.1:
-  1. **LLM multimodal (recomendado para empezar)**: enviar la imagen/PDF a un modelo con visión (p.ej. la API de Claude) pidiendo un JSON estructurado (proveedor, importe, fecha, número de factura...). Ventajas: sin infraestructura propia, buena precisión con facturas variadas, rápido de integrar vía HTTP. Desventaja: coste por documento y dependencia de un servicio externo (revisar tratamiento de datos si las facturas tienen información sensible).
-  2. **OCR cloud especializado** (Azure Document Intelligence, AWS Textract, Google Document AI): mejor rendimiento en campos tabulares y facturas estándar, pero más integración y coste por volumen.
-  3. **OCR self-hosted (Tesseract vía `tess4j`)**: gratuito y sin dependencia externa, pero la precisión en facturas con formatos variados suele ser sensiblemente peor y requiere más post-procesado manual.
+- **Extracción OCR/IA de facturas — decidido en la Fase 2.3**: se opta por la opción gratuita/self-hosted como punto de partida, a petición explícita del usuario de no depender de un servicio de pago:
+  1. **OCR self-hosted (Tesseract vía Tess4J) + PDFBox + parseo heurístico propio (elegido, Fase 2.3)**: gratuito, sin dependencia de un servicio externo ni coste por documento. La precisión en facturas de formato variado es sensiblemente peor que un LLM multimodal — mitigado con revisión humana obligatoria antes de confirmar (nunca se persiste sin confirmación) y con `FacturaExtractionService` como interfaz, para poder sustituir la implementación sin tocar el resto del código si la precisión resulta insuficiente en la práctica. Requiere el binario nativo de Tesseract instalado en cada entorno (no es una dependencia JVM autosuficiente). Detalle completo en `back/fase2-3-back.md`.
+  2. **LLM multimodal (alternativa futura si la precisión de Tesseract no es suficiente)**: enviar la imagen/PDF a un modelo con visión (p.ej. la API de Claude) pidiendo un JSON estructurado. Mejor precisión con facturas variadas y sin post-procesado propio, a cambio de coste por documento y dependencia de un servicio externo (revisar tratamiento de datos si las facturas tienen información sensible). Al estar `FacturaExtractionService` diseñado como interfaz desde el principio, este cambio no requeriría tocar el controller ni el flujo de confirmación.
+  3. **OCR cloud especializado** (Azure Document Intelligence, AWS Textract, Google Document AI): descartado por ahora — más integración y coste por volumen que las otras dos opciones, sin ventaja clara para el tamaño de este proyecto.
 
-  En cualquier caso, el resultado crudo se guarda en `datos_extraidos_raw` y el usuario siempre revisa/confirma antes de que la factura pase a `REVISADA`.
+  En cualquier caso, el resultado crudo se guarda en `datos_extraidos_raw` y el usuario siempre revisa/confirma antes de que la factura pase a `REVISADA`. Los datos que el OCR detecta y no encajan en ningún campo fijo se guardan como campos dinámicos (`factura_campos_dinamicos`, patrón Entidad-Atributo-Valor) en vez de alterar el esquema de `facturas` en caliente — ver `bbdd/fase2-3-bbdd.md`.
 - **Envío de email**: usar `spring-boot-starter-mail` con un SMTP (Gmail/Office365 corporativo, o un proveedor transaccional tipo SendGrid/Amazon SES si se quiere mejor entregabilidad y trazabilidad de envíos).
 - **Cálculo de horas de fichaje**: se calcula en el backend en el momento de cerrar el fichaje (hora_salida), nunca en el frontend, para evitar inconsistencias por zona horaria/reloj del cliente.
 
 ## Riesgos y dependencias
 
-- **Riesgo alto — precisión del OCR**: ningún proveedor de OCR/IA da 100% de acierto con facturas de formato libre. Mitigación: diseñar siempre con un paso de revisión humana obligatorio antes de dar una factura por definitiva; no acoplar el resto del sistema (informes, exportaciones) a que la extracción sea perfecta desde el primer momento.
+- **Riesgo alto — precisión del OCR gratuito (Tesseract)**: sensiblemente peor que un LLM multimodal en facturas de formato libre; en particular, `producto` no se extrae de forma fiable por heurística y siempre requiere entrada manual. Mitigación: paso de revisión humana obligatorio antes de dar una factura por definitiva (nunca se persiste sin confirmación); `FacturaExtractionService` diseñado como interfaz para poder sustituirlo por un motor de pago más adelante sin tocar el resto del código, si resulta necesario. Detalle en `back/fase2-3-back.md`.
+- **Riesgo medio — dependencia nativa de Tesseract**: a diferencia del resto de dependencias del proyecto (JARs de Maven autosuficientes), Tess4J requiere el binario de Tesseract y los datos de idioma instalados en cada entorno (desarrollo y despliegue) — hay que documentarlo como prerequisito, no solo declararlo en `pom.xml`.
+- **Riesgo medio — formatos de imagen no soportados**: Tesseract/`ImageIO` no leen HEIC (formato por defecto de fotos de iPhone) sin conversión previa — fuera de alcance salvo que se confirme como caso de uso real.
 - **Riesgo medio — matching automático de nóminas en un ZIP**: si el ZIP no sigue una convención de nombres consistente, el sistema no podrá asociar automáticamente cada PDF a su empleado. Mitigación: definir una convención de nombre de fichero desde el principio (p.ej. `DNI_AAAA-MM.pdf`) y dejar siempre una pantalla de asignación manual como red de seguridad.
 - **Riesgo medio — entregabilidad de emails con nóminas adjuntas**: datos sensibles (nóminas) por email requieren cuidado; valorar cifrado del PDF con contraseña (p.ej. el DNI del empleado) o enviar un enlace de descarga temporal en vez del adjunto directo, según las políticas de protección de datos que se quieran aplicar.
 - **Dependencia**: los módulos de Fichaje, Vacaciones, Facturas y Nóminas dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
@@ -225,14 +241,16 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 - Un Empleado puede solicitar y cancelar (mientras esté pendiente) sus propios días de vacaciones, ver su cupo anual y disponible, y ver en su calendario los festivos, sus días aprobados y sus días pendientes; no puede ver ni resolver solicitudes de otro empleado.
 - Un Admin puede ver y corregir los fichajes de cualquier empleado (con aviso visual de días, semanas y meses por debajo del mínimo de horas de **ese** empleado, jornada parcial incluida), y puede ver una bandeja global de solicitudes de vacaciones pendientes de todos los empleados, aprobar/rechazar las de cualquier empleado, y asignarle días de vacaciones de oficio sin que este los solicite antes.
 - Un Empleado **no** puede acceder ni a la vista ni a los endpoints de Facturas de proveedores ni de Nóminas (intentar acceder directamente por URL a esas rutas del front redirige/bloquea, y el backend responde 403 ante cualquier llamada a esos endpoints con un token de rol Empleado).
-- Un Admin puede loguearse, gestionar empleados, ver y corregir fichajes de todos, subir/consultar facturas de proveedores organizadas por proveedor y mes, y subir/enviar nóminas.
-- Toda factura subida queda asociada a un proveedor y es consultable por mes/año; si tiene extracción automática, los datos propuestos son editables antes de confirmarse.
+- Un Admin puede loguearse, gestionar empleados, ver y corregir fichajes de todos, gestionar facturas de proveedores y de suministros (listado paginado de 25 en 25, filtrable por proveedor/estado de pago/mes, exportable a Excel con todos los campos), y subir/enviar nóminas.
+- Toda factura subida queda asociada a un proveedor (de tipo Proveedor o Suministro) y es consultable por proveedor/estado de pago/mes; si se dio de alta con extracción automática, los datos propuestos (incluidos los campos dinámicos detectados) son editables antes de confirmarse, y su origen queda registrado (`estado_extraccion`).
 - El envío de una nómina por email requiere una acción explícita del Admin (nunca ocurre solo al subir el archivo) y queda registrado (fecha y quién lo envió). El único canal por el que un Empleado recibe su nómina es el email.
 - Ningún endpoint de datos de otro empleado (fichajes) es accesible por un Empleado que no sea el propietario.
 
 ## Notas adicionales
 
-- **Orden real de implementación (revisado tras cerrar la Fase 1)**: este plan asumía originalmente 0→1→2→2.1→3→4, pero el usuario decidió implementar la **Fase 3 (Nóminas) antes que la Fase 2 (Facturas)** por ser más rápida de construir — ambas son independientes entre sí (ninguna depende de datos ni de clases de la otra, solo de la Fase 0), así que el orden entre ellas no tiene impacto técnico, solo de priorización. El orden real pasa a ser 0→1→3→2→2.1→4.
-- Este plan asume que las Fases se implementan en el orden 0→1→2→2.1→3→4, pero Fichajes/Vacaciones (Fase 1) y Facturas (Fase 2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
+- **Orden real de implementación (revisado tras cerrar la Fase 1)**: este plan asumía originalmente 0→1→2→3→4 (con la Fase 2 dividida en un bloque base y un bloque de OCR), pero el usuario decidió implementar la **Fase 3 (Nóminas) antes que la Fase 2 (Facturas)** por ser más rápida de construir — ambas son independientes entre sí (ninguna depende de datos ni de clases de la otra, solo de la Fase 0), así que el orden entre ellas no tiene impacto técnico, solo de priorización. El orden real pasa a ser 0→1→3→2→4.
+- **Renumeración de la Fase 2 (revisado al detallar sus planes de subfase)**: el desglose original separaba "Fase 2" (MVP sin OCR) de "Fase 2.1" (OCR) como dos fases distintas. Al planificar el detalle se consolidan en una única **Fase 2** con tres subfases — **2.1** (modelo + listado en pestañas + alta manual), **2.2** (exportación a Excel) y **2.3** (lo que antes era "Fase 2.1": extracción OCR + campos dinámicos) — siguiendo el mismo esquema de numeración por bloques ya usado en la Fase 1 (1.1–1.4) y la Fase 3 (3.1–3.3). No cambia el alcance funcional, solo el agrupamiento y el orden en que se detalla (la exportación a Excel, no prevista en el desglose original, se intercala como 2.2 antes del OCR porque no depende de él).
+- Este plan asume que las Fases se implementan en el orden 0→1→2→3→4, pero Fichajes/Vacaciones (Fase 1) y Facturas (Fase 2.1/2.2, sin OCR) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
 - Dentro de la Fase 1, las vistas 1.1 (Fichaje empleado) y 1.2 (Vacaciones empleado) son independientes entre sí y se pueden desarrollar en paralelo; 1.3 depende de que 1.1 esté terminada (reutiliza su esquema y sus clases) y 1.4 depende de que 1.2 esté terminada, por la misma razón.
-- Antes de arrancar la Fase 2.1 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas para decidir entre las tres opciones de extracción listadas en "Decisiones técnicas", en vez de comprometerse a una de antemano.
+- Dentro de la Fase 2, **2.1 y 2.2 son independientes de 2.3** (el listado, los filtros y la exportación no dependen de que el OCR exista) — se pueden desarrollar y desplegar sin bloquear en el OCR, igual que ya se recomendaba en el desglose original. **2.2 depende de 2.1** (reutiliza `FacturaRepository`/entidades) y **2.3 depende de 2.1** (extiende su endpoint de alta) pero no de 2.2.
+- Antes de arrancar la Fase 2.3 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas (proveedores y suministros) para validar la precisión de Tesseract sobre casos reales antes de dar por buena la decisión tomada en "Decisiones técnicas", en vez de descubrirlo ya con el pipeline completo construido.

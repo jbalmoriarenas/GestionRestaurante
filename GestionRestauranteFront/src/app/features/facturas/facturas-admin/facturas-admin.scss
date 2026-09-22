@@ -1,0 +1,104 @@
+.facturas-admin-page {
+  table {
+    table-layout: fixed;
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 20%;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      width: 26%;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 12%;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      width: 14%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      width: 10%;
+    }
+
+    th:last-child,
+    td:last-child {
+      width: 18%;
+    }
+  }
+
+  &__accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 var(--space-md);
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+
+    &--primary {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-surface);
+
+      &:hover {
+        background: var(--color-primary-hover);
+      }
+    }
+  }
+
+  &__filtro-select,
+  &__form-select {
+    min-width: 180px;
+  }
+
+  &__campos-adicionales {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-md);
+  }
+
+  // Campos "clave/valor" de fase2-3 (front): lista local sin componente ui-* dedicado
+  // (ver front/fase2-3-front.md), replica el estilo minimo de ui-input.scss.
+  .ui-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    input {
+      height: 40px;
+      padding: 0 var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+    }
+  }
+}
