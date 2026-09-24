@@ -29,59 +29,8 @@
     white-space: nowrap;
   }
 
-  &__accion {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 28px;
-    padding: 0 var(--space-md);
-    border-radius: 999px;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-primary);
-    font-size: 0.78rem;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-
-    &:hover {
-      background: var(--color-surface-hover);
-    }
-
-    &--primary {
-      border-color: var(--color-primary);
-      background: var(--color-primary);
-      color: var(--color-surface);
-
-      &:hover {
-        background: var(--color-primary-hover);
-      }
-    }
-
-    // Azul/amarillo diferencian Descargar/Reemplazar de las acciones principales (teal):
-    // --color-info/--color-info-hover y --color-warning-hover viven ahora en _tokens.scss,
-    // reutilizables por cualquier otro componente que necesite este mismo matiz.
-    &--azul {
-      border-color: var(--color-info);
-      background: var(--color-info);
-      color: var(--color-surface);
-
-      &:hover {
-        background: var(--color-info-hover);
-      }
-    }
-
-    &--amarillo {
-      border-color: var(--color-warning);
-      background: var(--color-warning);
-      color: var(--color-text-primary);
-
-      &:hover {
-        background: var(--color-warning-hover);
-      }
-    }
-  }
+  // Reemplazar/Descargar/Reenviar (y Subir) usan ui-badge + .badge-action-reset (mismo patron
+  // que empleados-list y facturas-admin) en vez de un boton de color solido propio.
 
   &__filtro-select {
     min-width: 180px;
