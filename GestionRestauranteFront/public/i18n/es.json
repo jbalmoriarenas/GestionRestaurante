@@ -49,6 +49,7 @@
     "tableCaption": "Listado de empleados",
     "table": {
       "nombre": "Nombre",
+      "dni": "DNI/NIE",
       "email": "Email",
       "puesto": "Puesto",
       "tipoUsuario": "Tipo de usuario",
@@ -232,6 +233,7 @@
         "solicitar": "Solicitar",
         "errores": {
           "rangoInvalido": "La fecha de fin no puede ser anterior a la fecha de inicio",
+          "fechaPasada": "No se pueden solicitar vacaciones en fechas anteriores a hoy",
           "distintoAnio": "El rango de vacaciones debe estar dentro del año en curso"
         }
       },
@@ -405,6 +407,98 @@
       "notificaciones": {
         "subidaExito": "Nómina subida correctamente",
         "envioExito": "Nómina enviada por email"
+      }
+    }
+  },
+  "facturas": {
+    "admin": {
+      "titulo": "Facturas",
+      "tabs": {
+        "proveedores": "Facturas de proveedores",
+        "suministros": "Facturas de suministros"
+      },
+      "filtros": {
+        "proveedor": "Proveedor",
+        "estadoPago": "Estado",
+        "periodo": "Periodo",
+        "todos": "Todos",
+        "periodoRequeridoExportar": "Selecciona un periodo (mes) antes de exportar"
+      },
+      "tabla": {
+        "empresa": "Empresa",
+        "cuantia": "Cuantía",
+        "estado": "Estado",
+        "acciones": "Acciones",
+        "vacio": "No hay facturas para mostrar"
+      },
+      "estados": {
+        "PENDIENTE": "Pendiente",
+        "PAGADA": "Pagada"
+      },
+      "estadosExtraccion": {
+        "MANUAL": "Manual",
+        "PENDIENTE": "Pendiente",
+        "PROCESADA": "Procesada",
+        "ERROR": "Error",
+        "REVISADA": "Revisada"
+      },
+      "acciones": {
+        "verDetalle": "Ver detalle",
+        "marcarPagada": "Marcar pagada",
+        "marcarPendiente": "Marcar pendiente",
+        "descargar": "Descargar",
+        "exportar": "Exportar a Excel",
+        "exportarPdfs": "Exportar PDFs (ZIP)",
+        "nuevaFactura": "Nueva factura"
+      },
+      "alta": {
+        "titulo": "Nueva factura",
+        "archivo": "Foto o PDF de la factura",
+        "ningunArchivo": "Ningún archivo seleccionado",
+        "archivoRequerido": "Selecciona un archivo",
+        "formatoInvalido": "El archivo debe ser una imagen (JPG/PNG/WEBP) o un PDF",
+        "extraerDatos": "Extraer datos automáticamente",
+        "avisoRevisar": "Datos detectados automáticamente — revísalos antes de guardar",
+        "proveedor": "Proveedor",
+        "nuevoProveedor": "Nuevo proveedor",
+        "proveedorNombre": "Nombre",
+        "proveedorCif": "CIF",
+        "proveedorEmail": "Email de contacto",
+        "proveedorTelefono": "Teléfono",
+        "numeroFactura": "Número de factura",
+        "fechaImpresion": "Fecha de impresión",
+        "fechaEntrega": "Fecha de entrega",
+        "importeBase": "Base imponible",
+        "iva": "IVA",
+        "importeTotal": "Importe total",
+        "estadoPago": "Estado de pago",
+        "campoRequerido": "Obligatorio",
+        "confirmar": "Guardar factura"
+      },
+      "detalle": {
+        "titulo": "Detalle de la factura",
+        "estadoExtraccion": "Origen de los datos"
+      },
+      "exportar": {
+        "tituloConPeriodo": "Facturas periodo {{mes}} {{anio}}",
+        "cabeceras": {
+          "empresa": "Empresa",
+          "telefono": "Teléfono",
+          "tipo": "Tipo",
+          "fechaImpresion": "Fecha impresión",
+          "fechaEntrega": "Fecha entrega",
+          "importeBase": "Importe base",
+          "iva": "IVA",
+          "importeTotal": "Importe total",
+          "mes": "Mes",
+          "anio": "Año",
+          "estadoPago": "Estado pago",
+          "nombreArchivoOriginal": "Nombre archivo original",
+          "fechaSubida": "Fecha subida"
+        }
+      },
+      "notificaciones": {
+        "altaExito": "Factura guardada correctamente"
       }
     }
   }

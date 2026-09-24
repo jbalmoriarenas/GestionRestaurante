@@ -35,9 +35,26 @@ public class LocalFileStorageService implements FileStorageService {
         Path destino = carpetaDestino.resolve(nombreFisico);
         try {
             Files.createDirectories(carpetaDestino);
+            // transferTo en vez de pasar por guardar(byte[], ...): evita cargar el archivo
+            // entero en heap cuando ya viene como MultipartFile (puede copiarlo directamente
+            // desde su fichero temporal en disco).
             archivo.transferTo(destino);
         } catch (IOException e) {
             throw new UncheckedIOException("No se ha podido guardar el archivo " + archivo.getOriginalFilename(), e);
+        }
+        return subcarpeta + "/" + nombreFisico;
+    }
+
+    @Override
+    public String guardar(byte[] contenido, String nombreOriginal, String subcarpeta) {
+        String nombreFisico = UUID.randomUUID() + extensionDe(nombreOriginal);
+        Path carpetaDestino = resolverDentroDeBase(subcarpeta);
+        Path destino = carpetaDestino.resolve(nombreFisico);
+        try {
+            Files.createDirectories(carpetaDestino);
+            Files.write(destino, contenido);
+        } catch (IOException e) {
+            throw new UncheckedIOException("No se ha podido guardar el archivo " + nombreOriginal, e);
         }
         return subcarpeta + "/" + nombreFisico;
     }

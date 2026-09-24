@@ -1,10 +1,11 @@
 <div class="ui-field">
   @if (label()) {
-    <label [for]="id">{{ label() }}</label>
+    <label [for]="id">{{ label() }}@if (required()) {<span class="required-mark" aria-hidden="true"> *</span>}</label>
   }
   <select
     [id]="id"
     [disabled]="disabled()"
+    [attr.required]="required() ? '' : null"
     [class.invalid]="errorMessage()"
     (change)="handleChange($event)"
     (blur)="handleBlur()"

@@ -24,6 +24,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final PermisoService permisoService;
 
+    /**
+     * Los endpoints que devuelven StreamingResponseBody (p.ej. GET /api/facturas/exportar)
+     * fuerzan un redespacho ASYNC de Servlet: Spring Security vuelve a pasar por
+     * AuthorizationFilter en ese redespacho, pero OncePerRequestFilter se salta el ASYNC por
+     * defecto - sin este override, el SecurityContext llega vacio a esa segunda pasada y
+     * Authorization deniega el acceso *despues* de que la respuesta ya empezo a enviarse
+     * (200 chunked), lo que el navegador ve como ERR_INCOMPLETE_CHUNKED_ENCODING.
+     */
+    @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

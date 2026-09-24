@@ -49,6 +49,7 @@
     "tableCaption": "Employee list",
     "table": {
       "nombre": "Name",
+      "dni": "ID number",
       "email": "Email",
       "puesto": "Position",
       "tipoUsuario": "User type",
@@ -232,6 +233,7 @@
         "solicitar": "Request",
         "errores": {
           "rangoInvalido": "The end date can't be before the start date",
+          "fechaPasada": "You can't request time off for dates before today",
           "distintoAnio": "The time off range must stay within the current year"
         }
       },
@@ -405,6 +407,98 @@
       "notificaciones": {
         "subidaExito": "Payslip uploaded successfully",
         "envioExito": "Payslip sent by email"
+      }
+    }
+  },
+  "facturas": {
+    "admin": {
+      "titulo": "Invoices",
+      "tabs": {
+        "proveedores": "Supplier invoices",
+        "suministros": "Utility invoices"
+      },
+      "filtros": {
+        "proveedor": "Supplier",
+        "estadoPago": "Status",
+        "periodo": "Period",
+        "todos": "All",
+        "periodoRequeridoExportar": "Select a period (month) before exporting"
+      },
+      "tabla": {
+        "empresa": "Company",
+        "cuantia": "Amount",
+        "estado": "Status",
+        "acciones": "Actions",
+        "vacio": "No invoices to display"
+      },
+      "estados": {
+        "PENDIENTE": "Pending",
+        "PAGADA": "Paid"
+      },
+      "estadosExtraccion": {
+        "MANUAL": "Manual",
+        "PENDIENTE": "Pending",
+        "PROCESADA": "Processed",
+        "ERROR": "Error",
+        "REVISADA": "Reviewed"
+      },
+      "acciones": {
+        "verDetalle": "View detail",
+        "marcarPagada": "Mark as paid",
+        "marcarPendiente": "Mark as pending",
+        "descargar": "Download",
+        "exportar": "Export to Excel",
+        "exportarPdfs": "Export PDFs (ZIP)",
+        "nuevaFactura": "New invoice"
+      },
+      "alta": {
+        "titulo": "New invoice",
+        "archivo": "Invoice photo or PDF",
+        "ningunArchivo": "No file selected",
+        "archivoRequerido": "Select a file",
+        "formatoInvalido": "The file must be an image (JPG/PNG/WEBP) or a PDF",
+        "extraerDatos": "Extract data automatically",
+        "avisoRevisar": "Automatically detected data — review it before saving",
+        "proveedor": "Supplier",
+        "nuevoProveedor": "New supplier",
+        "proveedorNombre": "Name",
+        "proveedorCif": "Tax ID",
+        "proveedorEmail": "Contact email",
+        "proveedorTelefono": "Phone",
+        "numeroFactura": "Invoice number",
+        "fechaImpresion": "Print date",
+        "fechaEntrega": "Delivery date",
+        "importeBase": "Taxable amount",
+        "iva": "VAT",
+        "importeTotal": "Total amount",
+        "estadoPago": "Payment status",
+        "campoRequerido": "Required",
+        "confirmar": "Save invoice"
+      },
+      "detalle": {
+        "titulo": "Invoice detail",
+        "estadoExtraccion": "Data origin"
+      },
+      "exportar": {
+        "tituloConPeriodo": "Invoices period {{mes}} {{anio}}",
+        "cabeceras": {
+          "empresa": "Company",
+          "telefono": "Phone",
+          "tipo": "Type",
+          "fechaImpresion": "Print date",
+          "fechaEntrega": "Delivery date",
+          "importeBase": "Taxable amount",
+          "iva": "VAT",
+          "importeTotal": "Total amount",
+          "mes": "Month",
+          "anio": "Year",
+          "estadoPago": "Payment status",
+          "nombreArchivoOriginal": "Original file name",
+          "fechaSubida": "Upload date"
+        }
+      },
+      "notificaciones": {
+        "altaExito": "Invoice saved successfully"
       }
     }
   }

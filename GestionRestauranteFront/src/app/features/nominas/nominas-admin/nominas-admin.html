@@ -56,24 +56,32 @@
               </td>
               <td class="nominas-admin-page__acciones flex gap-sm items-center">
                 @if (fila.estado === 'PENDIENTE') {
-                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--primary" (click)="abrirSubida(fila)">
-                    {{ 'nominas.admin.acciones.subir' | translate }}
-                  </button>
+                  <ui-badge variant="success">
+                    <button type="button" class="badge-action-reset" (click)="abrirSubida(fila)">
+                      {{ 'nominas.admin.acciones.subir' | translate }}
+                    </button>
+                  </ui-badge>
                 } @else {
-                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--amarillo" (click)="abrirSubida(fila)">
-                    {{ 'nominas.admin.acciones.reemplazar' | translate }}
-                  </button>
-                  <button type="button" class="nominas-admin-page__accion nominas-admin-page__accion--azul" (click)="descargar(fila)">
-                    {{ 'nominas.admin.acciones.descargar' | translate }}
-                  </button>
-                  <button
-                    type="button"
-                    class="nominas-admin-page__accion nominas-admin-page__accion--primary"
-                    [attr.title]="fila.estado === 'ENVIADA' ? ('nominas.admin.envio.enviadaEl' | translate: { fecha: fila.fechaEnvio }) : null"
-                    (click)="abrirEnvio(fila)"
-                  >
-                    {{ (fila.estado === 'ENVIADA' ? 'nominas.admin.acciones.reenviar' : 'nominas.admin.acciones.enviar') | translate }}
-                  </button>
+                  <ui-badge variant="warning">
+                    <button type="button" class="badge-action-reset" (click)="abrirSubida(fila)">
+                      {{ 'nominas.admin.acciones.reemplazar' | translate }}
+                    </button>
+                  </ui-badge>
+                  <ui-badge variant="neutral">
+                    <button type="button" class="badge-action-reset" (click)="descargar(fila)">
+                      {{ 'nominas.admin.acciones.descargar' | translate }}
+                    </button>
+                  </ui-badge>
+                  <ui-badge variant="success">
+                    <button
+                      type="button"
+                      class="badge-action-reset"
+                      [attr.title]="fila.estado === 'ENVIADA' ? ('nominas.admin.envio.enviadaEl' | translate: { fecha: fila.fechaEnvio }) : null"
+                      (click)="abrirEnvio(fila)"
+                    >
+                      {{ (fila.estado === 'ENVIADA' ? 'nominas.admin.acciones.reenviar' : 'nominas.admin.acciones.enviar') | translate }}
+                    </button>
+                  </ui-badge>
                 }
               </td>
             </tr>

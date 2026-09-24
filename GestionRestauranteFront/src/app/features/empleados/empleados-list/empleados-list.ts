@@ -37,7 +37,7 @@ export class EmpleadosList implements OnInit {
 
   load(page: number): void {
     this.loading.set(true);
-    this.empleadoService.listar(page, PAGE_SIZE).subscribe({
+    this.empleadoService.listar(page, PAGE_SIZE, true).subscribe({
       next: (data) => {
         this.pageData.set(data);
         this.loading.set(false);

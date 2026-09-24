@@ -152,6 +152,13 @@
   border: 0;
 }
 
+// Asterisco de campo obligatorio junto al label (ui-input, ui-select, ui-file-input): mismo
+// estilo en los tres, sin significado propio de ningun componente - vive aqui en vez de
+// duplicarse en cada .scss.
+.required-mark {
+  color: var(--color-danger);
+}
+
 @media (max-width: 768px) {
   .mobile-flex-col {
     flex-direction: column;

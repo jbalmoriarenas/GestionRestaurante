@@ -1,6 +1,6 @@
 <div class="ui-field">
   @if (label()) {
-    <label [for]="id">{{ label() }}</label>
+    <label [for]="id">{{ label() }}@if (required()) {<span class="required-mark" aria-hidden="true"> *</span>}</label>
   }
   <input
     #input
@@ -8,6 +8,7 @@
     [id]="id"
     [accept]="accept()"
     [disabled]="disabled()"
+    [attr.required]="required() ? '' : null"
     [class.invalid]="errorMessage()"
     [attr.aria-describedby]="errorMessage() ? errorId : null"
     (change)="handleChange($event)"

@@ -1,6 +1,6 @@
 <div class="ui-field">
   @if (label()) {
-    <label [for]="id">{{ label() }}</label>
+    <label [for]="id">{{ label() }}@if (required()) {<span class="required-mark" aria-hidden="true"> *</span>}</label>
   }
   <input
     [id]="id"
@@ -10,6 +10,7 @@
     [disabled]="disabled()"
     [attr.min]="min() || null"
     [attr.max]="max() || null"
+    [attr.required]="required() ? '' : null"
     [class.invalid]="errorMessage()"
     (input)="handleInput($event)"
     (blur)="handleBlur()"

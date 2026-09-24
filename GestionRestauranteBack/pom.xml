@@ -88,6 +88,34 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Fase 2.3 (Facturas): parseo/serializacion de camposAdicionales y datosExtraidosRaw
+		     (org.hibernate.type.SqlTypes.JSON en Factura.datosExtraidosRaw ya usa Jackson por
+		     debajo via Hibernate, pero no estaba declarado como dependencia explicita de
+		     compilacion hasta ahora - ningun codigo previo del proyecto lo importaba directamente). -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- Fase 2.2 (Facturas): exportacion a Excel. -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.3.0</version>
+		</dependency>
+
+		<!-- Fase 2.3 (Facturas): extraccion OCR gratuita/self-hosted. -->
+		<dependency>
+			<groupId>net.sourceforge.tess4j</groupId>
+			<artifactId>tess4j</artifactId>
+			<version>5.13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>

@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { hoyLocalISO } from '../../../core/date-utils';
 import { VacacionesService } from '../../../core/services/vacaciones.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Page } from '../../../core/models/page.model';
@@ -25,6 +26,8 @@ function fechaFinNoAnteriorAInicio(group: AbstractControl): ValidationErrors | n
   const fin: string = group.get('fechaFin')?.value;
   if (!inicio || !fin) return null;
   if (fin < inicio) return { rangoInvalido: true };
+  // No tiene sentido solicitar vacaciones en dias ya pasados.
+  if (inicio < hoyLocalISO()) return { fechaPasada: true };
   // Solo se puede solicitar dentro del año en curso (mismo criterio que back/fase1-2-back.md):
   // no basta con que inicio y fin coincidan entre si, ambos deben caer en el año de "hoy".
   const anio = anioActual().toString();
@@ -108,19 +111,23 @@ export class MisVacaciones implements OnInit {
     if (this.form.hasError('rangoInvalido')) {
       return this.translateService.instant('vacaciones.misVacaciones.form.errores.rangoInvalido');
     }
+    if (this.form.hasError('fechaPasada')) {
+      return this.translateService.instant('vacaciones.misVacaciones.form.errores.fechaPasada');
+    }
     if (this.form.hasError('distintoAnio')) {
       return this.translateService.instant('vacaciones.misVacaciones.form.errores.distintoAnio');
     }
     return null;
   }
 
-  // Restringe los propios selectores de fecha del navegador al año en curso (no al año de
+  // Restringe los propios selectores de fecha del navegador a partir de "hoy" (no tiene
+  // sentido solicitar vacaciones en dias ya pasados) y hasta el año en curso (no al año de
   // la otra fecha, sino al de "hoy" — confirmado con el usuario: hoy en 2026 solo se puede
   // solicitar dentro de 2026, ni 2025 ni 2027), y ademas a no cruzarse entre si. Cuando la
   // otra fecha ya esta rellena, siempre cae dentro del año en curso (por esta misma
-  // restriccion), asi que basta con preferirla sobre el limite del año.
+  // restriccion), asi que basta con preferirla sobre el limite inferior.
   fechaInicioMin(): string {
-    return `${anioActual()}-01-01`;
+    return hoyLocalISO();
   }
 
   fechaInicioMax(): string {
@@ -128,7 +135,7 @@ export class MisVacaciones implements OnInit {
   }
 
   fechaFinMin(): string {
-    return this.form.controls.fechaInicio.value || `${anioActual()}-01-01`;
+    return this.form.controls.fechaInicio.value || hoyLocalISO();
   }
 
   fechaFinMax(): string {

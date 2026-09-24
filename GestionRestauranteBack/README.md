@@ -67,6 +67,20 @@ En Windows (PowerShell / cmd) usar `mvnw.cmd` en lugar de `./mvnw`.
 
 El proyecto usa MySQL. Crea la base de datos ejecutando `scripts/create-database.sql` contra tu servidor MySQL (por ejemplo con `mysql -u root -p < scripts/create-database.sql`), y ajusta usuario/contraseña en `src/main/resources/application.properties` si no son `root`/`root`.
 
+## OCR de facturas (Tesseract, fase 2.3)
+
+`POST /api/facturas/extraer` usa Tess4J (JNI sobre el binario nativo de Tesseract). El binario para Windows/Linux/macOS va empaquetado dentro del propio `.jar` de Tess4J, pero **los datos de idioma (`.traineddata`) no** — sin ellos, la llamada nativa `TessBaseAPI` falla con un error de memoria poco descriptivo (`java.lang.Error: Invalid memory access`) en vez de un mensaje claro.
+
+Antes de usar `/extraer` en local, descarga el paquete de idioma español (y opcionalmente inglés/orientación, aunque solo `spa` es necesario para el idioma configurado por defecto, `app.ocr.idioma=spa`) en una carpeta local y apunta `TESSDATA_PATH` a ella:
+
+```bash
+mkdir -p .tessdata
+curl -sL -o .tessdata/spa.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/spa.traineddata
+TESSDATA_PATH="$(pwd)/.tessdata" DB_USERNAME=gestor DB_PASSWORD=Gestor.2026 ./mvnw spring-boot:run
+```
+
+`.tessdata/` no se versiona (ver `.gitignore`); cada entorno (desarrollo y despliegue) necesita descargarlo una vez.
+
 ## Recursos adicionales
 
 - [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/4.1.1/maven-plugin)

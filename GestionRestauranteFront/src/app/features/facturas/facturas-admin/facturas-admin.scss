@@ -1,0 +1,87 @@
+.facturas-admin-page {
+  // Empresa/Fecha impresión/Fecha entrega/Base imponible/IVA/Cuantía/Estado/Acciones: las 8
+  // columnas de la tabla deben sumar el 100% del ancho con table-layout: fixed, si no las que
+  // se queden sin porcentaje explicito se colapsan entre si.
+  table {
+    table-layout: fixed;
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 20%;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      width: 12%;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 12%;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+      width: 10%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      width: 8%;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+      width: 10%;
+    }
+
+    th:nth-child(7),
+    td:nth-child(7) {
+      width: 10%;
+    }
+
+    th:last-child,
+    td:last-child {
+      width: 18%;
+    }
+  }
+
+  &__accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 var(--space-md);
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+
+    &--primary {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-surface);
+
+      &:hover {
+        background: var(--color-primary-hover);
+      }
+    }
+  }
+
+  &__filtro-select,
+  &__form-select {
+    min-width: 180px;
+  }
+}

@@ -165,7 +165,9 @@ export interface ApiError {
 
 ### Pantallas de Fase 0
 14. **[Frontend, media]** `LoginComponent`: formulario reactivo (email + password), usa `ui-input` y `ui-button`, muestra error si login falla (401 → mensaje genérico "Credenciales incorrectas").
-15. **[Frontend, media]** `EmpleadosListComponent` (ruta protegida por `permissionGuard('EMPLEADOS', 'VISUALIZACION')`): usa `ui-table` con columnas nombre, email, puesto, tipo de usuario (`ui-badge`), activo (`ui-badge`); columna de acciones (editar / dar de baja vía `ui-modal` de confirmación) visible solo si `AuthService.puedeEditar('EMPLEADOS')` — misma vista, degradada a solo lectura para quien tenga `VISUALIZACION`; paginación conectada a `GET /api/empleados?page=&size=`.
+15. **[Frontend, media]** `EmpleadosListComponent` (ruta protegida por `permissionGuard('EMPLEADOS', 'VISUALIZACION')`): usa `ui-table` con columnas nombre, DNI/NIE, email, puesto, tipo de usuario (`ui-badge`), activo (`ui-badge`); columna de acciones (editar / dar de baja vía `ui-modal` de confirmación) visible solo si `AuthService.puedeEditar('EMPLEADOS')` — misma vista, degradada a solo lectura para quien tenga `VISUALIZACION`; paginación conectada a `GET /api/empleados?page=&size=&activo=true`.
+
+> **Nota (revisión posterior a esta fase, a petición del usuario)**: la tabla dejó de listar directamente a los empleados inactivos (`EmpleadoService.listar(page, size, true)`, que envía `activo=true` — el parámetro ya existía en el backend desde esta misma fase, `back/fase0-back.md`, solo faltaba que el front lo usara); el badge "Activo"/"Inactivo" se mantiene en la tabla (en la práctica siempre mostrará "Activo", ya que los inactivos ya no llegan a listarse) porque no se pidió quitarlo, solo dejar de verlos en el listado. Se añadió una columna con el DNI/NIE del empleado (ya presente en el modelo `Empleado` desde esta fase, `dniNie`), que antes no se mostraba en la tabla aunque el dato ya viajaba en la respuesta.
 16. **[Frontend, media]** `EmpleadoFormComponent`: formulario reactivo tipado para alta/edición (misma pantalla para ambos casos, según si la ruta trae `:id`), con un `<select>` de tipo de usuario poblado desde `GET /api/tipos-usuarios` (endpoint sencillo de solo lectura, backend) en vez de un enum fijo de 2 opciones — validaciones espejo de las del backend (email válido, DNI/NIE con formato, campos obligatorios).
 
 ## Decisiones técnicas
@@ -185,5 +187,6 @@ export interface ApiError {
 - Un login correcto redirige al shell correspondiente al rol (Admin ve menú completo, Empleado ve solo "Mi Fichaje").
 - Un login incorrecto muestra un mensaje de error sin recargar la página ni perder lo escrito en el email.
 - Un usuario con rol `EMPLEADO` que navega manualmente a `/empleados` es redirigido/bloqueado por `roleGuard`, sin que la petición HTTP llegue siquiera a dispararse innecesariamente.
-- La tabla de empleados pagina correctamente contra `GET /api/empleados` y refleja el estado `activo`/`inactivo` con el badge correcto.
+- La tabla de empleados pagina correctamente contra `GET /api/empleados?activo=true` y no muestra ningún empleado dado de baja.
+- La tabla de empleados muestra el DNI/NIE de cada empleado en su propia columna.
 - Todos los componentes de `shared/ui` no importan nada de `features/`, para garantizar que son reutilizables sin acoplamiento.

@@ -10,6 +10,9 @@ target/
 ### Local JDK (bundled per-project, not for source control) ###
 .jdk/
 
+### Datos de idioma de Tesseract OCR (fase2-3-back.md) - descargados en local, ver README ###
+.tessdata/
+
 ### STS ###
 .apt_generated
 .classpath

@@ -22,6 +22,7 @@ export class UiFileInput implements ControlValueAccessor {
   readonly accept = input('');
   readonly errorMessage = input<string | null>(null);
   readonly noFileLabel = input('No file selected');
+  readonly required = input(false);
 
   private readonly nativeInput = viewChild<ElementRef<HTMLInputElement>>('input');
 

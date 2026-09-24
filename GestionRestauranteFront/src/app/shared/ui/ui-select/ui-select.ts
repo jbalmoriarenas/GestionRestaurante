@@ -26,6 +26,7 @@ export class UiSelect implements ControlValueAccessor {
   readonly placeholder = input('Select an option');
   readonly options = input<UiSelectOption[]>([]);
   readonly errorMessage = input<string | null>(null);
+  readonly required = input(false);
 
   readonly value = signal('');
   readonly disabled = signal(false);
