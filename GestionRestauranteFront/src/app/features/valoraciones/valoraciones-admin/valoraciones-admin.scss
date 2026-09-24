@@ -1,0 +1,38 @@
+.valoraciones-admin-page {
+  &__filtro-select {
+    min-width: 180px;
+  }
+
+  &__distribucion {
+    flex: 2;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    justify-content: center;
+  }
+
+  &__distribucion-fila {
+    display: grid;
+    grid-template-columns: 32px 1fr 24px;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+
+  &__distribucion-barra {
+    display: block;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    min-width: 2px;
+  }
+
+  &__comentario {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

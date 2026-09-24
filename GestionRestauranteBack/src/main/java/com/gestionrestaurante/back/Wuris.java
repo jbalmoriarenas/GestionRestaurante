@@ -116,4 +116,20 @@ public final class Wuris {
         public static final String BY_ID_ESTADO_PAGO = BASE + "/{id}/estado-pago";
         public static final String BY_ID_ARCHIVO = BASE + "/{id}/archivo";
     }
+
+    public static final class Valoraciones {
+        private Valoraciones() {
+        }
+
+        public static final String BASE = API + "/valoraciones";
+        public static final String RESUMEN = BASE + "/resumen";
+        public static final String SINCRONIZAR = BASE + "/sincronizar";
+
+        public static final String CONEXION = BASE + "/conexion";
+        public static final String CONEXION_URL = CONEXION + "/url";
+        public static final String CONEXION_CALLBACK = CONEXION + "/callback";
+        /** Unico endpoint del proyecto sin @PreAuthorize (SecurityConfig): Google redirige el
+         * navegador aqui tras el consentimiento, sin ningun JWT (back/fase4-1-back.md). */
+        public static final String CONEXION_CALLBACK_PATTERN = CONEXION_CALLBACK;
+    }
 }

@@ -81,6 +81,23 @@ TESSDATA_PATH="$(pwd)/.tessdata" DB_USERNAME=gestor DB_PASSWORD=Gestor.2026 ./mv
 
 `.tessdata/` no se versiona (ver `.gitignore`); cada entorno (desarrollo y despliegue) necesita descargarlo una vez.
 
+## Valoraciones de Google (fase 4)
+
+Conexión OAuth 2.0 con Google Business Profile para sincronizar las reseñas del restaurante (`/api/valoraciones/**`). A diferencia del resto de secretos del proyecto, `app.google.client-id`, `app.google.client-secret` y `app.google.token-encryption-key` **no tienen valor por defecto**: el arranque falla explícitamente si no están definidos, en vez de arrancar con una clave de ejemplo conocida protegiendo un refresh token real.
+
+1. Crea un proyecto en [Google Cloud Console](https://console.cloud.google.com/), habilita la "Google My Business API" (v4, la única superficie que expone reseñas — requiere solicitud de acceso aprobada manualmente por Google, puede tardar días) y crea unas credenciales OAuth 2.0 de tipo "Aplicación web" con `http://localhost:8080/api/valoraciones/conexion/callback` como URI de redirección autorizada.
+2. Genera una clave AES-256 en Base64 para cifrar el refresh token en reposo:
+   ```bash
+   openssl rand -base64 32
+   ```
+3. Arranca con las tres variables definidas (además de `DB_USERNAME`/`DB_PASSWORD`):
+   ```bash
+   GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... GOOGLE_TOKEN_ENCRYPTION_KEY=... \
+   DB_USERNAME=gestor DB_PASSWORD=Gestor.2026 ./mvnw spring-boot:run
+   ```
+
+Sin conexión activa, la sincronización periódica (`app.valoraciones.sync-cron`, cada 6h por defecto) no hace nada — no es un error, solo no hay nada que sincronizar hasta que un Admin conecte la cuenta desde `/valoraciones` en el front.
+
 ## Recursos adicionales
 
 - [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/4.1.1/maven-plugin)

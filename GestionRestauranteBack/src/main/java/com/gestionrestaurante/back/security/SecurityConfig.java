@@ -52,6 +52,9 @@ public class SecurityConfig {
                         .accessDeniedHandler(restAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(Wuris.Auth.PUBLIC_PATTERN).permitAll()
+                        // Google redirige el navegador aqui tras el consentimiento OAuth, sin
+                        // ningun JWT - unico endpoint publico fuera de /api/auth (back/fase4-1-back.md).
+                        .requestMatchers(Wuris.Valoraciones.CONEXION_CALLBACK_PATTERN).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

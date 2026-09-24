@@ -52,4 +52,5 @@ export const MENU_ITEMS: MenuItem[] = [
   { vista: 'EMPLEADOS', ruta: '/empleados', labelKey: 'empleados', icono: 'empleados' },
   { vista: 'FACTURAS', ruta: '/facturas', labelKey: 'facturas', icono: 'facturas' },
   { vista: 'NOMINAS', ruta: '/nominas', labelKey: 'nominas', icono: 'nominas' },
+  { vista: 'VALORACIONES', ruta: '/valoraciones', labelKey: 'valoraciones', icono: 'valoraciones' },
 ];

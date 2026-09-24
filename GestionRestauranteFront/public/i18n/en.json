@@ -11,7 +11,8 @@
     "vacacionesAdmin": "Time off (Admin)",
     "empleados": "Employees",
     "facturas": "Invoices",
-    "nominas": "Payroll"
+    "nominas": "Payroll",
+    "valoraciones": "Reviews"
   },
   "sidebar": {
     "language": "Language"
@@ -407,6 +408,47 @@
       "notificaciones": {
         "subidaExito": "Payslip uploaded successfully",
         "envioExito": "Payslip sent by email"
+      }
+    }
+  },
+  "valoraciones": {
+    "admin": {
+      "titulo": "Reviews",
+      "conexion": {
+        "explicacion": "Connect the restaurant's Google Business Profile account to sync its Google reviews.",
+        "conectar": "Connect with Google",
+        "conectado": "Connected",
+        "ultimaSincronizacion": "Last sync",
+        "sinSincronizar": "Not synced yet",
+        "error": "Error",
+        "sincronizarAhora": "Sync now",
+        "desconectar": "Disconnect",
+        "modal": {
+          "titulo": "Disconnect Google",
+          "mensaje": "Reviews will stop syncing automatically from Google. Already synced reviews are not deleted. Confirm?",
+          "confirmar": "Disconnect"
+        }
+      },
+      "resumen": {
+        "media": "Average",
+        "total": "Total reviews"
+      },
+      "filtros": {
+        "puntuacion": "Rating",
+        "todas": "All"
+      },
+      "tabla": {
+        "autor": "Author",
+        "puntuacion": "Rating",
+        "comentario": "Comment",
+        "fecha": "Date",
+        "vacio": "No reviews to display"
+      },
+      "notificaciones": {
+        "conectadoExito": "Google account connected successfully",
+        "conexionError": "Could not complete the connection with Google",
+        "sincronizacionExito": "Sync complete: {{nuevas}} new, {{actualizadas}} updated",
+        "desconectadoExito": "Google account disconnected"
       }
     }
   },

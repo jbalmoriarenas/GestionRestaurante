@@ -11,7 +11,8 @@
     "vacacionesAdmin": "Vacaciones (Admin)",
     "empleados": "Empleados",
     "facturas": "Facturas",
-    "nominas": "Nóminas"
+    "nominas": "Nóminas",
+    "valoraciones": "Valoraciones"
   },
   "sidebar": {
     "language": "Idioma"
@@ -407,6 +408,47 @@
       "notificaciones": {
         "subidaExito": "Nómina subida correctamente",
         "envioExito": "Nómina enviada por email"
+      }
+    }
+  },
+  "valoraciones": {
+    "admin": {
+      "titulo": "Valoraciones",
+      "conexion": {
+        "explicacion": "Conecta la cuenta de Google Business Profile del restaurante para sincronizar sus reseñas de Google.",
+        "conectar": "Conectar con Google",
+        "conectado": "Conectado",
+        "ultimaSincronizacion": "Última sincronización",
+        "sinSincronizar": "Todavía sin sincronizar",
+        "error": "Error",
+        "sincronizarAhora": "Sincronizar ahora",
+        "desconectar": "Desconectar",
+        "modal": {
+          "titulo": "Desconectar Google",
+          "mensaje": "Se dejará de sincronizar automáticamente las reseñas de Google. Las ya sincronizadas no se borran. ¿Confirmar?",
+          "confirmar": "Desconectar"
+        }
+      },
+      "resumen": {
+        "media": "Media",
+        "total": "Total de reseñas"
+      },
+      "filtros": {
+        "puntuacion": "Puntuación",
+        "todas": "Todas"
+      },
+      "tabla": {
+        "autor": "Autor",
+        "puntuacion": "Puntuación",
+        "comentario": "Comentario",
+        "fecha": "Fecha",
+        "vacio": "No hay reseñas para mostrar"
+      },
+      "notificaciones": {
+        "conectadoExito": "Cuenta de Google conectada correctamente",
+        "conexionError": "No se ha podido completar la conexión con Google",
+        "sincronizacionExito": "Sincronización completada: {{nuevas}} nuevas, {{actualizadas}} actualizadas",
+        "desconectadoExito": "Cuenta de Google desconectada"
       }
     }
   },

@@ -51,6 +51,12 @@ export const routes: Routes = [
           import('./features/facturas/facturas-admin/facturas-admin').then((m) => m.FacturasAdmin),
       },
       {
+        path: 'valoraciones',
+        canActivate: [permissionGuard('VALORACIONES', 'EDICION')],
+        loadComponent: () =>
+          import('./features/valoraciones/valoraciones-admin/valoraciones-admin').then((m) => m.ValoracionesAdmin),
+      },
+      {
         path: 'empleados',
         canActivate: [permissionGuard('EMPLEADOS')],
         loadComponent: () =>

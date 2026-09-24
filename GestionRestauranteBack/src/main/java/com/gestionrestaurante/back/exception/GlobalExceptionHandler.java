@@ -56,9 +56,14 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({EnvioNominaFallidoException.class, OcrNoDisponibleException.class})
+    @ExceptionHandler({EnvioNominaFallidoException.class, OcrNoDisponibleException.class, ConexionGoogleNoDisponibleException.class})
     public ResponseEntity<ApiError> handleEnvioNominaFallido(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_GATEWAY, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(EstadoOAuthInvalidoException.class)
+    public ResponseEntity<ApiError> handleEstadoOAuthInvalido(EstadoOAuthInvalidoException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DiasVacacionesAnualesFueraDeRangoException.class)
