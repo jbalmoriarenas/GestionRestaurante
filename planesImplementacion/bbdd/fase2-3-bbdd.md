@@ -1,24 +1,32 @@
-# Plan de Implementación — Fase 2.3 (Base de datos): Facturas — estado de extracción y campos dinámicos
+# Plan de Implementación — Fase 2.3 (Base de datos): Facturas — estado de extracción automática
 
 Depende de [`fase2-1-bbdd.md`](./fase2-1-bbdd.md) (tabla `facturas` debe existir). Fuente de verdad de nombres para [`../back/fase2-3-back.md`](../back/fase2-3-back.md).
 
 ## Contexto y objetivo
 
-Dos migraciones: (a) ampliar `facturas` con el estado del pipeline de extracción automática y el JSON crudo devuelto por el OCR; (b) una tabla nueva, `factura_campos_dinamicos`, para los campos que el OCR detecta en una factura pero que no existen como columna fija — es la implementación concreta de "si hay campos nuevos que no existían en la BBDD, se crean automáticamente" que pide el usuario.
+Una única migración amplía `facturas` con el estado del pipeline de extracción automática (OCR). La extracción solo propone valores para los campos fijos ya existentes (proveedor, fecha, importe base/IVA/total) — no hay ningún mecanismo para "campos nuevos que no existían en la BBDD": el PDF/imagen original (`facturas.ruta_archivo`, ya en `fase2-1-bbdd.md`) es la única fuente de verdad para cualquier dato de la factura que no sea uno de esos campos fijos, y siempre se puede descargar y consultar a mano.
 
 ## Análisis y decisiones técnicas
 
-- **Se descarta explícitamente `ALTER TABLE ADD COLUMN` dinámico** (crear una columna nueva en `facturas` por cada etiqueta que el OCR detecte por primera vez) como forma de cumplir el requisito de "campos nuevos automáticos": es inseguro (el nombre de columna vendría de texto reconocido por OCR, con todo el riesgo de sanitización que implica ejecutar DDL con datos no confiables) y no escala (cada factura de formato distinto añadiría columnas nuevas sin límite, la mayoría `NULL` para el resto de filas) ni es compatible con una entidad JPA estática (`Factura` tendría que recompilarse por cada campo nuevo, lo cual es contradictorio con "automático"). La tabla `factura_campos_dinamicos` (patrón Entidad-Atributo-Valor) consigue el mismo efecto visible para el usuario — un campo nuevo aparece "solo", sin tocar código ni desplegar nada — de forma segura y estándar.
+- **Se descarta explícitamente cualquier tabla o columna para "campos dinámicos" detectados por OCR** (una versión anterior de este documento definía una tabla Entidad-Atributo-Valor, `factura_campos_dinamicos`, para ese propósito — ver `V31__eliminar_campos_dinamicos_facturas.sql`). En la práctica, con facturas reales (tickets de venta con muchas líneas: código de barras, datos de cliente, líneas de producto...) ese mecanismo generaba decenas de filas de ruido por factura en vez de datos útiles, exactamente el problema que se quería evitar de "una entrada por cada valor de la factura". Guardar el PDF/imagen original y dejarlo descargable resuelve la misma necesidad (poder consultar cualquier dato que no esté entre las columnas fijas) sin ese ruido.
 - **`estado_extraccion` con 5 valores, incluyendo `'MANUAL'`**: cubre también las facturas dadas de alta en `fase2-1` (antes de que existiera OCR) sin dejar la columna nullable — `'MANUAL'` significa explícitamente "esta factura no pasó por el pipeline de OCR", distinto de `'PENDIENTE'` (fila creada pero extracción aún no confirmada — en la práctica no debería persistir en ese estado más que instantáneamente, ver `back/fase2-3-back.md`) o `'ERROR'`.
 - **`DEFAULT 'MANUAL'` en el `ALTER TABLE`**: todas las filas ya existentes de `fase2-1` quedan correctamente clasificadas sin necesitar un `UPDATE` de backfill aparte.
-- **`datos_extraidos_raw` como `JSON` nativo de MySQL, nullable**: solo se rellena en facturas creadas vía OCR; guarda la respuesta cruda de la extracción (texto OCR + valores propuestos) para auditoría/depuración, nunca se usa para construir la UI (esa usa los campos estructurados + `factura_campos_dinamicos`).
-- **`factura_campos_dinamicos` con `ON DELETE CASCADE`**: aunque `fase2-1`/`fase2-3` no incluyen borrado de facturas, se deja la integridad referencial correcta desde el principio para no depender de que quien añada borrado en el futuro se acuerde de limpiar también esta tabla.
-- **`UNIQUE (factura_id, nombre_campo)`**: evita que una misma factura acumule dos filas para el mismo campo (p. ej. si el usuario confirma la extracción dos veces por error); `back/fase2-3-back.md` hace *upsert*, no `INSERT` ciego.
+- **Sin columna de texto OCR crudo**: una versión anterior guardaba también `datos_extraidos_raw` (JSON con el texto OCR + valores propuestos) para auditoría — se elimina en `V31` por el mismo motivo que los campos dinámicos: no se usaba para nada más que depuración interna y el PDF original ya cubre esa necesidad de forma más simple.
+- **Nota (fuera de alcance de esta fase)**: si en el futuro se necesita el listado de productos/líneas comprados por factura (p. ej. para una vista de almacén/inventario), eso requiere un modelo distinto — una tabla de líneas de factura con cantidad/producto/precio por fila, no un campo dinámico genérico — y una fase propia, no reutiliza nada de este documento.
+
+> **Nota histórica (revisión posterior a esta fase)**: probar el alta y la extracción con facturas reales llevó a eliminar por completo `producto`, `fecha_factura` y `fecha_vencimiento` — no solo hacerlos nullable/opcionales como hizo `V32` con `producto`. Razones: (1) `producto` de texto libre nunca llegó a usarse — las facturas reales tienen varias líneas de artículos y un único campo no las representa, y la vía correcta para eso es una futura vista de almacén con su propio modelo de líneas, no este campo; (2) `fecha_factura` ("fecha de venta") y `fecha_impresion` resultaron ser, en la práctica, casi siempre el mismo dato en las facturas de proveedor que de verdad recibe el restaurante — mantener las dos como campos independientes solo generaba confusión sobre cuál usar para `mes`/`anio`, así que `fecha_impresion` pasa a ser la fecha de referencia única (obligatoria) y `fecha_factura` desaparece; (3) `fecha_vencimiento` (de la `V27` original) nunca se usó en ningún filtro, cálculo ni pantalla — puro campo muerto. Ver `V34`/`V35` más abajo.
+
+- **`V34` hace obligatoria `fecha_impresion` antes de borrar `fecha_factura`**: como `fecha_impresion` pasa a ser la única fecha de referencia (sustituye a `fecha_factura` para `mes`/`anio`), la migración primero rellena con un `UPDATE` cualquier fila donde `fecha_impresion` fuera `NULL` (usando el valor de `fecha_factura`, que en `V27` era `NOT NULL`) y solo entonces la convierte en `NOT NULL` — evita dejar filas existentes con la nueva columna de referencia vacía.
+- **`V35` es una migración aparte de `V34`** aunque ambas eliminan campos muertos de la misma tabla en la misma revisión: `fecha_vencimiento` no tiene ninguna dependencia de datos previos (a diferencia de `fecha_impresion`/`fecha_factura`, que sí necesitan el `UPDATE` de `V34`), así que se mantiene como su propio paso, más simple de leer y de revertir si hiciera falta.
 
 ## Desglose de subtareas
 
 1. **[BBDD, media]** `V28__add_ocr_columns_a_facturas.sql`.
-2. **[BBDD, baja]** `V29__create_factura_campos_dinamicos_table.sql`.
+2. **[BBDD, baja]** `V31__eliminar_campos_dinamicos_facturas.sql` (revierte `V29`/parte de `V28`, ver más abajo).
+3. **[BBDD, baja]** `V32__hacer_producto_nullable_en_facturas.sql`: tras probar el alta con facturas de varias líneas de artículos, forzar un único valor de texto en `producto` no tiene sentido — pasa a `NULL` opcional (el modal de alta deja de pedirlo, ver `front/fase2-3-front.md`).
+4. **[BBDD, baja]** `V33__add_fecha_impresion_entrega_a_facturas.sql`: añade `fecha_impresion`/`fecha_entrega` (ambas `DATE NULL`) — un ticket de venta al por mayor puede traer estas dos fechas además de la de venta/emisión (`fecha_factura`, de la que se seguían derivando `mes`/`anio` en su momento).
+5. **[BBDD, media]** `V34__eliminar_producto_y_fecha_factura_de_facturas.sql` (revisión posterior, ver nota histórica arriba): backfill de `fecha_impresion` desde `fecha_factura` donde falte, luego `fecha_impresion NOT NULL` y elimina `producto`/`fecha_factura`.
+6. **[BBDD, baja]** `V35__eliminar_fecha_vencimiento_de_facturas.sql`: elimina `fecha_vencimiento` (campo muerto, nunca usado en filtros/cálculos/pantallas).
 
 ## DDL
 
@@ -36,41 +44,71 @@ ALTER TABLE facturas
 CREATE INDEX idx_facturas_estado_extraccion ON facturas (estado_extraccion);
 ```
 
-### `V29__create_factura_campos_dinamicos_table.sql`
+### `V29__create_factura_campos_dinamicos_table.sql` (histórica, revertida por `V31`)
+
+Creaba la tabla `factura_campos_dinamicos` (patrón Entidad-Atributo-Valor). Se mantiene el archivo de migración histórico sin modificar (Flyway no permite editar migraciones ya aplicadas) pero su efecto queda revertido por `V31`.
+
+### `V31__eliminar_campos_dinamicos_facturas.sql`
 
 ```sql
-CREATE TABLE factura_campos_dinamicos (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    factura_id      BIGINT        NOT NULL,
-    nombre_campo    VARCHAR(100)  NOT NULL,
-    valor           VARCHAR(500)  NULL,
-    fecha_creacion  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+DROP TABLE factura_campos_dinamicos;
 
-    CONSTRAINT fk_campos_dinamicos_factura FOREIGN KEY (factura_id) REFERENCES facturas (id) ON DELETE CASCADE,
-    CONSTRAINT uk_campos_dinamicos_factura_nombre UNIQUE (factura_id, nombre_campo)
-);
-
-CREATE INDEX idx_campos_dinamicos_factura ON factura_campos_dinamicos (factura_id);
+ALTER TABLE facturas DROP COLUMN datos_extraidos_raw;
 ```
 
-**Mapeo de columnas ↔ campo de entidad JPA / DTO** (debe coincidir con `back/fase2-3-back.md`):
+### `V32__hacer_producto_nullable_en_facturas.sql`
+
+```sql
+ALTER TABLE facturas MODIFY COLUMN producto VARCHAR(255) NULL;
+```
+
+### `V33__add_fecha_impresion_entrega_a_facturas.sql`
+
+```sql
+ALTER TABLE facturas
+    ADD COLUMN fecha_impresion DATE NULL AFTER fecha_factura,
+    ADD COLUMN fecha_entrega   DATE NULL AFTER fecha_impresion;
+```
+
+### `V34__eliminar_producto_y_fecha_factura_de_facturas.sql`
+
+```sql
+UPDATE facturas SET fecha_impresion = fecha_factura WHERE fecha_impresion IS NULL;
+ALTER TABLE facturas
+    MODIFY COLUMN fecha_impresion DATE NOT NULL,
+    DROP COLUMN producto,
+    DROP COLUMN fecha_factura;
+```
+
+### `V35__eliminar_fecha_vencimiento_de_facturas.sql`
+
+```sql
+ALTER TABLE facturas DROP COLUMN fecha_vencimiento;
+```
+
+**Mapeo de columnas ↔ campo de entidad JPA / DTO** (debe coincidir con `back/fase2-3-back.md`; estado tras `V35`, última migración de esta fase):
 
 | Columna | Campo entidad | Tipo Java | Tipo TS (front) |
 |---|---|---|---|
 | `facturas.estado_extraccion` | `estadoExtraccion` (`@Enumerated(EnumType.STRING)`) | `EstadoExtraccion {MANUAL, PENDIENTE, PROCESADA, ERROR, REVISADA}` | `'MANUAL' \| 'PENDIENTE' \| 'PROCESADA' \| 'ERROR' \| 'REVISADA'` |
-| `facturas.datos_extraidos_raw` | `datosExtraidosRaw` (`@JdbcTypeCode(SqlTypes.JSON)`) | `String` (JSON serializado) | no se expone tal cual al front, solo con fines de depuración interna |
-| `factura_campos_dinamicos.factura_id` | `factura` (`@ManyToOne`) en `FacturaCampoDinamico` | `Factura` | — |
-| `factura_campos_dinamicos.nombre_campo` / `valor` | `nombreCampo` / `valor` | `String` | `{clave: string, valor: string}` (DTO) |
+| `facturas.fecha_impresion` (`V34`: `NOT NULL`, fecha de referencia única — sustituye a `fecha_factura`) | `fechaImpresion` | `LocalDate` | `string` |
+| `facturas.fecha_entrega` | `fechaEntrega` | `LocalDate` (nullable) | `string \| null` |
+| ~~`facturas.producto`~~ (eliminada en `V34`) | — | — | — |
+| ~~`facturas.fecha_factura`~~ (eliminada en `V34`, sustituida por `fecha_impresion`) | — | — | — |
+| ~~`facturas.fecha_vencimiento`~~ (eliminada en `V35`, campo muerto) | — | — | — |
 
 ## Riesgos y dependencias
 
 - **Dependencia dura** con `bbdd/fase2-1-bbdd.md`: `ALTER TABLE facturas` requiere que la tabla ya exista.
-- **Riesgo bajo**: `nombre_campo` sin normalización (mayúsculas/tildes/espacios) puede generar variantes casi-duplicadas del mismo concepto entre facturas distintas (p. ej. `"CUPS"` vs `"Cups"` vs `"N. CUPS"`) — no se resuelve en esta fase (normalizar requeriría un catálogo de sinónimos o un paso de limpieza adicional, sobre-ingeniería para el volumen esperado); documentado como mejora futura si se vuelve un problema real al revisar los datos.
-- **Riesgo bajo**: `valor VARCHAR(500)` podría truncar un campo dinámico inusualmente largo (poco probable en una etiqueta de factura, pero posible); si ocurre en la práctica, ampliar a `TEXT` es una migración trivial sin impacto en datos existentes.
+- **Dependencia dura** de `V31` con `V28`/`V29`: solo puede aplicarse después de que ambas hayan creado lo que revierte.
+- **Dependencia dura** de `V34` con `V33`: el backfill de `fecha_impresion` solo tiene sentido porque `V33` la creó como `DATE NULL`.
 
 ## Criterios de aceptación técnicos
 
 - Tras `V28`, todas las facturas creadas antes de esta migración tienen `estado_extraccion = 'MANUAL'` sin necesitar ningún `UPDATE` manual.
 - Insertar/actualizar una factura con `estado_extraccion = 'DESCONOCIDO'` falla por `chk_facturas_estado_extraccion`.
-- Tras `V29`, insertar dos filas de `factura_campos_dinamicos` con el mismo `(factura_id, nombre_campo)` falla por `uk_campos_dinamicos_factura_nombre`.
-- Borrar una factura (si en el futuro se añade esa capacidad) borra en cascada sus filas de `factura_campos_dinamicos`.
+- Tras `V31`, la tabla `factura_campos_dinamicos` y la columna `facturas.datos_extraidos_raw` no existen.
+- Tras `V32`, insertar una factura sin `producto` no falla por restricción `NOT NULL` (columna eliminada por completo poco después en `V34`, ver abajo).
+- Tras `V33`, `facturas.fecha_impresion`/`fecha_entrega` aceptan `NULL`.
+- Tras `V34`, ninguna fila tiene `fecha_impresion` a `NULL` (backfill desde `fecha_factura`), la columna pasa a `NOT NULL`, y `facturas.producto`/`facturas.fecha_factura` ya no existen.
+- Tras `V35`, `facturas.fecha_vencimiento` ya no existe.

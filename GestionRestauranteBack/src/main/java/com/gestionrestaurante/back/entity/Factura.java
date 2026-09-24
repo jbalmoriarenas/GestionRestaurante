@@ -17,14 +17,17 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 /**
  * Fase 2 (Facturas): datos de una factura de proveedor o de suministro, dada de alta a mano
  * (fase2-1) o via OCR (fase2-3). {@code estadoPago} (negocio: si ya se ha pagado) y
  * {@code estadoExtraccion} (pipeline de OCR) son conceptos independientes, no confundir
- * (bbdd/fase2-1-bbdd.md, bbdd/fase2-3-bbdd.md).
+ * (bbdd/fase2-1-bbdd.md, bbdd/fase2-3-bbdd.md). El archivo siempre se conserva ({@code
+ * rutaArchivo}) para consultar cualquier dato que no este entre las columnas fijas - no existe
+ * una tabla de campos dinamicos ni un volcado de texto OCR crudo (ver bbdd/fase2-3-bbdd.md). Si
+ * se subio como foto (JPEG/PNG/WEBP), se convierte a PDF antes de guardarse (confirmado con el
+ * usuario): {@code rutaArchivo} y {@code nombreArchivoOriginal} siempre acaban en .pdf, nunca la
+ * imagen tal cual se subio.
  */
 @Entity
 @Table(name = "facturas")
@@ -44,14 +47,16 @@ public class Factura {
     @Column(name = "numero_factura", length = 50)
     private String numeroFactura;
 
-    @Column(nullable = false, length = 255)
-    private String producto;
+    // Fecha de impresion del documento - de ella se derivan mes/anio para listado y filtros,
+    // por eso es la unica fecha obligatoria (decision confirmada con el usuario: sustituye a la
+    // antigua fecha de venta/emision, eliminada junto con "producto" por no usarse en la
+    // practica). fechaEntrega es un metadato opcional adicional (fechaVencimiento tambien se
+    // elimino por no usarse: nunca se rellenaba desde ningun formulario, confirmado con el usuario).
+    @Column(name = "fecha_impresion", nullable = false)
+    private LocalDate fechaImpresion;
 
-    @Column(name = "fecha_factura", nullable = false)
-    private LocalDate fechaFactura;
-
-    @Column(name = "fecha_vencimiento")
-    private LocalDate fechaVencimiento;
+    @Column(name = "fecha_entrega")
+    private LocalDate fechaEntrega;
 
     @Column(name = "importe_base", precision = 10, scale = 2)
     private BigDecimal importeBase;
@@ -75,10 +80,6 @@ public class Factura {
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_extraccion", nullable = false, length = 20)
     private EstadoExtraccion estadoExtraccion;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "datos_extraidos_raw")
-    private String datosExtraidosRaw;
 
     @Column(name = "ruta_archivo", nullable = false, length = 255)
     private String rutaArchivo;

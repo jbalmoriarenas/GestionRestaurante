@@ -49,6 +49,7 @@
     "tableCaption": "Employee list",
     "table": {
       "nombre": "Name",
+      "dni": "ID number",
       "email": "Email",
       "puesto": "Position",
       "tipoUsuario": "User type",
@@ -232,6 +233,7 @@
         "solicitar": "Request",
         "errores": {
           "rangoInvalido": "The end date can't be before the start date",
+          "fechaPasada": "You can't request time off for dates before today",
           "distintoAnio": "The time off range must stay within the current year"
         }
       },
@@ -419,13 +421,12 @@
         "proveedor": "Supplier",
         "estadoPago": "Status",
         "periodo": "Period",
-        "todos": "All"
+        "todos": "All",
+        "periodoRequeridoExportar": "Select a period (month) before exporting"
       },
       "tabla": {
         "empresa": "Company",
-        "producto": "Item",
         "cuantia": "Amount",
-        "fecha": "Date",
         "estado": "Status",
         "acciones": "Actions",
         "vacio": "No invoices to display"
@@ -447,6 +448,7 @@
         "marcarPendiente": "Mark as pending",
         "descargar": "Download",
         "exportar": "Export to Excel",
+        "exportarPdfs": "Export PDFs (ZIP)",
         "nuevaFactura": "New invoice"
       },
       "alta": {
@@ -463,25 +465,37 @@
         "proveedorCif": "Tax ID",
         "proveedorEmail": "Contact email",
         "proveedorTelefono": "Phone",
-        "producto": "Item",
         "numeroFactura": "Invoice number",
-        "fechaFactura": "Invoice date",
-        "fechaVencimiento": "Due date",
+        "fechaImpresion": "Print date",
+        "fechaEntrega": "Delivery date",
         "importeBase": "Taxable amount",
         "iva": "VAT",
         "importeTotal": "Total amount",
         "estadoPago": "Payment status",
-        "camposAdicionales": "Detected additional data",
-        "anadirCampo": "Add field",
-        "clave": "Field",
-        "valor": "Value",
         "campoRequerido": "Required",
         "confirmar": "Save invoice"
       },
       "detalle": {
         "titulo": "Invoice detail",
-        "datosAdicionales": "Additional data",
         "estadoExtraccion": "Data origin"
+      },
+      "exportar": {
+        "tituloConPeriodo": "Invoices period {{mes}} {{anio}}",
+        "cabeceras": {
+          "empresa": "Company",
+          "telefono": "Phone",
+          "tipo": "Type",
+          "fechaImpresion": "Print date",
+          "fechaEntrega": "Delivery date",
+          "importeBase": "Taxable amount",
+          "iva": "VAT",
+          "importeTotal": "Total amount",
+          "mes": "Month",
+          "anio": "Year",
+          "estadoPago": "Payment status",
+          "nombreArchivoOriginal": "Original file name",
+          "fechaSubida": "Upload date"
+        }
       },
       "notificaciones": {
         "altaExito": "Invoice saved successfully"

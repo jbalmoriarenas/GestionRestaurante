@@ -10,26 +10,21 @@ const BASE_URL = `${API_BASE_URL}/facturas`;
 
 export interface FacturaCreatePayload {
   proveedorId: number;
+  // El formulario de alta ya no pide "numero de factura" (sin sentido para facturas con
+  // muchas lineas de articulos distintos, ver planesImplementacion/bbdd/fase2-3-bbdd.md) - null.
   numeroFactura: string | null;
-  producto: string;
-  fechaFactura: string;
-  fechaVencimiento: string | null;
+  // Unica fecha obligatoria (de ella se derivan mes/anio) y un metadato opcional adicional que
+  // puede traer un ticket de venta al por mayor.
+  fechaImpresion: string;
+  fechaEntrega: string | null;
   importeBase: number | null;
   iva: number | null;
   importeTotal: number;
   estadoPago: EstadoPago;
   archivo: File;
-  // Campos detectados por OCR que no encajan en ningun campo fijo (fase2-3): se envian como
-  // un JSON serializado en un campo de texto del propio multipart/form-data (no hay forma
-  // nativa de mandar un mapa arbitrario en FormData) - el backend (FacturaCreateDTO) lo
-  // deserializa con Jackson desde el campo "camposAdicionalesJson".
-  camposAdicionales?: Record<string, string>;
   // true cuando el alta parte de una previsualizacion de /extraer (aunque el Admin haya
   // editado los valores propuestos) - determina estadoExtraccion = REVISADA vs MANUAL.
   origenOcr?: boolean;
-  // JSON crudo de la previsualizacion de /extraer (FacturaExtraccionPreview completa), para
-  // auditoria (facturas.datos_extraidos_raw) - solo tiene sentido cuando origenOcr es true.
-  datosExtraidosRawJson?: string;
 }
 
 function buildFiltroParams(
@@ -82,10 +77,9 @@ export class FacturaService {
     if (payload.numeroFactura !== null) {
       formData.set('numeroFactura', payload.numeroFactura);
     }
-    formData.set('producto', payload.producto);
-    formData.set('fechaFactura', payload.fechaFactura);
-    if (payload.fechaVencimiento !== null) {
-      formData.set('fechaVencimiento', payload.fechaVencimiento);
+    formData.set('fechaImpresion', payload.fechaImpresion);
+    if (payload.fechaEntrega !== null) {
+      formData.set('fechaEntrega', payload.fechaEntrega);
     }
     if (payload.importeBase !== null) {
       formData.set('importeBase', String(payload.importeBase));
@@ -96,14 +90,8 @@ export class FacturaService {
     formData.set('importeTotal', String(payload.importeTotal));
     formData.set('estadoPago', payload.estadoPago);
     formData.set('archivo', payload.archivo);
-    if (payload.camposAdicionales && Object.keys(payload.camposAdicionales).length > 0) {
-      formData.set('camposAdicionalesJson', JSON.stringify(payload.camposAdicionales));
-    }
     if (payload.origenOcr) {
       formData.set('origenOcr', 'true');
-      if (payload.datosExtraidosRawJson) {
-        formData.set('datosExtraidosRawJson', payload.datosExtraidosRawJson);
-      }
     }
     return this.http.post<FacturaDetalle>(BASE_URL, formData);
   }
@@ -122,9 +110,28 @@ export class FacturaService {
     estadoPago: EstadoPago | null,
     mes: number | null,
     anio: number | null,
+    titulo: string,
+    cabeceras: string[],
   ): Observable<Blob> {
-    const params = buildFiltroParams(tipo, proveedorId, estadoPago, mes, anio);
+    // El back no tiene ningun mecanismo de i18n para el resto de la app: el titulo y las
+    // cabeceras de columna del Excel se traducen aqui (idioma activo) y se mandan ya resueltos.
+    let params = buildFiltroParams(tipo, proveedorId, estadoPago, mes, anio).set('titulo', titulo);
+    for (const cabecera of cabeceras) {
+      params = params.append('cabecera', cabecera);
+    }
     return this.http.get(`${BASE_URL}/exportar`, { params, responseType: 'blob' });
+  }
+
+  exportarZip(
+    tipo: TipoProveedor,
+    proveedorId: number | null,
+    estadoPago: EstadoPago | null,
+    mes: number,
+    anio: number,
+    nombreCarpeta: string,
+  ): Observable<Blob> {
+    const params = buildFiltroParams(tipo, proveedorId, estadoPago, mes, anio).set('nombreCarpeta', nombreCarpeta);
+    return this.http.get(`${BASE_URL}/exportar-zip`, { params, responseType: 'blob' });
   }
 
   extraer(archivo: File, tipo: TipoProveedor): Observable<FacturaExtraccionPreview> {

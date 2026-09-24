@@ -16,6 +16,7 @@ import com.gestionrestaurante.back.service.FacturaService;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -104,10 +105,8 @@ public class FacturaController {
     public FacturaExtraccionPreviewDTO extraer(
             @RequestParam TipoProveedor tipo, @RequestPart MultipartFile archivo) throws java.io.IOException {
         var resultado = facturaExtractionService.extraer(archivo.getInputStream(), archivo.getContentType(), tipo);
-        return new FacturaExtraccionPreviewDTO(resultado.textoOcrCrudo(), resultado.proveedorSugeridoId(),
-                resultado.nombreProveedorSugerido(), resultado.fechaFacturaSugerida(), resultado.numeroFacturaSugerido(),
-                resultado.importeBaseSugerido(), resultado.ivaSugerido(), resultado.importeTotalSugerido(),
-                resultado.camposAdicionales());
+        return new FacturaExtraccionPreviewDTO(resultado.fechaImpresionSugerida(), resultado.fechaEntregaSugerida(),
+                resultado.importeBaseSugerido(), resultado.ivaSugerido(), resultado.importeTotalSugerido());
     }
 
     @GetMapping(Wuris.Facturas.EXPORTAR)
@@ -117,15 +116,47 @@ public class FacturaController {
             @RequestParam(required = false) Long proveedorId,
             @RequestParam(required = false) EstadoPago estadoPago,
             @RequestParam(required = false) Integer mes,
-            @RequestParam(required = false) Integer anio) {
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) List<String> cabecera) {
         String nombreArchivo = "facturas_" + tipo.name().toLowerCase() + "_"
                 + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + ".xlsx";
         ContentDisposition contentDisposition = ContentDisposition.attachment()
                 .filename(nombreArchivo, StandardCharsets.UTF_8)
                 .build();
-        StreamingResponseBody body = out -> facturaExportService.exportar(out, tipo, proveedorId, estadoPago, mes, anio);
+        StreamingResponseBody body =
+                out -> facturaExportService.exportar(out, tipo, proveedorId, estadoPago, mes, anio, titulo, cabecera);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(body);
+    }
+
+    /**
+     * {@code mes}/{@code anio} son obligatorios (a diferencia de /exportar): no tiene sentido
+     * descargar de golpe el archivo original de todas las facturas de todos los periodos.
+     * {@code nombreCarpeta} lo genera el front (p.ej. "facturas_julio_2026", mismo criterio que
+     * {@code titulo} en /exportar) y se usa tanto como nombre del .zip descargado como carpeta
+     * interna que agrupa todos los archivos dentro de el.
+     */
+    @GetMapping(Wuris.Facturas.EXPORTAR_ZIP)
+    @PreAuthorize("hasAuthority('FACTURAS:EDICION')")
+    public ResponseEntity<StreamingResponseBody> exportarZip(
+            @RequestParam TipoProveedor tipo,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) EstadoPago estadoPago,
+            @RequestParam int mes,
+            @RequestParam int anio,
+            @RequestParam(required = false) String nombreCarpeta) {
+        String carpetaSaneada = FacturaExportService.sanearNombreCarpeta(nombreCarpeta);
+        String carpeta = carpetaSaneada != null ? carpetaSaneada : "facturas_" + anio + "-" + mes;
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(carpeta + ".zip", StandardCharsets.UTF_8)
+                .build();
+        StreamingResponseBody body =
+                out -> facturaExportService.exportarArchivos(out, tipo, proveedorId, estadoPago, mes, anio, carpeta);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(body);
     }

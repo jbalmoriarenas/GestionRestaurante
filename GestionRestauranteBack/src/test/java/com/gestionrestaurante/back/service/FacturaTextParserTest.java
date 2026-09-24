@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** Fixtures fijas simulando texto OCR real (back/fase2-3-back.md) - sin Spring ni BBDD. */
@@ -21,25 +20,43 @@ class FacturaTextParserTest {
             Total factura: 121,00 €
             """;
 
-    @Test
-    void extraerFecha_devuelveLaFechaNumericaDeLaFactura() {
-        var fecha = FacturaTextParser.extraerFecha(FACTURA_LUZ);
+    /** Ticket de venta al por mayor con varios tipos de IVA en la misma factura (formato
+     * habitual de distribuidores tipo Makro): la fecha de impresion aparece antes que la de
+     * venta, y el IVA se agrega en una tabla-resumen por tramo, no con la etiqueta "IVA". */
+    private static final String TICKET_MULTI_IVA = """
+            Makro Distribucion Mayorista, S.A.
+            Fecha de venta: 28/07/2026 11:51
+            Fecha impresión: 28/07/2026 11:55
+            Fecha de entrega: 29/07/2026 09:00
+            Número de bultos: 48 Peso Total: 3,590 KG Envases: 0 Importe 428,16
+            Mercancía % IMP Total IMP
+            251,50 1=10,00% 25,15
+            170,37 2=21,00% 35,78
+            6,29 5= 4,00% 0,25
+            428,16 61,18
+            Total a pagar 489,34
+            Valor total descuentos 4,11-
+            """;
 
-        assertThat(fecha).contains(LocalDate.of(2026, 3, 15));
+    @Test
+    void extraerFechaImpresion_devuelveLaFechaDeLaLineaDeImpresion() {
+        var fecha = FacturaTextParser.extraerFechaImpresion(TICKET_MULTI_IVA);
+
+        assertThat(fecha).contains(LocalDate.of(2026, 7, 28));
     }
 
     @Test
-    void extraerFecha_textoSinFechaDevuelveVacio() {
-        var fecha = FacturaTextParser.extraerFecha("Sin ninguna fecha reconocible aqui");
+    void extraerFechaEntrega_devuelveLaFechaDeLaLineaDeEntrega() {
+        var fecha = FacturaTextParser.extraerFechaEntrega(TICKET_MULTI_IVA);
+
+        assertThat(fecha).contains(LocalDate.of(2026, 7, 29));
+    }
+
+    @Test
+    void extraerFechaImpresion_sinLineaReconocibleDevuelveVacio() {
+        var fecha = FacturaTextParser.extraerFechaImpresion(FACTURA_LUZ);
 
         assertThat(fecha).isEmpty();
-    }
-
-    @Test
-    void extraerFecha_reconoceFormatoTextualEnEspanol() {
-        var fecha = FacturaTextParser.extraerFecha("Emitida el 5 de marzo de 2026 en Madrid");
-
-        assertThat(fecha).contains(LocalDate.of(2026, 3, 5));
     }
 
     @Test
@@ -61,16 +78,11 @@ class FacturaTextParserTest {
     }
 
     @Test
-    void extraerCamposAdicionales_incluyeEtiquetaNoConsumida() {
-        var campos = FacturaTextParser.extraerCamposAdicionales(FACTURA_LUZ, Set.of("Total factura"));
+    void extraerImportes_sumaLosTramosDeIvaDeLaTablaResumen() {
+        var importes = FacturaTextParser.extraerImportes(TICKET_MULTI_IVA);
 
-        assertThat(campos).containsEntry("CUPS", "ES0021000000000001JN0F");
-    }
-
-    @Test
-    void extraerCamposAdicionales_ignoraEtiquetaYaConsumida() {
-        var campos = FacturaTextParser.extraerCamposAdicionales(FACTURA_LUZ, Set.of("CUPS"));
-
-        assertThat(campos).doesNotContainKey("CUPS");
+        assertThat(importes.total()).isEqualByComparingTo(new BigDecimal("489.34"));
+        assertThat(importes.base()).isEqualByComparingTo(new BigDecimal("428.16"));
+        assertThat(importes.iva()).isEqualByComparingTo(new BigDecimal("61.18"));
     }
 }

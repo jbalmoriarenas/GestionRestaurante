@@ -10,4 +10,10 @@ public class ArchivoFacturaNoValidoException extends RuntimeException {
     public ArchivoFacturaNoValidoException() {
         super("El archivo debe ser una imagen (JPEG/PNG/WEBP) o un PDF valido");
     }
+
+    /** Conserva la causa real (p.ej. un IOException al convertir una foto a PDF) para que no
+     * se pierda del log un fallo que no sea realmente "archivo invalido". */
+    public ArchivoFacturaNoValidoException(Throwable causa) {
+        super("El archivo debe ser una imagen (JPEG/PNG/WEBP) o un PDF valido", causa);
+    }
 }

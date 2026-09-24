@@ -1,4 +1,7 @@
 .facturas-admin-page {
+  // Empresa/Fecha impresión/Fecha entrega/Base imponible/IVA/Cuantía/Estado/Acciones: las 8
+  // columnas de la tabla deben sumar el 100% del ancho con table-layout: fixed, si no las que
+  // se queden sin porcentaje explicito se colapsan entre si.
   table {
     table-layout: fixed;
 
@@ -9,7 +12,7 @@
 
     th:nth-child(2),
     td:nth-child(2) {
-      width: 26%;
+      width: 12%;
     }
 
     th:nth-child(3),
@@ -19,11 +22,21 @@
 
     th:nth-child(4),
     td:nth-child(4) {
-      width: 14%;
+      width: 10%;
     }
 
     th:nth-child(5),
     td:nth-child(5) {
+      width: 8%;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+      width: 10%;
+    }
+
+    th:nth-child(7),
+    td:nth-child(7) {
       width: 10%;
     }
 
@@ -70,35 +83,5 @@
   &__filtro-select,
   &__form-select {
     min-width: 180px;
-  }
-
-  &__campos-adicionales {
-    border-top: 1px solid var(--color-border);
-    padding-top: var(--space-md);
-  }
-
-  // Campos "clave/valor" de fase2-3 (front): lista local sin componente ui-* dedicado
-  // (ver front/fase2-3-front.md), replica el estilo minimo de ui-input.scss.
-  .ui-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
-    }
-
-    input {
-      height: 40px;
-      padding: 0 var(--space-md);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      font-family: var(--font-family);
-      font-size: 0.9rem;
-      color: var(--color-text-primary);
-      background: var(--color-surface);
-    }
   }
 }

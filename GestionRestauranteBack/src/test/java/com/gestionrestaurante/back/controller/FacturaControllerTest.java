@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.gestionrestaurante.back.dto.FacturaListadoDTO;
 import com.gestionrestaurante.back.entity.EstadoPago;
-import com.gestionrestaurante.back.entity.TipoProveedor;
 import com.gestionrestaurante.back.exception.FacturaNotFoundException;
 import com.gestionrestaurante.back.security.JwtAuthFilter;
 import com.gestionrestaurante.back.service.FacturaExportService;
@@ -94,7 +93,8 @@ class FacturaControllerTest {
         autenticarComoAdmin();
         when(facturaService.listar(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(new FacturaListadoDTO(
-                        1L, "Iberdrola", "Electricidad", new BigDecimal("120.50"), LocalDate.of(2026, 3, 1), EstadoPago.PENDIENTE))));
+                        1L, "Iberdrola", LocalDate.of(2026, 3, 1), null,
+                        null, null, new BigDecimal("120.50"), EstadoPago.PENDIENTE))));
 
         mockMvc.perform(get("/api/facturas").param("tipo", "SUMINISTRO"))
                 .andExpect(status().isOk())
@@ -109,8 +109,7 @@ class FacturaControllerTest {
         mockMvc.perform(multipart("/api/facturas")
                         .file(archivo)
                         .param("proveedorId", "1")
-                        .param("producto", "Electricidad")
-                        .param("fechaFactura", "2026-03-01")
+                        .param("fechaImpresion", "2026-03-01")
                         .param("importeTotal", "120.50"))
                 .andExpect(status().isForbidden());
     }

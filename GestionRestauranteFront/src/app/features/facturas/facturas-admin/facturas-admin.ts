@@ -5,16 +5,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { hoyLocalISO } from '../../../core/date-utils';
 import { FacturaService } from '../../../core/services/factura.service';
 import { ProveedorService } from '../../../core/services/proveedor.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import {
-  CampoDinamico,
-  EstadoPago,
-  FacturaDetalle,
-  FacturaExtraccionPreview,
-  FacturaListado,
-} from '../../../core/models/factura.model';
+import { EstadoPago, FacturaDetalle, FacturaListado } from '../../../core/models/factura.model';
 import { Proveedor, TipoProveedor } from '../../../core/models/proveedor.model';
 import { Page } from '../../../core/models/page.model';
 
@@ -29,7 +24,7 @@ import { UiSpinner } from '../../../shared/ui/ui-spinner/ui-spinner';
 import { UiTable } from '../../../shared/ui/ui-table/ui-table';
 import { UiTabItem, UiTabs } from '../../../shared/ui/ui-tabs/ui-tabs';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 /** Sentinel para "sin filtro" en los ui-select de proveedor/estado, mismo patron que
  * nominas-admin.ts/vacaciones-admin.ts (fase3-1-front.md/fase1-4-front.md). */
@@ -49,6 +44,13 @@ function parsearPeriodo(valor: string): { mes: number | null; anio: number | nul
   }
   const [anio, mes] = valor.split('-').map(Number);
   return { mes, anio };
+}
+
+/** Periodo (mes actual) en formato yyyy-MM, el mismo que produce/consume un <input type="month">
+ * - valor por defecto del filtro al abrir la vista (confirmado con el usuario). Se deriva de
+ * hoyLocalISO() (yyyy-MM-dd) en vez de recalcular año/mes locales aqui otra vez. */
+function periodoActual(): string {
+  return hoyLocalISO().slice(0, 7);
 }
 
 /** Mismo criterio que valida el backend (FacturaService.crear, back/fase2-1-back.md):
@@ -103,12 +105,13 @@ export class FacturasAdmin implements OnInit {
   readonly cargando = signal(false);
   readonly pagina = signal<Page<FacturaListado> | null>(null);
   readonly exportando = signal(false);
+  readonly exportandoZip = signal(false);
 
   // Un formulario de filtros por pestana (fase2-1-front.md): cambiar de pestana no debe
   // perder los filtros que el Admin ya habia puesto en la otra.
   private readonly filtrosPorTab: Record<TipoProveedor, FiltrosFormGroup> = {
-    PROVEEDOR: this.formBuilder.nonNullable.group({ proveedorId: FILTRO_TODOS, estadoPago: FILTRO_TODOS, periodo: '' }),
-    SUMINISTRO: this.formBuilder.nonNullable.group({ proveedorId: FILTRO_TODOS, estadoPago: FILTRO_TODOS, periodo: '' }),
+    PROVEEDOR: this.formBuilder.nonNullable.group({ proveedorId: FILTRO_TODOS, estadoPago: FILTRO_TODOS, periodo: periodoActual() }),
+    SUMINISTRO: this.formBuilder.nonNullable.group({ proveedorId: FILTRO_TODOS, estadoPago: FILTRO_TODOS, periodo: periodoActual() }),
   };
 
   private readonly proveedoresPorTab: Record<TipoProveedor, WritableSignal<UiSelectOption[]>> = {
@@ -150,22 +153,19 @@ export class FacturasAdmin implements OnInit {
   readonly guardandoAlta = signal(false);
   readonly extrayendo = signal(false);
   readonly origenOcr = signal(false);
-  readonly camposAdicionales = signal<CampoDinamico[]>([]);
-  // Previsualizacion completa de /extraer, guardada para reenviarla como datosExtraidosRawJson
-  // al confirmar el alta (auditoria de facturas.datos_extraidos_raw, back/fase2-3-back.md).
-  readonly previewOcr = signal<FacturaExtraccionPreview | null>(null);
 
   readonly archivoAlta = new FormControl<File | null>(null, [Validators.required, archivoFacturaValidator]);
 
   readonly altaForm = this.formBuilder.nonNullable.group({
     proveedorId: ['', Validators.required],
-    numeroFactura: [''],
-    producto: ['', Validators.required],
-    fechaFactura: ['', Validators.required],
-    fechaVencimiento: [''],
-    importeBase: [''],
-    iva: [''],
+    fechaImpresion: ['', Validators.required],
+    fechaEntrega: ['', Validators.required],
+    importeBase: ['', Validators.required],
+    iva: ['', Validators.required],
     importeTotal: ['', [Validators.required, Validators.min(0)]],
+    // Sin Validators.required: el <select> siempre arranca en 'PENDIENTE' y su placeholder esta
+    // disabled (ui-select.html), asi que nunca puede quedar vacio desde la UI - el validador
+    // seria decorativo, nunca lo dejaria invalido.
     estadoPago: ['PENDIENTE'],
   });
 
@@ -174,8 +174,6 @@ export class FacturasAdmin implements OnInit {
   readonly guardandoProveedor = signal(false);
   readonly nuevoProveedorForm = this.formBuilder.nonNullable.group({
     nombre: ['', Validators.required],
-    cif: [''],
-    emailContacto: [''],
     telefono: [''],
   });
 
@@ -227,19 +225,15 @@ export class FacturasAdmin implements OnInit {
   abrirAlta(): void {
     this.altaForm.reset({
       proveedorId: '',
-      numeroFactura: '',
-      producto: '',
-      fechaFactura: '',
-      fechaVencimiento: '',
+      fechaImpresion: '',
+      fechaEntrega: '',
       importeBase: '',
       iva: '',
       importeTotal: '',
       estadoPago: 'PENDIENTE',
     });
     this.archivoAlta.reset(null);
-    this.camposAdicionales.set([]);
     this.origenOcr.set(false);
-    this.previewOcr.set(null);
     this.mostrarAlta.set(true);
   }
 
@@ -247,8 +241,7 @@ export class FacturasAdmin implements OnInit {
     this.mostrarAlta.set(false);
   }
 
-  // Paso opcional dentro del modal de alta (fase2-3-front.md): nunca autocompleta "producto"
-  // (sin heuristica fiable posible, ver back/fase2-3-back.md) y nunca guarda nada por si sola.
+  // Paso opcional dentro del modal de alta (fase2-3-front.md): nunca guarda nada por si sola.
   extraerDatos(): void {
     if (this.archivoAlta.invalid || !this.archivoAlta.value) {
       this.archivoAlta.markAsTouched();
@@ -259,38 +252,18 @@ export class FacturasAdmin implements OnInit {
       next: (preview) => {
         this.extrayendo.set(false);
         this.origenOcr.set(true);
-        this.previewOcr.set(preview);
+        // El proveedor siempre se selecciona (o se da de alta) a mano: la extraccion OCR no
+        // propone ni autocompleta proveedor, solo los campos de fecha/importe.
         this.altaForm.patchValue({
-          proveedorId: preview.proveedorSugeridoId !== null ? String(preview.proveedorSugeridoId) : '',
-          numeroFactura: preview.numeroFacturaSugerido ?? '',
-          fechaFactura: preview.fechaFacturaSugerida ?? '',
+          fechaImpresion: preview.fechaImpresionSugerida ?? '',
+          fechaEntrega: preview.fechaEntregaSugerida ?? '',
           importeBase: preview.importeBaseSugerido !== null ? String(preview.importeBaseSugerido) : '',
           iva: preview.ivaSugerido !== null ? String(preview.ivaSugerido) : '',
           importeTotal: preview.importeTotalSugerido !== null ? String(preview.importeTotalSugerido) : '',
         });
-        this.camposAdicionales.set(Object.entries(preview.camposAdicionales).map(([clave, valor]) => ({ clave, valor })));
-        if (preview.proveedorSugeridoId === null && preview.nombreProveedorSugerido) {
-          this.nuevoProveedorForm.patchValue({ nombre: preview.nombreProveedorSugerido });
-        }
       },
       error: () => this.extrayendo.set(false),
     });
-  }
-
-  anadirCampoAdicional(): void {
-    this.camposAdicionales.update((lista) => [...lista, { clave: '', valor: '' }]);
-  }
-
-  eliminarCampoAdicional(index: number): void {
-    this.camposAdicionales.update((lista) => lista.filter((_, i) => i !== index));
-  }
-
-  actualizarClaveCampo(index: number, clave: string): void {
-    this.camposAdicionales.update((lista) => lista.map((campo, i) => (i === index ? { ...campo, clave } : campo)));
-  }
-
-  actualizarValorCampo(index: number, valor: string): void {
-    this.camposAdicionales.update((lista) => lista.map((campo, i) => (i === index ? { ...campo, valor } : campo)));
   }
 
   confirmarAlta(): void {
@@ -300,29 +273,20 @@ export class FacturasAdmin implements OnInit {
       return;
     }
     const raw = this.altaForm.getRawValue();
-    const camposAdicionalesMap: Record<string, string> = {};
-    for (const campo of this.camposAdicionales()) {
-      if (campo.clave.trim()) {
-        camposAdicionalesMap[campo.clave.trim()] = campo.valor;
-      }
-    }
 
     this.guardandoAlta.set(true);
     this.facturaService
       .crear({
         proveedorId: Number(raw.proveedorId),
-        numeroFactura: raw.numeroFactura || null,
-        producto: raw.producto,
-        fechaFactura: raw.fechaFactura,
-        fechaVencimiento: raw.fechaVencimiento || null,
+        numeroFactura: null,
+        fechaImpresion: raw.fechaImpresion,
+        fechaEntrega: raw.fechaEntrega || null,
         importeBase: raw.importeBase ? Number(raw.importeBase) : null,
         iva: raw.iva ? Number(raw.iva) : null,
         importeTotal: Number(raw.importeTotal),
         estadoPago: raw.estadoPago as EstadoPago,
         archivo: this.archivoAlta.value,
-        camposAdicionales: Object.keys(camposAdicionalesMap).length > 0 ? camposAdicionalesMap : undefined,
         origenOcr: this.origenOcr(),
-        datosExtraidosRawJson: this.origenOcr() && this.previewOcr() ? JSON.stringify(this.previewOcr()) : undefined,
       })
       .subscribe({
         next: () => {
@@ -340,7 +304,7 @@ export class FacturasAdmin implements OnInit {
   // ----- Alta rapida de proveedor -----
 
   abrirNuevoProveedor(): void {
-    this.nuevoProveedorForm.reset({ nombre: '', cif: '', emailContacto: '', telefono: '' });
+    this.nuevoProveedorForm.reset({ nombre: '', telefono: '' });
     this.mostrarNuevoProveedor.set(true);
   }
 
@@ -359,8 +323,8 @@ export class FacturasAdmin implements OnInit {
     this.proveedorService
       .crear({
         nombre: raw.nombre,
-        cif: raw.cif || null,
-        emailContacto: raw.emailContacto || null,
+        cif: null,
+        emailContacto: null,
         telefono: raw.telefono || null,
         tipo: tipoActivo,
       })
@@ -424,33 +388,127 @@ export class FacturasAdmin implements OnInit {
     });
   }
 
-  // ----- Exportacion (fase2-2-front.md): siempre el conjunto completo filtrado, nunca solo
-  // la pagina visible -----
+  // ----- Exportacion (fase2-2-front.md): siempre el conjunto completo filtrado por el periodo
+  // seleccionado (nunca "todos los periodos" a la vez, ni solo la pagina visible) -----
 
   exportar(): void {
-    const { proveedorId, estadoPago, periodo } = this.filtrosForm.getRawValue();
-    const { mes, anio } = parsearPeriodo(periodo);
-    const proveedorIdNumero = proveedorId === FILTRO_TODOS ? null : Number(proveedorId);
-    const estadoPagoFiltro = estadoPago === FILTRO_TODOS ? null : (estadoPago as EstadoPago);
+    const periodo = this.resolverPeriodoParaExportar();
+    if (!periodo) {
+      return;
+    }
+    const { mes, anio, proveedorIdNumero, estadoPagoFiltro } = periodo;
+    const titulo = this.tituloExportar(mes, anio);
+    const cabeceras = this.cabecerasExportar();
 
     this.exportando.set(true);
-    this.facturaService.exportar(this.activeTab(), proveedorIdNumero, estadoPagoFiltro, mes, anio).subscribe({
+    this.facturaService.exportar(this.activeTab(), proveedorIdNumero, estadoPagoFiltro, mes, anio, titulo, cabeceras).subscribe({
       next: (blob) => {
         this.exportando.set(false);
-        const url = URL.createObjectURL(blob);
-        const enlace = document.createElement('a');
-        enlace.href = url;
-        enlace.download = `facturas_${this.activeTab().toLowerCase()}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        document.body.appendChild(enlace);
-        enlace.click();
-        enlace.remove();
-        URL.revokeObjectURL(url);
+        this.descargarBlob(blob, `facturas_${this.activeTab().toLowerCase()}_${hoyLocalISO()}.xlsx`);
       },
       error: () => this.exportando.set(false),
     });
   }
 
+  // Descarga el archivo original (PDF/imagen) de cada factura del periodo filtrado, todas
+  // dentro de un unico .zip - mismo requisito de periodo obligatorio que exportar().
+  exportarPdfs(): void {
+    const periodo = this.resolverPeriodoParaExportar();
+    if (!periodo) {
+      return;
+    }
+    const { mes, anio, proveedorIdNumero, estadoPagoFiltro } = periodo;
+    const nombreCarpeta = this.nombreCarpetaExportar(mes, anio);
+
+    this.exportandoZip.set(true);
+    this.facturaService.exportarZip(this.activeTab(), proveedorIdNumero, estadoPagoFiltro, mes, anio, nombreCarpeta).subscribe({
+      next: (blob) => {
+        this.exportandoZip.set(false);
+        this.descargarBlob(blob, `${nombreCarpeta}.zip`);
+      },
+      error: () => this.exportandoZip.set(false),
+    });
+  }
+
   // ----- Privado -----
+
+  private descargarBlob(blob: Blob, nombreArchivo: string): void {
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = nombreArchivo;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Valida el filtro de periodo (obligatorio para ambas exportaciones, Excel y ZIP: nunca
+  // "todos los periodos" a la vez) y resuelve los filtros comunes a partir de el.
+  private resolverPeriodoParaExportar(): {
+    mes: number;
+    anio: number;
+    proveedorIdNumero: number | null;
+    estadoPagoFiltro: EstadoPago | null;
+  } | null {
+    const { proveedorId, estadoPago, periodo } = this.filtrosForm.getRawValue();
+    const { mes, anio } = parsearPeriodo(periodo);
+    if (mes === null || anio === null) {
+      this.notificationService.error(this.translateService.instant('facturas.admin.filtros.periodoRequeridoExportar'));
+      return null;
+    }
+    return {
+      mes,
+      anio,
+      proveedorIdNumero: proveedorId === FILTRO_TODOS ? null : Number(proveedorId),
+      estadoPagoFiltro: estadoPago === FILTRO_TODOS ? null : (estadoPago as EstadoPago),
+    };
+  }
+
+  // Titulo de la fila superior del Excel exportado (mismo criterio de formato de mes que
+  // mis-vacaciones.ts#tituloMes). exportar() siempre llama a esto con un periodo ya elegido:
+  // la exportacion nunca cubre "todos los periodos" a la vez.
+  private tituloExportar(mes: number, anio: number): string {
+    const locale = this.translateService.currentLang() === 'en' ? 'en-GB' : 'es-ES';
+    const nombreMes = new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(anio, mes - 1, 1));
+    return this.translateService.instant('facturas.admin.exportar.tituloConPeriodo', { mes: nombreMes, anio });
+  }
+
+  // Nombre de archivo/carpeta para el ZIP de PDFs (p.ej. "facturas_julio_2026"): en minusculas
+  // y sin espacios porque, a diferencia del titulo del Excel, esto se usa como nombre de
+  // archivo real, no solo como texto visible.
+  private nombreCarpetaExportar(mes: number, anio: number): string {
+    const locale = this.translateService.currentLang() === 'en' ? 'en-GB' : 'es-ES';
+    const nombreMes = new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(anio, mes - 1, 1));
+    return `facturas_${nombreMes.toLowerCase()}_${anio}`;
+  }
+
+  // Cabeceras de columna del Excel exportado, en el idioma activo de la app - el back no tiene
+  // ningun mecanismo de i18n para el resto de la app (ver factura.service.ts#exportar), asi que
+  // se generan aqui y se mandan ya traducidas, igual que el titulo.
+  //
+  // IMPORTANTE: el orden de "claves" de abajo tiene que coincidir exactamente, columna a
+  // columna, con el orden en que FacturaExportService#escribirFilaFactura (back) escribe los
+  // valores y con CABECERA_DEFECTO (mismo archivo) - el back no valida esto, solo comprueba que
+  // el numero de cabeceras coincida. Si reordenas una lista, reordena la otra.
+  private cabecerasExportar(): string[] {
+    const claves = [
+      'empresa',
+      'telefono',
+      'tipo',
+      'fechaImpresion',
+      'fechaEntrega',
+      'importeBase',
+      'iva',
+      'importeTotal',
+      'mes',
+      'anio',
+      'estadoPago',
+      'nombreArchivoOriginal',
+      'fechaSubida',
+    ];
+    return claves.map((clave) => this.translateService.instant(`facturas.admin.exportar.cabeceras.${clave}`));
+  }
 
   private cargarProveedores(tipo: TipoProveedor): void {
     this.proveedorService.listar(tipo).subscribe((proveedores) => {

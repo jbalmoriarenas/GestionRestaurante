@@ -111,6 +111,7 @@ public final class Wuris {
         public static final String BASE = API + "/facturas";
         public static final String EXTRAER = BASE + "/extraer";
         public static final String EXPORTAR = BASE + "/exportar";
+        public static final String EXPORTAR_ZIP = BASE + "/exportar-zip";
         public static final String BY_ID = BASE + "/{id}";
         public static final String BY_ID_ESTADO_PAGO = BASE + "/{id}/estado-pago";
         public static final String BY_ID_ARCHIVO = BASE + "/{id}/archivo";

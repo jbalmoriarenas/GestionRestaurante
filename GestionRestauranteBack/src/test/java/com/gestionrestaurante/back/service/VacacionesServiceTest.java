@@ -27,7 +27,9 @@ import com.gestionrestaurante.back.exception.SolicitudVacacionesSolapadaExceptio
 import com.gestionrestaurante.back.repository.DiaFestivoRepository;
 import com.gestionrestaurante.back.repository.EmpleadoRepository;
 import com.gestionrestaurante.back.repository.SolicitudVacacionesRepository;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,9 +136,10 @@ class VacacionesServiceTest {
     void solicitar_rangoSinDiasLaborablesLanzaRangoInvalido() {
         Empleado empleado = empleadoConAltaYDias(LocalDate.of(2020, 1, 1), 23);
         when(empleadoRepository.findByIdConBloqueo(1L)).thenReturn(Optional.of(empleado));
-        // sabado 2026-01-10 a domingo 2026-01-11: 0 dias laborables
-        LocalDate inicio = LocalDate.of(2026, 1, 10);
-        LocalDate fin = LocalDate.of(2026, 1, 11);
+        // sabado a domingo: 0 dias laborables
+        LocalDate lunes = proximoLunesFuturo();
+        LocalDate inicio = lunes.plusDays(5);
+        LocalDate fin = lunes.plusDays(6);
         when(diaFestivoRepository.findByFechaBetween(inicio, fin)).thenReturn(List.of());
 
         assertThatThrownBy(() -> vacacionesService.solicitar(1L, inicio, fin))
@@ -149,8 +152,8 @@ class VacacionesServiceTest {
     void solicitar_solicitudSolapadaLanza409SinCrearNada() {
         Empleado empleado = empleadoConAltaYDias(LocalDate.of(2020, 1, 1), 23);
         when(empleadoRepository.findByIdConBloqueo(1L)).thenReturn(Optional.of(empleado));
-        LocalDate inicio = LocalDate.of(2026, 1, 5);
-        LocalDate fin = LocalDate.of(2026, 1, 9);
+        LocalDate inicio = proximoLunesFuturo();
+        LocalDate fin = inicio.plusDays(4); // lunes a viernes
         when(diaFestivoRepository.findByFechaBetween(inicio, fin)).thenReturn(List.of());
         when(solicitudVacacionesRepository.findSolapadas(eq(1L), any(), eq(inicio), eq(fin)))
                 .thenReturn(List.of(new SolicitudVacaciones()));
@@ -170,8 +173,8 @@ class VacacionesServiceTest {
         when(solicitudVacacionesRepository.findByEmpleado_IdAndEstadoInAndFechaInicioBetween(
                 eq(1L), any(), any(), any())).thenReturn(List.of());
 
-        LocalDate inicio = LocalDate.of(2026, 1, 5);
-        LocalDate fin = LocalDate.of(2026, 1, 12); // 6 dias laborables > 5 disponibles
+        LocalDate inicio = proximoLunesFuturo();
+        LocalDate fin = inicio.plusDays(7); // lunes al lunes siguiente: 6 dias laborables > 5 disponibles
 
         assertThatThrownBy(() -> vacacionesService.solicitar(1L, inicio, fin))
                 .isInstanceOf(DiasVacacionesInsuficientesException.class);
@@ -183,8 +186,8 @@ class VacacionesServiceTest {
     void solicitar_conDiasDisponiblesCreaLaSolicitudPendiente() {
         Empleado empleado = empleadoConAltaYDias(LocalDate.of(2020, 1, 1), 23);
         when(empleadoRepository.findByIdConBloqueo(1L)).thenReturn(Optional.of(empleado));
-        LocalDate inicio = LocalDate.of(2026, 1, 5);
-        LocalDate fin = LocalDate.of(2026, 1, 9); // lunes a viernes: 5 dias laborables
+        LocalDate inicio = proximoLunesFuturo();
+        LocalDate fin = inicio.plusDays(4); // lunes a viernes: 5 dias laborables
         when(diaFestivoRepository.findByFechaBetween(any(), any())).thenReturn(List.of());
         when(solicitudVacacionesRepository.findSolapadas(eq(1L), any(), any(), any())).thenReturn(List.of());
         when(solicitudVacacionesRepository.findByEmpleado_IdAndEstadoInAndFechaInicioBetween(
@@ -415,6 +418,12 @@ class VacacionesServiceTest {
                 .isInstanceOf(DiasVacacionesInsuficientesException.class);
 
         verify(solicitudVacacionesRepository, never()).save(any());
+    }
+
+    /** Lunes futuro (no anterior a hoy, ver validacion de fechaPasada en solicitar()) dentro
+     * del año en curso, para pruebas que necesitan un rango de dias laborables concreto. */
+    private static LocalDate proximoLunesFuturo() {
+        return LocalDate.now().plusWeeks(2).with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
     }
 
     private static Empleado empleadoConAltaYDias(LocalDate fechaAlta, int diasVacacionesAnuales) {

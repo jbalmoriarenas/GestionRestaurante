@@ -6,7 +6,6 @@ import com.gestionrestaurante.back.entity.TipoProveedor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record FacturaDetalleDTO(
         Long id,
@@ -14,16 +13,14 @@ public record FacturaDetalleDTO(
         String empresa,
         TipoProveedor tipo,
         String numeroFactura,
-        String producto,
-        LocalDate fechaFactura,
-        LocalDate fechaVencimiento,
+        LocalDate fechaImpresion,
+        LocalDate fechaEntrega,
         BigDecimal importeBase,
         BigDecimal iva,
         BigDecimal importeTotal,
         EstadoPago estadoPago,
         EstadoExtraccion estadoExtraccion,
         String nombreArchivoOriginal,
-        LocalDateTime fechaSubida,
-        List<FacturaCampoDinamicoDTO> camposDinamicos
+        LocalDateTime fechaSubida
 ) {
 }

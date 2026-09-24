@@ -49,6 +49,7 @@
     "tableCaption": "Listado de empleados",
     "table": {
       "nombre": "Nombre",
+      "dni": "DNI/NIE",
       "email": "Email",
       "puesto": "Puesto",
       "tipoUsuario": "Tipo de usuario",
@@ -232,6 +233,7 @@
         "solicitar": "Solicitar",
         "errores": {
           "rangoInvalido": "La fecha de fin no puede ser anterior a la fecha de inicio",
+          "fechaPasada": "No se pueden solicitar vacaciones en fechas anteriores a hoy",
           "distintoAnio": "El rango de vacaciones debe estar dentro del año en curso"
         }
       },
@@ -419,13 +421,12 @@
         "proveedor": "Proveedor",
         "estadoPago": "Estado",
         "periodo": "Periodo",
-        "todos": "Todos"
+        "todos": "Todos",
+        "periodoRequeridoExportar": "Selecciona un periodo (mes) antes de exportar"
       },
       "tabla": {
         "empresa": "Empresa",
-        "producto": "Producto",
         "cuantia": "Cuantía",
-        "fecha": "Fecha",
         "estado": "Estado",
         "acciones": "Acciones",
         "vacio": "No hay facturas para mostrar"
@@ -447,6 +448,7 @@
         "marcarPendiente": "Marcar pendiente",
         "descargar": "Descargar",
         "exportar": "Exportar a Excel",
+        "exportarPdfs": "Exportar PDFs (ZIP)",
         "nuevaFactura": "Nueva factura"
       },
       "alta": {
@@ -463,25 +465,37 @@
         "proveedorCif": "CIF",
         "proveedorEmail": "Email de contacto",
         "proveedorTelefono": "Teléfono",
-        "producto": "Producto",
         "numeroFactura": "Número de factura",
-        "fechaFactura": "Fecha de factura",
-        "fechaVencimiento": "Fecha de vencimiento",
+        "fechaImpresion": "Fecha de impresión",
+        "fechaEntrega": "Fecha de entrega",
         "importeBase": "Base imponible",
         "iva": "IVA",
         "importeTotal": "Importe total",
         "estadoPago": "Estado de pago",
-        "camposAdicionales": "Datos adicionales detectados",
-        "anadirCampo": "Añadir campo",
-        "clave": "Campo",
-        "valor": "Valor",
         "campoRequerido": "Obligatorio",
         "confirmar": "Guardar factura"
       },
       "detalle": {
         "titulo": "Detalle de la factura",
-        "datosAdicionales": "Datos adicionales",
         "estadoExtraccion": "Origen de los datos"
+      },
+      "exportar": {
+        "tituloConPeriodo": "Facturas periodo {{mes}} {{anio}}",
+        "cabeceras": {
+          "empresa": "Empresa",
+          "telefono": "Teléfono",
+          "tipo": "Tipo",
+          "fechaImpresion": "Fecha impresión",
+          "fechaEntrega": "Fecha entrega",
+          "importeBase": "Importe base",
+          "iva": "IVA",
+          "importeTotal": "Importe total",
+          "mes": "Mes",
+          "anio": "Año",
+          "estadoPago": "Estado pago",
+          "nombreArchivoOriginal": "Nombre archivo original",
+          "fechaSubida": "Fecha subida"
+        }
       },
       "notificaciones": {
         "altaExito": "Factura guardada correctamente"

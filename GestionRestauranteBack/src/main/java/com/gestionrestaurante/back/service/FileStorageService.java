@@ -17,6 +17,14 @@ public interface FileStorageService {
      */
     String guardar(MultipartFile archivo, String subcarpeta);
 
+    /**
+     * Igual que {@link #guardar(MultipartFile, String)} pero a partir de bytes ya en memoria
+     * (p.ej. el PDF generado por {@link ImagenPdfConverter} a partir de una foto subida, que no
+     * llega como MultipartFile porque no viene directamente de la petición HTTP). {@code
+     * nombreOriginal} solo se usa para derivar la extension del nombre fisico.
+     */
+    String guardar(byte[] contenido, String nombreOriginal, String subcarpeta);
+
     /** Carga como {@link Resource} el archivo ubicado en {@code rutaRelativa}, para servir su descarga. */
     Resource cargarComoResource(String rutaRelativa);
 

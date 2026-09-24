@@ -23,6 +23,7 @@ export class UiInput implements ControlValueAccessor {
   readonly errorMessage = input<string | null>(null);
   readonly min = input('');
   readonly max = input('');
+  readonly required = input(false);
 
   readonly value = signal('');
   readonly disabled = signal(false);

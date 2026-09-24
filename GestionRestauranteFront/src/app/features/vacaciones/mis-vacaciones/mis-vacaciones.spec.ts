@@ -7,6 +7,19 @@ import { VacacionesService } from '../../../core/services/vacaciones.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MisVacaciones } from './mis-vacaciones';
 
+/** yyyy-MM-dd en LOCAL, no UTC (mismo criterio que hoyLocalISO() de produccion) - usado para
+ * construir fechas de prueba relativas a "hoy" en vez de literales fijos, que dejan de ser
+ * validos (fechaPasada) en cuanto el calendario avanza mas alla de la fecha hardcodeada. */
+function fechaISO(fecha: Date): string {
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+}
+
+function diasDesdeHoy(dias: number): string {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() + dias);
+  return fechaISO(fecha);
+}
+
 describe('MisVacaciones', () => {
   let vacacionesServiceMock: {
     obtenerResumen: ReturnType<typeof vi.fn>;
@@ -72,9 +85,12 @@ describe('MisVacaciones', () => {
 
   it('el formulario es invalido si el rango cae en un año que no es el actual, aunque inicio y fin coincidan entre si', () => {
     const componente = crearComponente();
-    const anioPasado = new Date().getFullYear() - 1;
+    // Tiene que ser un año FUTURO, no pasado: un año pasado siempre cae tambien antes de hoy,
+    // asi que el formulario devolveria fechaPasada en vez de distintoAnio (fechaPasada se
+    // comprueba primero, ver fechaFinNoAnteriorAInicio en mis-vacaciones.ts).
+    const anioFuturo = new Date().getFullYear() + 1;
 
-    componente.form.setValue({ fechaInicio: `${anioPasado}-06-01`, fechaFin: `${anioPasado}-06-05` });
+    componente.form.setValue({ fechaInicio: `${anioFuturo}-06-01`, fechaFin: `${anioFuturo}-06-05` });
 
     expect(componente.form.hasError('distintoAnio')).toBe(true);
   });
@@ -86,21 +102,20 @@ describe('MisVacaciones', () => {
     expect(componente.fechaFinMax()).toBe(`${anioActual}-12-31`);
   });
 
-  it('fechaFinMin() usa fechaInicio si ya esta rellena, o el 1 de enero del año en curso si no', () => {
+  it('fechaFinMin() usa fechaInicio si ya esta rellena, o hoy si no', () => {
     const componente = crearComponente();
-    const anioActual = new Date().getFullYear();
 
-    expect(componente.fechaFinMin()).toBe(`${anioActual}-01-01`);
+    expect(componente.fechaFinMin()).toBe(diasDesdeHoy(0));
 
-    componente.form.controls.fechaInicio.setValue(`${anioActual}-03-10`);
-    expect(componente.fechaFinMin()).toBe(`${anioActual}-03-10`);
+    const fechaFutura = diasDesdeHoy(10);
+    componente.form.controls.fechaInicio.setValue(fechaFutura);
+    expect(componente.fechaFinMin()).toBe(fechaFutura);
   });
 
-  it('fechaInicioMin() esta siempre anclado al 1 de enero del año en curso', () => {
+  it('fechaInicioMin() esta siempre anclado a hoy (no se pueden pedir vacaciones en el pasado)', () => {
     const componente = crearComponente();
-    const anioActual = new Date().getFullYear();
 
-    expect(componente.fechaInicioMin()).toBe(`${anioActual}-01-01`);
+    expect(componente.fechaInicioMin()).toBe(diasDesdeHoy(0));
   });
 
   it('fechaInicioMax() usa fechaFin si ya esta rellena, o el 31 de diciembre del año en curso si no', () => {
@@ -125,15 +140,14 @@ describe('MisVacaciones', () => {
   it('solicitar(): con exito, resetea el formulario y refresca resumen/calendario/solicitudes', () => {
     vacacionesServiceMock.solicitar.mockReturnValue(of({ id: 1 }));
     const componente = crearComponente();
-    componente.form.setValue({ fechaInicio: '2026-01-05', fechaFin: '2026-01-09' });
+    const fechaInicio = diasDesdeHoy(1);
+    const fechaFin = diasDesdeHoy(5);
+    componente.form.setValue({ fechaInicio, fechaFin });
     vacacionesServiceMock.obtenerResumen.mockClear();
 
     componente.solicitar();
 
-    expect(vacacionesServiceMock.solicitar).toHaveBeenCalledWith({
-      fechaInicio: '2026-01-05',
-      fechaFin: '2026-01-09',
-    });
+    expect(vacacionesServiceMock.solicitar).toHaveBeenCalledWith({ fechaInicio, fechaFin });
     expect(componente.enviandoSolicitud()).toBe(false);
     expect(componente.form.controls.fechaInicio.value).toBe('');
     expect(notificationServiceMock.success).toHaveBeenCalled();
@@ -143,12 +157,14 @@ describe('MisVacaciones', () => {
   it('solicitar(): si el backend falla (409 dias insuficientes), no resetea el formulario', () => {
     vacacionesServiceMock.solicitar.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
     const componente = crearComponente();
-    componente.form.setValue({ fechaInicio: '2026-01-05', fechaFin: '2026-01-09' });
+    const fechaInicio = diasDesdeHoy(1);
+    componente.form.setValue({ fechaInicio, fechaFin: diasDesdeHoy(5) });
 
     componente.solicitar();
 
+    expect(vacacionesServiceMock.solicitar).toHaveBeenCalled();
     expect(componente.enviandoSolicitud()).toBe(false);
-    expect(componente.form.controls.fechaInicio.value).toBe('2026-01-05');
+    expect(componente.form.controls.fechaInicio.value).toBe(fechaInicio);
   });
 
   const solicitudPendiente = {

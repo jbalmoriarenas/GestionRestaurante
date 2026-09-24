@@ -1,23 +1,16 @@
 package com.gestionrestaurante.back.service;
 
 import com.gestionrestaurante.back.dto.ExtraccionResultado;
-import com.gestionrestaurante.back.entity.Proveedor;
 import com.gestionrestaurante.back.entity.TipoProveedor;
 import com.gestionrestaurante.back.exception.OcrNoDisponibleException;
-import com.gestionrestaurante.back.repository.ProveedorRepository;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -37,11 +30,6 @@ import org.springframework.stereotype.Service;
 public class TesseractFacturaExtractionService implements FacturaExtractionService {
 
     private static final int DPI_RENDER_PDF = 300;
-    private static final double UMBRAL_SIMILITUD_PROVEEDOR = 0.85;
-    private static final int MAX_LINEAS_CANDIDATAS_PROVEEDOR = 5;
-
-    private final ProveedorRepository proveedorRepository;
-    private final JaroWinklerSimilarity similitud = new JaroWinklerSimilarity();
 
     @Value("${app.ocr.tessdata-path:}")
     private String tessDataPath;
@@ -55,40 +43,11 @@ public class TesseractFacturaExtractionService implements FacturaExtractionServi
         String textoOcr = ejecutarOcr(preprocesar(imagen));
 
         FacturaTextParser.ImportesDetectados importes = FacturaTextParser.extraerImportes(textoOcr);
-        var fechaSugerida = FacturaTextParser.extraerFecha(textoOcr).orElse(null);
+        var fechaImpresionSugerida = FacturaTextParser.extraerFechaImpresion(textoOcr).orElse(null);
+        var fechaEntregaSugerida = FacturaTextParser.extraerFechaEntrega(textoOcr).orElse(null);
 
-        Set<String> etiquetasConsumidas = new LinkedHashSet<>();
-        String nombreProveedorSugerido = null;
-        Long proveedorSugeridoId = null;
-
-        List<Proveedor> candidatos = proveedorRepository.findByTipoOrderByNombreAsc(tipo);
-        for (String linea : FacturaTextParser.lineasCandidatasProveedor(textoOcr, MAX_LINEAS_CANDIDATAS_PROVEEDOR)) {
-            Optional<Proveedor> mejorMatch = mejorCoincidencia(linea, candidatos);
-            if (mejorMatch.isPresent()) {
-                proveedorSugeridoId = mejorMatch.get().getId();
-                nombreProveedorSugerido = mejorMatch.get().getNombre();
-                etiquetasConsumidas.add(linea);
-                break;
-            }
-            if (nombreProveedorSugerido == null && !linea.isBlank()) {
-                nombreProveedorSugerido = linea;
-            }
-        }
-
-        var camposAdicionales = FacturaTextParser.extraerCamposAdicionales(textoOcr, etiquetasConsumidas);
-
-        return new ExtraccionResultado(textoOcr, proveedorSugeridoId, nombreProveedorSugerido, fechaSugerida,
-                null, importes.base(), importes.iva(), importes.total(), camposAdicionales);
-    }
-
-    private Optional<Proveedor> mejorCoincidencia(String linea, List<Proveedor> candidatos) {
-        return candidatos.stream()
-                .filter(proveedor -> similitud.apply(normalizar(linea), normalizar(proveedor.getNombre())) >= UMBRAL_SIMILITUD_PROVEEDOR)
-                .findFirst();
-    }
-
-    private static String normalizar(String texto) {
-        return texto == null ? "" : texto.trim().toLowerCase();
+        return new ExtraccionResultado(fechaImpresionSugerida, fechaEntregaSugerida,
+                importes.base(), importes.iva(), importes.total());
     }
 
     private BufferedImage cargarComoImagen(InputStream documento, String contentType) {
@@ -128,6 +87,12 @@ public class TesseractFacturaExtractionService implements FacturaExtractionServi
             tesseract.setLanguage(idiomaOcr);
             return tesseract.doOCR(imagen);
         } catch (TesseractException | LinkageError e) {
+            throw new OcrNoDisponibleException(e);
+        } catch (Error e) {
+            // JNA lanza java.lang.Error (p.ej. "Invalid memory access") cuando el motor nativo
+            // se inicializa con datos de idioma ausentes o corruptos (tessdata) - no es un
+            // LinkageError (eso es solo "no se encuentra la libreria"), pero es el mismo tipo
+            // de fallo de entorno, no un bug de la aplicacion.
             throw new OcrNoDisponibleException(e);
         }
     }

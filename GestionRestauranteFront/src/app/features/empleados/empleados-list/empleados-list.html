@@ -24,6 +24,7 @@
       <thead>
         <tr>
           <th>{{ 'empleados.table.nombre' | translate }}</th>
+          <th class="col-secondary">{{ 'empleados.table.dni' | translate }}</th>
           <th class="col-secondary">{{ 'empleados.table.email' | translate }}</th>
           <th class="col-secondary">{{ 'empleados.table.puesto' | translate }}</th>
           <th>{{ 'empleados.table.tipoUsuario' | translate }}</th>
@@ -37,6 +38,7 @@
         @for (empleado of pageData()?.content ?? []; track empleado.id) {
           <tr>
             <td>{{ empleado.nombre }} {{ empleado.apellidos }}</td>
+            <td class="col-secondary">{{ empleado.dniNie }}</td>
             <td class="col-secondary">{{ empleado.email }}</td>
             <td class="col-secondary">{{ empleado.puesto || '—' }}</td>
             <td><ui-badge variant="neutral">{{ empleado.tipoUsuario.nombre }}</ui-badge></td>

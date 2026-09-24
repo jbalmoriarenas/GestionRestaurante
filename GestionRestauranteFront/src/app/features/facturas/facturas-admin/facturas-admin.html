@@ -17,10 +17,30 @@
             [options]="estadoPagoFiltroOptions()"
             formControlName="estadoPago"
           />
-          <ui-input [label]="'facturas.admin.filtros.periodo' | translate" type="month" formControlName="periodo" />
+          <ui-input
+            [label]="'facturas.admin.filtros.periodo' | translate"
+            [required]="true"
+            type="month"
+            formControlName="periodo"
+          />
           <div class="flex gap-sm">
-            <ui-button type="button" variant="secondary" [loading]="exportando()" (click)="exportar()">
+            <ui-button
+              type="button"
+              variant="secondary"
+              [loading]="exportando()"
+              [disabled]="!filtrosForm.controls.periodo.value"
+              (click)="exportar()"
+            >
               {{ 'facturas.admin.acciones.exportar' | translate }}
+            </ui-button>
+            <ui-button
+              type="button"
+              variant="secondary"
+              [loading]="exportandoZip()"
+              [disabled]="!filtrosForm.controls.periodo.value"
+              (click)="exportarPdfs()"
+            >
+              {{ 'facturas.admin.acciones.exportarPdfs' | translate }}
             </ui-button>
             <ui-button type="button" (click)="abrirAlta()">
               {{ 'facturas.admin.acciones.nuevaFactura' | translate }}
@@ -46,9 +66,11 @@
             <thead>
               <tr>
                 <th>{{ 'facturas.admin.tabla.empresa' | translate }}</th>
-                <th>{{ 'facturas.admin.tabla.producto' | translate }}</th>
+                <th>{{ 'facturas.admin.alta.fechaImpresion' | translate }}</th>
+                <th>{{ 'facturas.admin.alta.fechaEntrega' | translate }}</th>
+                <th>{{ 'facturas.admin.alta.importeBase' | translate }}</th>
+                <th>{{ 'facturas.admin.alta.iva' | translate }}</th>
                 <th>{{ 'facturas.admin.tabla.cuantia' | translate }}</th>
-                <th>{{ 'facturas.admin.tabla.fecha' | translate }}</th>
                 <th>{{ 'facturas.admin.tabla.estado' | translate }}</th>
                 <th><span class="sr-only">{{ 'facturas.admin.tabla.acciones' | translate }}</span></th>
               </tr>
@@ -57,9 +79,11 @@
               @for (fila of pagina()?.content ?? []; track fila.id) {
                 <tr>
                   <td>{{ fila.empresa }}</td>
-                  <td>{{ fila.producto }}</td>
+                  <td>{{ fila.fechaImpresion }}</td>
+                  <td>{{ fila.fechaEntrega ?? '—' }}</td>
+                  <td>{{ fila.importeBase ?? '—' }}</td>
+                  <td>{{ fila.iva ?? '—' }}</td>
                   <td>{{ fila.importeTotal | number: '1.2-2' }} €</td>
-                  <td>{{ fila.fechaFactura }}</td>
                   <td>
                     <ui-badge [variant]="badgeVariantPago(fila.estadoPago)">
                       {{ ('facturas.admin.estados.' + fila.estadoPago) | translate }}
@@ -96,6 +120,7 @@
     <div class="flex flex-col gap-sm">
       <ui-file-input
         [label]="'facturas.admin.alta.archivo' | translate"
+        [required]="true"
         accept="image/jpeg,image/png,image/webp,application/pdf"
         [noFileLabel]="'facturas.admin.alta.ningunArchivo' | translate"
         [errorMessage]="
@@ -119,6 +144,7 @@
       <ui-select
         class="facturas-admin-page__form-select"
         [label]="'facturas.admin.alta.proveedor' | translate"
+        [required]="true"
         [placeholder]="'common.selectOption' | translate"
         [options]="proveedorAltaOptions()"
         [errorMessage]="
@@ -133,37 +159,58 @@
       </ui-button>
     </div>
 
-    <ui-input
-      [label]="'facturas.admin.alta.producto' | translate"
-      [errorMessage]="
-        altaForm.controls.producto.invalid && altaForm.controls.producto.touched
-          ? ('facturas.admin.alta.campoRequerido' | translate)
-          : null
-      "
-      formControlName="producto"
-    />
-
     <div class="flex flex-wrap gap-lg">
-      <ui-input [label]="'facturas.admin.alta.numeroFactura' | translate" formControlName="numeroFactura" />
       <ui-input
-        [label]="'facturas.admin.alta.fechaFactura' | translate"
+        [label]="'facturas.admin.alta.fechaImpresion' | translate"
         type="date"
+        [required]="true"
         [errorMessage]="
-          altaForm.controls.fechaFactura.invalid && altaForm.controls.fechaFactura.touched
+          altaForm.controls.fechaImpresion.invalid && altaForm.controls.fechaImpresion.touched
             ? ('facturas.admin.alta.campoRequerido' | translate)
             : null
         "
-        formControlName="fechaFactura"
+        formControlName="fechaImpresion"
       />
-      <ui-input [label]="'facturas.admin.alta.fechaVencimiento' | translate" type="date" formControlName="fechaVencimiento" />
+      <ui-input
+        [label]="'facturas.admin.alta.fechaEntrega' | translate"
+        type="date"
+        [required]="true"
+        [errorMessage]="
+          altaForm.controls.fechaEntrega.invalid && altaForm.controls.fechaEntrega.touched
+            ? ('facturas.admin.alta.campoRequerido' | translate)
+            : null
+        "
+        formControlName="fechaEntrega"
+      />
     </div>
 
     <div class="flex flex-wrap gap-lg">
-      <ui-input [label]="'facturas.admin.alta.importeBase' | translate" type="number" formControlName="importeBase" />
-      <ui-input [label]="'facturas.admin.alta.iva' | translate" type="number" formControlName="iva" />
+      <ui-input
+        [label]="'facturas.admin.alta.importeBase' | translate"
+        type="number"
+        [required]="true"
+        [errorMessage]="
+          altaForm.controls.importeBase.invalid && altaForm.controls.importeBase.touched
+            ? ('facturas.admin.alta.campoRequerido' | translate)
+            : null
+        "
+        formControlName="importeBase"
+      />
+      <ui-input
+        [label]="'facturas.admin.alta.iva' | translate"
+        type="number"
+        [required]="true"
+        [errorMessage]="
+          altaForm.controls.iva.invalid && altaForm.controls.iva.touched
+            ? ('facturas.admin.alta.campoRequerido' | translate)
+            : null
+        "
+        formControlName="iva"
+      />
       <ui-input
         [label]="'facturas.admin.alta.importeTotal' | translate"
         type="number"
+        [required]="true"
         [errorMessage]="
           altaForm.controls.importeTotal.invalid && altaForm.controls.importeTotal.touched
             ? ('facturas.admin.alta.campoRequerido' | translate)
@@ -174,32 +221,16 @@
       <ui-select
         class="facturas-admin-page__form-select"
         [label]="'facturas.admin.alta.estadoPago' | translate"
+        [required]="true"
         [options]="estadoPagoFiltroOptions()"
+        [errorMessage]="
+          altaForm.controls.estadoPago.invalid && altaForm.controls.estadoPago.touched
+            ? ('facturas.admin.alta.campoRequerido' | translate)
+            : null
+        "
         formControlName="estadoPago"
       />
     </div>
-
-    @if (camposAdicionales().length > 0) {
-      <div class="facturas-admin-page__campos-adicionales flex flex-col gap-md">
-        <h3 class="section-heading">{{ 'facturas.admin.alta.camposAdicionales' | translate }}</h3>
-        @for (campo of camposAdicionales(); track $index) {
-          <div class="flex gap-md items-end">
-            <div class="ui-field">
-              <label>{{ 'facturas.admin.alta.clave' | translate }}</label>
-              <input type="text" [value]="campo.clave" (input)="actualizarClaveCampo($index, $any($event.target).value)" />
-            </div>
-            <div class="ui-field">
-              <label>{{ 'facturas.admin.alta.valor' | translate }}</label>
-              <input type="text" [value]="campo.valor" (input)="actualizarValorCampo($index, $any($event.target).value)" />
-            </div>
-            <ui-button type="button" variant="danger" (click)="eliminarCampoAdicional($index)">✕</ui-button>
-          </div>
-        }
-      </div>
-    }
-    <ui-button type="button" variant="secondary" (click)="anadirCampoAdicional()">
-      {{ 'facturas.admin.alta.anadirCampo' | translate }}
-    </ui-button>
   </form>
   <div modal-footer>
     <ui-button variant="secondary" (click)="cerrarAlta()">{{ 'common.cancel' | translate }}</ui-button>
@@ -218,6 +249,7 @@
   <form [formGroup]="nuevoProveedorForm" class="flex flex-col gap-lg">
     <ui-input
       [label]="'facturas.admin.alta.proveedorNombre' | translate"
+      [required]="true"
       [errorMessage]="
         nuevoProveedorForm.controls.nombre.invalid && nuevoProveedorForm.controls.nombre.touched
           ? ('facturas.admin.alta.campoRequerido' | translate)
@@ -225,8 +257,6 @@
       "
       formControlName="nombre"
     />
-    <ui-input [label]="'facturas.admin.alta.proveedorCif' | translate" formControlName="cif" />
-    <ui-input [label]="'facturas.admin.alta.proveedorEmail' | translate" formControlName="emailContacto" />
     <ui-input [label]="'facturas.admin.alta.proveedorTelefono' | translate" formControlName="telefono" />
   </form>
   <div modal-footer>
@@ -246,10 +276,8 @@
   } @else if (filaDetalle(); as detalle) {
     <div class="flex flex-col gap-md">
       <p><strong>{{ 'facturas.admin.tabla.empresa' | translate }}:</strong> {{ detalle.empresa }}</p>
-      <p><strong>{{ 'facturas.admin.tabla.producto' | translate }}:</strong> {{ detalle.producto }}</p>
-      <p><strong>{{ 'facturas.admin.alta.numeroFactura' | translate }}:</strong> {{ detalle.numeroFactura ?? '—' }}</p>
-      <p><strong>{{ 'facturas.admin.tabla.fecha' | translate }}:</strong> {{ detalle.fechaFactura }}</p>
-      <p><strong>{{ 'facturas.admin.alta.fechaVencimiento' | translate }}:</strong> {{ detalle.fechaVencimiento ?? '—' }}</p>
+      <p><strong>{{ 'facturas.admin.alta.fechaImpresion' | translate }}:</strong> {{ detalle.fechaImpresion }}</p>
+      <p><strong>{{ 'facturas.admin.alta.fechaEntrega' | translate }}:</strong> {{ detalle.fechaEntrega ?? '—' }}</p>
       <p><strong>{{ 'facturas.admin.alta.importeBase' | translate }}:</strong> {{ detalle.importeBase ?? '—' }}</p>
       <p><strong>{{ 'facturas.admin.alta.iva' | translate }}:</strong> {{ detalle.iva ?? '—' }}</p>
       <p><strong>{{ 'facturas.admin.tabla.cuantia' | translate }}:</strong> {{ detalle.importeTotal | number: '1.2-2' }} €</p>
@@ -263,15 +291,6 @@
           {{ ('facturas.admin.estadosExtraccion.' + detalle.estadoExtraccion) | translate }}
         </ui-badge>
       </p>
-
-      @if (detalle.camposDinamicos.length > 0) {
-        <div class="facturas-admin-page__campos-adicionales flex flex-col gap-sm">
-          <h3 class="section-heading">{{ 'facturas.admin.detalle.datosAdicionales' | translate }}</h3>
-          @for (campo of detalle.camposDinamicos; track campo.clave) {
-            <p>{{ campo.clave }}: {{ campo.valor }}</p>
-          }
-        </div>
-      }
 
       <ui-button type="button" variant="secondary" (click)="descargarArchivo(detalle.id, detalle.nombreArchivoOriginal)">
         {{ 'facturas.admin.acciones.descargar' | translate }}

@@ -88,11 +88,13 @@ CREATE INDEX idx_facturas_estado_pago ON facturas (estado_pago);
 | `facturas.estado_pago` | `estadoPago` (`@Enumerated(EnumType.STRING)`) | `EstadoPago {PENDIENTE, PAGADA}` | `'PENDIENTE' \| 'PAGADA'` |
 | `facturas.ruta_archivo` | `rutaArchivo` | `String` | — (nunca se expone; solo vía endpoint de descarga) |
 
+> **Nota (revisión posterior, ver `fase2-3-bbdd.md`)**: el DDL de `V27` de arriba es histórico y no se reescribe (Flyway no permite editar migraciones ya aplicadas), pero ya no describe el esquema actual de `facturas`. `producto` y `fecha_factura` se eliminaron por completo (`V34`) y `fecha_vencimiento` también (`V35`) — `fecha_impresion` (añadida en `V33`, obligatoria desde `V34`) es ahora la fecha de referencia única de la que se derivan `mes`/`anio`. Para el esquema y el mapeo de columnas vigentes, ver la tabla "Mapeo de columnas" al final de [`fase2-3-bbdd.md`](./fase2-3-bbdd.md).
+
 ## Riesgos y dependencias
 
 - **Dependencia dura** con `bbdd/fase0-bbdd.md`: sin `empleados` ni el catálogo de permisos con `FACTURAS` ya sembrado, esta migración no tiene sentido.
-- **Riesgo bajo**: `cif` nullable-único puede dejar pasar duplicados reales si dos proveedores se dan de alta sin CIF (p. ej. dos suministros con el mismo nombre comercial mal escrito) — mitigado en `fase2-3` por el *fuzzy matching* contra `proveedores.nombre` al usar OCR, pero no elimina el riesgo en alta manual.
-- **Riesgo bajo**: `mes`/`anio` derivados de `fecha_factura` quedarían desincronizados si en el futuro se permite editar `fecha_factura` sin recalcularlos — a tener en cuenta si `fase2-1-back.md` añade edición de fecha más adelante (fuera de alcance actual, ver ese documento).
+- **Riesgo bajo**: `cif` nullable-único puede dejar pasar duplicados reales si dos proveedores se dan de alta sin CIF (p. ej. dos suministros con el mismo nombre comercial mal escrito) — mitigado en alta manual por revisión del Admin; no hay *fuzzy matching* automático contra `proveedores.nombre` (la extracción OCR de `fase2-3` no propone proveedor, ver `back/fase2-3-back.md`).
+- **Riesgo bajo**: `mes`/`anio` derivados de `fecha_impresion` (columna vigente, ver `fase2-3-bbdd.md`) quedarían desincronizados si en el futuro se permite editar la fecha sin recalcularlos — a tener en cuenta si `fase2-1-back.md` añade edición de fecha más adelante (fuera de alcance actual, ver ese documento).
 
 ## Criterios de aceptación técnicos
 

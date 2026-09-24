@@ -30,7 +30,7 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
               and (:estadoPago is null or f.estadoPago = :estadoPago)
               and (:mes is null or f.mes = :mes)
               and (:anio is null or f.anio = :anio)
-            order by f.fechaFactura desc, f.id desc
+            order by f.fechaImpresion desc, f.id desc
             """)
     Page<Factura> findByFiltros(
             @Param("tipo") TipoProveedor tipo,

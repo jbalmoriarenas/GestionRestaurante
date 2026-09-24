@@ -51,6 +51,10 @@ public class VacacionesService {
         if (fin.isBefore(inicio)) {
             throw new RangoFechasInvalidoException();
         }
+        // No tiene sentido solicitar vacaciones en dias ya pasados.
+        if (inicio.isBefore(LocalDate.now())) {
+            throw new RangoFechasInvalidoException("No se pueden solicitar vacaciones en fechas anteriores a hoy");
+        }
         // Solo se puede solicitar dentro del año en curso (confirmado con el usuario): no
         // basta con que inicio y fin coincidan entre si, ambos deben caer en el año de "hoy".
         int anioActual = LocalDate.now().getYear();
