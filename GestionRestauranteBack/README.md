@@ -13,7 +13,13 @@ Backend de GestionRestaurante, generado con [Spring Initializr](https://start.sp
 | Persistencia           | Spring Data JPA            | 4.1.1           |
 | ORM                    | Hibernate ORM              | 7.4.5.Final     |
 | Base de datos          | MySQL (driver JDBC `mysql-connector-j`) | 9.7.0 |
+| Migraciones de BBDD    | Flyway (`flyway-mysql`)    | 12.4.0          |
 | Servidor embebido      | Tomcat embebido            | 11.0.24         |
+| Seguridad / Auth       | Spring Security + JWT (`jjwt`) | 0.13.0     |
+| Envío de email         | Spring Boot Mail (Jakarta Mail) | —          |
+| OCR de facturas        | Tess4J (Tesseract vía JNI) | 5.13.0          |
+| Renderizado/lectura PDF| Apache PDFBox               | 3.0.3           |
+| Exportación a Excel    | Apache POI (`poi-ooxml`)    | 5.3.0           |
 | Serialización JSON     | Jackson (Jackson 3, `tools.jackson.core`) | 3.1.5 |
 | Validación             | Jakarta Bean Validation / Hibernate Validator | 9.1.3.Final |
 | Boilerplate            | Lombok                     | 1.18.46         |
@@ -25,9 +31,15 @@ El JDK 21 está **embebido en el propio proyecto** (`.jdk/`, no versionado en gi
 - `spring-boot-starter-webmvc` — API REST (Spring MVC + Tomcat embebido)
 - `spring-boot-starter-data-jpa` — persistencia con Spring Data JPA / Hibernate
 - `spring-boot-starter-validation` — validación de beans (Jakarta Validation)
+- `spring-boot-starter-security` — autenticación/autorización (JWT propio, sin OAuth2 excepto Google Business Profile de Valoraciones)
+- `spring-boot-starter-mail` — envío de nóminas por email (Fase 3.3)
+- `spring-boot-starter-flyway` + `flyway-mysql` — migraciones de esquema versionadas (`src/main/resources/db/migration`)
 - `com.mysql:mysql-connector-j` — driver JDBC de MySQL (scope `runtime`)
 - `org.projectlombok:lombok` — reduce boilerplate (getters/setters/constructores)
-- Starters `-test` equivalentes (`webmvc-test`, `data-jpa-test`, `validation-test`) para pruebas
+- `io.jsonwebtoken:jjwt-*` — generación/validación de tokens JWT
+- `net.sourceforge.tess4j:tess4j` + `org.apache.pdfbox:pdfbox` — OCR de facturas (ver más abajo)
+- `org.apache.poi:poi-ooxml` — exportación de listados a Excel
+- Starters `-test` equivalentes (`webmvc-test`, `data-jpa-test`, `validation-test`) + `spring-security-test` para pruebas
 
 ## Configuración del proyecto
 
@@ -97,6 +109,24 @@ Conexión OAuth 2.0 con Google Business Profile para sincronizar las reseñas de
    ```
 
 Sin conexión activa, la sincronización periódica (`app.valoraciones.sync-cron`, cada 6h por defecto) no hace nada — no es un error, solo no hay nada que sincronizar hasta que un Admin conecte la cuenta desde `/valoraciones` en el front.
+
+## Despliegue en producción
+
+Compilar el `.jar` ejecutable (sin ejecutar tests, para acelerar el build en el servidor):
+
+```bash
+./mvnw -DskipTests package
+```
+
+Genera `target/gestion-restaurante-back-0.0.1-SNAPSHOT.jar`. Ejecutarlo directamente:
+
+```bash
+java -jar target/gestion-restaurante-back-0.0.1-SNAPSHOT.jar
+```
+
+Sin el perfil `local` activo (ver `application-local.properties`), el `.jar` arranca con `application.properties` **tal cual está pensado para producción**: `nominas.enabled=false` por defecto, SMTP sin configurar y sin ninguna credencial de Google — hace falta definir, como mínimo, `DB_USERNAME`/`DB_PASSWORD` (obligatorias, sin valor por defecto) y, si se van a usar esas funcionalidades, `MAIL_*`/`GOOGLE_*`/`TESSDATA_PATH` (variables de entorno, o cualquier propiedad de `application.properties` sobreescrita igual por variable de entorno gracias al *relaxed binding* de Spring Boot: `app.jwt.secret` → `APP_JWT_SECRET`, `app.cors.allowed-origin` → `APP_CORS_ALLOWEDORIGIN`).
+
+Guía completa de despliegue en un servidor real (AWS EC2 + dominio + HTTPS, variables de entorno de producción una por una, `systemd`, Nginx como proxy hacia este `.jar`): [`planesImplementacion/guia-despliegue-aws.md`](../planesImplementacion/guia-despliegue-aws.md).
 
 ## Recursos adicionales
 
