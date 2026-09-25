@@ -6,6 +6,7 @@ export type IconName =
   | 'vacaciones'
   | 'facturas'
   | 'nominas'
+  | 'valoraciones'
   | 'logout'
   | 'menu'
   | 'chevron';

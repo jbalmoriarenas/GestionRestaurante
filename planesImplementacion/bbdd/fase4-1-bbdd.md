@@ -18,6 +18,7 @@ Dos tablas nuevas: `conexion_google_business` (una única fila, guarda la conexi
 - **`fecha_publicacion` vs. `fecha_sincronizacion`**: la primera es la fecha real en que se publicó la reseña en Google (la que se muestra y con la que se ordena/filtra en `fase4-2`); la segunda es metadato interno de cuándo la trajo nuestro sistema — no confundirlas, mismo cuidado que `estado_pago` vs. `estado_extraccion` en `facturas` (`fase2-1-bbdd.md`).
 - **`fecha_actualizacion` nullable**: Google permite que el autor edite su reseña después de publicarla; si la API la marca como editada, esta columna registra cuándo, distinto de `fecha_publicacion` (que no cambia). Si Google nunca la marca como editada, queda `NULL`.
 - **Sin tabla de "respuestas a reseñas"**: esta fase solo consulta reseñas, no responde a ellas desde la app (no solicitado por el usuario) — si se pide en el futuro, es una fase aparte con su propio modelo (una respuesta por reseña, con quién la escribió y cuándo).
+- **`puntuacion` es `INT`, no `TINYINT`** (aunque el rango real sea 1-5 y `TINYINT` bastaría): Hibernate, con `ddl-auto=validate`, espera `SQLTypes.INTEGER` para un campo de entidad `Integer` salvo que se le indique explícitamente lo contrario (`columnDefinition`) — usar `TINYINT` aquí haría fallar la validación de esquema al arrancar. El rango 1-5 ya lo garantiza `chk_valoraciones_puntuacion`, así que el ahorro de espacio de `TINYINT` no compensa la fricción.
 
 ## Desglose de subtareas
 
@@ -57,7 +58,7 @@ CREATE TABLE valoraciones (
     google_review_id       VARCHAR(150)  NOT NULL,
     autor_nombre            VARCHAR(150)  NOT NULL,
     autor_foto_url           VARCHAR(500)  NULL,
-    puntuacion              TINYINT       NOT NULL,
+    puntuacion              INT           NOT NULL,
     comentario               TEXT          NULL,
     fecha_publicacion        TIMESTAMP     NOT NULL,
     fecha_actualizacion      TIMESTAMP     NULL,

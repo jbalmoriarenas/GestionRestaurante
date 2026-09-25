@@ -50,15 +50,24 @@ public final class FacturaTextParser {
             Pattern.compile("\\b(\\d{1,3}(?:\\.\\d{3})*,\\d{2}|\\d+\\.\\d{2})\\s?€?\\b");
 
     /** Frases especificas del importe total a pagar de la factura. Una palabra "total" suelta
-     * NO es suficiente: aparece con frecuencia en lineas que no son el total de la factura
-     * ("Peso Total", "Valor total descuentos", la cabecera "Total IMP" de la tabla de IVA...),
-     * por lo que buscarla de forma generica produce falsos positivos. */
+     * NO es suficiente en general: aparece con frecuencia en lineas que no son el total de la
+     * factura ("Peso Total", "Valor total descuentos", la cabecera "Total IMP" de la tabla de
+     * IVA...), por lo que buscarla de forma generica produce falsos positivos. */
     private static final Pattern FRASE_TOTAL_FACTURA = Pattern.compile(
             "(?i)total\\s*a\\s*pagar|total\\s*a\\s*abonar|importe\\s*total|total\\s*factura|total\\s*general");
 
+    /** "Total" SI es suficiente cuando es la primera palabra de la linea y va seguido de
+     * inmediato (solo espacios/dos puntos de por medio) de un importe - ahí no hay
+     * ambiguedad posible ("Total: 584,21", "Total 117,61"), a diferencia de "Peso Total: ..."
+     * (el calificador va ANTES de "total") o "Total bases: ..."/"Valor total descuentos ..."
+     * (el calificador va DESPUES, entre "total" y el importe) - back/fase2-3-back.md, facturas
+     * de Hostelor/Coca-Cola donde ninguna de las frases especificas de arriba aparece nunca. */
+    private static final Pattern FRASE_TOTAL_SOLO = Pattern.compile("(?i)^\\s*total\\s*[:\\-]?\\s*(?=\\d)");
+
     /** Lineas que etiquetan explicitamente el IVA/base imponible ("IVA (21%): 21,00 €",
-     * "Base imponible: 100,00 €"), formato habitual de facturas de servicios (luz, telefono...). */
-    private static final Pattern PALABRA_IVA = Pattern.compile("(?i)\\biva\\b");
+     * "Base imponible: 100,00 €"), formato habitual de facturas de servicios (luz, telefono...).
+     * Tolera "I.V.A." (con puntos entre letras, formato usado por algunos proveedores). */
+    private static final Pattern PALABRA_IVA = Pattern.compile("(?i)\\bi\\.?v\\.?a\\.?\\b");
     private static final Pattern PALABRA_BASE_IMPONIBLE = Pattern.compile("(?i)base\\s+imponible");
 
     /** Cabecera de la tabla-resumen de IVA de tickets de venta al por mayor (p. ej. Makro):
@@ -177,7 +186,7 @@ public final class FacturaTextParser {
 
     private static Optional<BigDecimal> buscarTotalPorEtiqueta(List<String> lineas) {
         for (String linea : lineas) {
-            if (!FRASE_TOTAL_FACTURA.matcher(linea).find()) {
+            if (!FRASE_TOTAL_FACTURA.matcher(linea).find() && !FRASE_TOTAL_SOLO.matcher(linea).find()) {
                 continue;
             }
             List<BigDecimal> importes = importesEnLinea(linea);
@@ -188,14 +197,20 @@ public final class FacturaTextParser {
         return Optional.empty();
     }
 
+    /** Solo suma lineas con un unico importe: una linea que etiqueta el IVA pero que en
+     * realidad es una fila de tabla con varios importes (base, iva e importe a pagar todos en
+     * la misma linea de texto, p.ej. "IVA 21% 97,20 20,41 117,61 Pendiente") es ambigua sobre
+     * cual de ellos es el IVA - sumarlos todos da un resultado disparatado, mejor no proponer
+     * nada ahi (back/fase2-3-back.md, factura de Hostelor). */
     private static BigDecimal sumarImportesEnLineasConPalabra(List<String> lineas, Pattern palabra) {
         BigDecimal suma = null;
         for (String linea : lineas) {
             if (!palabra.matcher(linea).find()) {
                 continue;
             }
-            for (BigDecimal importe : importesEnLinea(linea)) {
-                suma = suma == null ? importe : suma.add(importe);
+            List<BigDecimal> importes = importesEnLinea(linea);
+            if (importes.size() == 1) {
+                suma = suma == null ? importes.get(0) : suma.add(importes.get(0));
             }
         }
         return suma;

@@ -15,6 +15,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,11 @@ public class TesseractFacturaExtractionService implements FacturaExtractionServi
 
     private static final int DPI_RENDER_PDF = 300;
 
+    /** Por debajo de este numero de caracteres, un PDF se considera "sin capa de texto" (un
+     * escaneado guardado como PDF, o una pagina en blanco) y se procesa por OCR en vez de
+     * confiar en el texto extraido - un PDF nativo real siempre trae bastante mas que esto. */
+    private static final int MIN_CARACTERES_TEXTO_NATIVO = 20;
+
     @Value("${app.ocr.tessdata-path:}")
     private String tessDataPath;
 
@@ -39,8 +45,7 @@ public class TesseractFacturaExtractionService implements FacturaExtractionServi
 
     @Override
     public ExtraccionResultado extraer(InputStream documento, String contentType, TipoProveedor tipo) {
-        BufferedImage imagen = cargarComoImagen(documento, contentType);
-        String textoOcr = ejecutarOcr(preprocesar(imagen));
+        String textoOcr = extraerTexto(documento, contentType);
 
         FacturaTextParser.ImportesDetectados importes = FacturaTextParser.extraerImportes(textoOcr);
         var fechaImpresionSugerida = FacturaTextParser.extraerFechaImpresion(textoOcr).orElse(null);
@@ -50,20 +55,43 @@ public class TesseractFacturaExtractionService implements FacturaExtractionServi
                 importes.base(), importes.iva(), importes.total());
     }
 
-    private BufferedImage cargarComoImagen(InputStream documento, String contentType) {
+    private String extraerTexto(InputStream documento, String contentType) {
         try {
             if ("application/pdf".equals(contentType)) {
-                byte[] bytes = documento.readAllBytes();
-                try (PDDocument pdf = Loader.loadPDF(bytes)) {
-                    PDFRenderer renderer = new PDFRenderer(pdf);
-                    return renderer.renderImageWithDPI(0, DPI_RENDER_PDF, ImageType.RGB);
-                }
+                return extraerTextoDePdf(documento.readAllBytes());
             }
             BufferedImage imagen = ImageIO.read(documento);
             if (imagen == null) {
                 throw new OcrNoDisponibleException(new IOException("Formato de imagen no reconocido"));
             }
-            return imagen;
+            return ejecutarOcr(preprocesar(imagen));
+        } catch (IOException e) {
+            throw new OcrNoDisponibleException(e);
+        }
+    }
+
+    /**
+     * La mayoria de facturas subidas son PDF generados digitalmente (no escaneados): tienen una
+     * capa de texto exacta ya embebida, muy superior a cualquier resultado de OCR sobre una
+     * imagen rasterizada de ese mismo PDF. Se usa esa capa de texto siempre que exista; solo se
+     * rasteriza y se hace OCR (pagina a pagina - back/fase2-3-back.md, antes solo se procesaba
+     * la primera pagina, lo que dejaba sin leer facturas con el resumen de totales en la
+     * segunda hoja, p.ej. Coca-Cola) cuando el PDF no trae texto (un escaneado real).
+     */
+    private String extraerTextoDePdf(byte[] bytes) {
+        try (PDDocument pdf = Loader.loadPDF(bytes)) {
+            String textoNativo = new PDFTextStripper().getText(pdf);
+            if (textoNativo.strip().length() >= MIN_CARACTERES_TEXTO_NATIVO) {
+                return textoNativo;
+            }
+
+            PDFRenderer renderer = new PDFRenderer(pdf);
+            StringBuilder textoOcr = new StringBuilder();
+            for (int pagina = 0; pagina < pdf.getNumberOfPages(); pagina++) {
+                BufferedImage imagen = renderer.renderImageWithDPI(pagina, DPI_RENDER_PDF, ImageType.RGB);
+                textoOcr.append(ejecutarOcr(preprocesar(imagen))).append('\n');
+            }
+            return textoOcr.toString();
         } catch (IOException e) {
             throw new OcrNoDisponibleException(e);
         }

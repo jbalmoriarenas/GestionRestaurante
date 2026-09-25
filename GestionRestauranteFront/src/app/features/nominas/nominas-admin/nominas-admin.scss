@@ -1,25 +1,30 @@
 .nominas-admin-page {
-  table {
-    table-layout: fixed;
+  // Igual que en facturas-admin: los % fijos solo tienen sentido con ancho de sobra.
+  // Por debajo de 768px el layout auto de ui-table.scss + su scroll horizontal evita
+  // que las columnas se compriman hasta hacerse ilegibles en movil.
+  @media (min-width: 768px) {
+    table {
+      table-layout: fixed;
 
-    th:nth-child(1),
-    td:nth-child(1) {
-      width: 20%;
-    }
+      th:nth-child(1),
+      td:nth-child(1) {
+        width: 20%;
+      }
 
-    th:nth-child(2),
-    td:nth-child(2) {
-      width: 22%;
-    }
+      th:nth-child(2),
+      td:nth-child(2) {
+        width: 22%;
+      }
 
-    th:nth-child(3),
-    td:nth-child(3) {
-      width: 10%;
-    }
+      th:nth-child(3),
+      td:nth-child(3) {
+        width: 10%;
+      }
 
-    th:last-child,
-    td:last-child {
-      width: 48%;
+      th:last-child,
+      td:last-child {
+        width: 48%;
+      }
     }
   }
 

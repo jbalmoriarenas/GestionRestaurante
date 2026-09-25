@@ -1,2 +1,2 @@
 # GestionRestaurante
-aplicación para gestionar : fichajes , vacaciones,facturas ,almacenes ,nóminas ,reviews de clientes 
+aplicación para gestionar : fichajes , facturas , almacenes y nóminas

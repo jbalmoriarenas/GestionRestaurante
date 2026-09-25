@@ -1,16 +1,18 @@
 .notification-host {
   position: fixed;
-  top: var(--space-xl);
+  top: calc(64px + var(--space-md));
   right: var(--space-xl);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
   z-index: 200;
+  max-width: calc(100vw - (2 * var(--space-xl)));
 
   @media (max-width: 480px) {
-    top: var(--space-lg);
+    top: calc(64px + var(--space-sm));
     left: var(--space-lg);
     right: var(--space-lg);
+    max-width: none;
   }
 }
 

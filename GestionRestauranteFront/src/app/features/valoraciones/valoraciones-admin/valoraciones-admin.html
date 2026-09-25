@@ -1,0 +1,131 @@
+<div class="valoraciones-admin-page flex flex-col gap-xl">
+  <h1 class="section-heading">{{ 'valoraciones.admin.titulo' | translate }}</h1>
+
+  @if (loadingEstado()) {
+    <ui-card class="flex items-center gap-sm">
+      <ui-spinner [label]="'common.loading' | translate" />
+    </ui-card>
+  } @else if (!conectado()) {
+    <ui-card class="valoraciones-admin-page__conexion">
+      <p class="page-note">{{ 'valoraciones.admin.conexion.explicacion' | translate }}</p>
+      <ui-button type="button" [loading]="conectando()" [disabled]="conectando()" (click)="conectar()">
+        {{ 'valoraciones.admin.conexion.conectar' | translate }}
+      </ui-button>
+    </ui-card>
+  } @else {
+    <ui-card>
+      <div class="flex flex-wrap gap-lg items-center justify-between">
+        <div class="flex flex-col gap-xs">
+          <p>
+            <strong>{{ 'valoraciones.admin.conexion.conectado' | translate }}:</strong>
+            {{ conexionEstado()?.nombreUbicacion }}
+          </p>
+          <p class="page-note">
+            {{ 'valoraciones.admin.conexion.ultimaSincronizacion' | translate }}:
+            {{ conexionEstado()?.fechaUltimaSincronizacion ?? ('valoraciones.admin.conexion.sinSincronizar' | translate) }}
+          </p>
+          @if (conexionEstado()?.ultimoError; as ultimoError) {
+            <ui-badge variant="danger">{{ 'valoraciones.admin.conexion.error' | translate }}: {{ ultimoError }}</ui-badge>
+          }
+        </div>
+        <div class="flex gap-sm items-center">
+          <ui-button type="button" variant="secondary" [loading]="sincronizando()" [disabled]="sincronizando()" (click)="sincronizarAhora()">
+            {{ 'valoraciones.admin.conexion.sincronizarAhora' | translate }}
+          </ui-button>
+          <ui-button type="button" variant="danger" (click)="abrirModalDesconectar()">
+            {{ 'valoraciones.admin.conexion.desconectar' | translate }}
+          </ui-button>
+        </div>
+      </div>
+    </ui-card>
+
+    <div class="flex flex-wrap gap-lg">
+      <ui-card class="stat-card">
+        <p class="stat-card-label">{{ 'valoraciones.admin.resumen.media' | translate }}</p>
+        <p class="stat-card-value">
+          {{ resumen()?.media !== null && resumen()?.media !== undefined ? (resumen()!.media | number: '1.1-2') : '—' }}
+        </p>
+      </ui-card>
+      <ui-card class="stat-card">
+        <p class="stat-card-label">{{ 'valoraciones.admin.resumen.total' | translate }}</p>
+        <p class="stat-card-value">{{ resumen()?.total ?? 0 }}</p>
+      </ui-card>
+      <ui-card class="valoraciones-admin-page__distribucion">
+        <ul class="valoraciones-admin-page__distribucion-lista">
+          @for (fila of distribucionOrdenada(); track fila.puntuacion) {
+            <li class="valoraciones-admin-page__distribucion-fila">
+              <span>{{ fila.puntuacion }}★</span>
+              <span
+                class="valoraciones-admin-page__distribucion-barra"
+                [style.width.%]="resumen()?.total ? (fila.cantidad / resumen()!.total) * 100 : 0"
+              ></span>
+              <span>{{ fila.cantidad }}</span>
+            </li>
+          }
+        </ul>
+      </ui-card>
+    </div>
+
+    <ui-card>
+      <form class="flex flex-wrap gap-lg items-end">
+        <ui-select
+          class="valoraciones-admin-page__filtro-select"
+          [label]="'valoraciones.admin.filtros.puntuacion' | translate"
+          [options]="opcionesPuntuacion()"
+          [formControl]="puntuacionControl"
+        />
+      </form>
+
+      <ui-table
+        [loading]="loadingTabla()"
+        [empty]="!loadingTabla() && (pageData()?.content?.length ?? 0) === 0"
+        [emptyMessage]="'valoraciones.admin.tabla.vacio' | translate"
+        [page]="pageData()?.number ?? 0"
+        [totalPages]="pageData()?.totalPages ?? 0"
+        [previousLabel]="'common.previous' | translate"
+        [nextLabel]="'common.next' | translate"
+        [pageLabel]="'common.pageOf' | translate: { current: (pageData()?.number ?? 0) + 1, total: pageData()?.totalPages ?? 0 }"
+        (pageChange)="cargarTabla($event)"
+      >
+        <table>
+          <caption class="sr-only">{{ 'valoraciones.admin.titulo' | translate }}</caption>
+          <thead>
+            <tr>
+              <th>{{ 'valoraciones.admin.tabla.autor' | translate }}</th>
+              <th>{{ 'valoraciones.admin.tabla.puntuacion' | translate }}</th>
+              <th>{{ 'valoraciones.admin.tabla.comentario' | translate }}</th>
+              <th>{{ 'valoraciones.admin.tabla.fecha' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (valoracion of pageData()?.content ?? []; track valoracion.id) {
+              <tr>
+                <td>{{ valoracion.autorNombre }}</td>
+                <td><ui-badge variant="warning">{{ valoracion.puntuacion }}★</ui-badge></td>
+                <td class="valoraciones-admin-page__comentario" [attr.title]="valoracion.comentario">
+                  {{ valoracion.comentario ?? '—' }}
+                </td>
+                <td>{{ valoracion.fechaPublicacion }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </ui-table>
+    </ui-card>
+  }
+</div>
+
+<ui-modal
+  [open]="mostrarModalDesconectar()"
+  [title]="'valoraciones.admin.conexion.modal.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarModalDesconectar()"
+>
+  <p>{{ 'valoraciones.admin.conexion.modal.mensaje' | translate }}</p>
+  <div modal-footer>
+    <ui-button type="button" variant="secondary" (click)="cerrarModalDesconectar()">{{ 'common.cancel' | translate }}</ui-button>
+    <ui-button type="button" variant="danger" [loading]="desconectando()" (click)="confirmarDesconectar()">
+      {{ 'valoraciones.admin.conexion.modal.confirmar' | translate }}
+    </ui-button>
+  </div>
+</ui-modal>

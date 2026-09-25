@@ -9,7 +9,10 @@
   overflow-x: auto;
 
   ::ng-deep table {
-    width: 100%;
+    // min-width (no width) a proposito: la tabla debe poder crecer mas alla del 100%
+    // del contenedor cuando el contenido lo necesita, para que sea overflow-x lo que
+    // scrollee en movil en vez de que las columnas se compriman hasta ilegibles.
+    min-width: 100%;
     border-collapse: collapse;
 
     thead th {
@@ -21,6 +24,10 @@
       color: var(--color-text-secondary);
       padding: 0.85rem var(--space-xl);
       border-bottom: 1px solid var(--color-border);
+      // Evita que una cabecera de varias palabras (p.ej. "Fecha de impresion") se
+      // parta en varias lineas y fuerce esa columna a estrecharse por debajo de un
+      // ancho legible: con nowrap, el layout auto de la tabla respeta ese ancho minimo.
+      white-space: nowrap;
     }
 
     tbody td {
