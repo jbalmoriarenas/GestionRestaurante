@@ -64,6 +64,7 @@ class ValoracionSincronizacionServiceTest {
         ResultadoSincronizacionDTO resultado = service.sincronizar();
 
         assertThat(resultado.total()).isZero();
+        assertThat(resultado.error()).isNull();
         verify(googleClient, never()).refrescarAccessToken(any());
     }
 
@@ -113,6 +114,7 @@ class ValoracionSincronizacionServiceTest {
         ResultadoSincronizacionDTO resultado = service.sincronizar();
 
         assertThat(resultado.total()).isZero();
+        assertThat(resultado.error()).isEqualTo("Google no responde");
         assertThat(conexion.getUltimoError()).isEqualTo("Google no responde");
     }
 }

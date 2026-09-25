@@ -92,8 +92,9 @@ export class ValoracionesAdmin implements OnInit {
     }
     if (conectadoParam !== null || errorParam !== null) {
       // Limpia los query params para que un refresco de pagina no repita la notificacion
-      // (front/fase4-1-front.md).
-      this.router.navigate([], { relativeTo: this.route, queryParams: {} });
+      // (front/fase4-1-front.md). replaceUrl: true para no dejar una entrada de historial con
+      // los query params ya limpiados (si no, el boton "atras" los mostraria brevemente).
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
     }
   }
 
@@ -169,12 +170,23 @@ export class ValoracionesAdmin implements OnInit {
     this.valoracionService.sincronizar().subscribe({
       next: (resultado) => {
         this.sincronizando.set(false);
-        this.notificationService.success(
-          this.translateService.instant('valoraciones.admin.notificaciones.sincronizacionExito', {
-            nuevas: resultado.nuevas,
-            actualizadas: resultado.actualizadas,
-          }),
-        );
+        // resultado.error != null: la sincronizacion ha fallado del lado de Google (token
+        // revocado, servicio caido, etc.) - el endpoint responde 200 igualmente (back/fase4-1-back.md),
+        // asi que hay que mirar este campo en vez de asumir exito solo porque no hubo error HTTP.
+        if (resultado.error) {
+          this.notificationService.error(
+            this.translateService.instant('valoraciones.admin.notificaciones.sincronizacionError', {
+              error: resultado.error,
+            }),
+          );
+        } else {
+          this.notificationService.success(
+            this.translateService.instant('valoraciones.admin.notificaciones.sincronizacionExito', {
+              nuevas: resultado.nuevas,
+              actualizadas: resultado.actualizadas,
+            }),
+          );
+        }
         this.cargarEstadoConexion();
       },
       error: () => this.sincronizando.set(false),

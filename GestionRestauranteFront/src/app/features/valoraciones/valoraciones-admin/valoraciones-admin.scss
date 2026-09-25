@@ -8,8 +8,16 @@
     min-width: 220px;
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
     justify-content: center;
+  }
+
+  &__distribucion-lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   &__distribucion-fila {

@@ -67,13 +67,14 @@ public class ValoracionSincronizacionService {
             conexion.setUltimoError(null);
             conexionRepository.save(conexion);
 
-            return new ResultadoSincronizacionDTO(nuevas, actualizadas, nuevas + actualizadas);
+            return new ResultadoSincronizacionDTO(nuevas, actualizadas, nuevas + actualizadas, null);
         } catch (RuntimeException e) {
             log.warn("Fallo al sincronizar valoraciones desde Google", e);
+            String mensaje = mensajeError(e);
             conexion.setFechaUltimaSincronizacion(LocalDateTime.now());
-            conexion.setUltimoError(mensajeError(e));
+            conexion.setUltimoError(mensaje);
             conexionRepository.save(conexion);
-            return ResultadoSincronizacionDTO.vacio();
+            return ResultadoSincronizacionDTO.error(mensaje);
         }
     }
 

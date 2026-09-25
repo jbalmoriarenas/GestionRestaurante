@@ -146,12 +146,30 @@ class ValoracionControllerTest {
     }
 
     @Test
-    void callback_conStateInvalidoRedirigeConError() throws Exception {
+    void callback_conStateInvalidoRedirigeConCodigoDeErrorEstable() throws Exception {
         org.mockito.Mockito.doThrow(new com.gestionrestaurante.back.exception.EstadoOAuthInvalidoException())
                 .when(conexionGoogleService).completarConexion(any(), any());
 
         mockMvc.perform(get("/api/valoraciones/conexion/callback").param("code", "abc").param("state", "no-existe"))
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("error=")));
+                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("error=estado_invalido")));
+    }
+
+    @Test
+    void callback_conConsentimientoCanceladoPorElAdminRedirigeSinLlamarAlServicio() throws Exception {
+        // Google redirige asi (sin "code") cuando el Admin pulsa "Cancelar" en la pantalla de
+        // consentimiento - no debe ser un binding fallido de Spring (400 en crudo).
+        mockMvc.perform(get("/api/valoraciones/conexion/callback").param("error", "access_denied"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("error=access_denied")));
+
+        org.mockito.Mockito.verify(conexionGoogleService, org.mockito.Mockito.never()).completarConexion(any(), any());
+    }
+
+    @Test
+    void callback_sinCodeNiStateNiErrorRedirigeConSolicitudIncompleta() throws Exception {
+        mockMvc.perform(get("/api/valoraciones/conexion/callback"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("error=solicitud_incompleta")));
     }
 }

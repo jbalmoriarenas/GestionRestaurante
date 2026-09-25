@@ -51,16 +51,18 @@
         <p class="stat-card-value">{{ resumen()?.total ?? 0 }}</p>
       </ui-card>
       <ui-card class="valoraciones-admin-page__distribucion">
-        @for (fila of distribucionOrdenada(); track fila.puntuacion) {
-          <div class="valoraciones-admin-page__distribucion-fila">
-            <span>{{ fila.puntuacion }}★</span>
-            <span
-              class="valoraciones-admin-page__distribucion-barra"
-              [style.width.%]="resumen()?.total ? (fila.cantidad / resumen()!.total) * 100 : 0"
-            ></span>
-            <span>{{ fila.cantidad }}</span>
-          </div>
-        }
+        <ul class="valoraciones-admin-page__distribucion-lista">
+          @for (fila of distribucionOrdenada(); track fila.puntuacion) {
+            <li class="valoraciones-admin-page__distribucion-fila">
+              <span>{{ fila.puntuacion }}★</span>
+              <span
+                class="valoraciones-admin-page__distribucion-barra"
+                [style.width.%]="resumen()?.total ? (fila.cantidad / resumen()!.total) * 100 : 0"
+              ></span>
+              <span>{{ fila.cantidad }}</span>
+            </li>
+          }
+        </ul>
       </ui-card>
     </div>
 

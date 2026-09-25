@@ -448,6 +448,7 @@
         "conectadoExito": "Google account connected successfully",
         "conexionError": "Could not complete the connection with Google",
         "sincronizacionExito": "Sync complete: {{nuevas}} new, {{actualizadas}} updated",
+        "sincronizacionError": "Could not sync with Google: {{error}}",
         "desconectadoExito": "Google account disconnected"
       }
     }

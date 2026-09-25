@@ -10,6 +10,9 @@ export interface ResultadoSincronizacion {
   nuevas: number;
   actualizadas: number;
   total: number;
+  // null si la sincronizacion se completo sin problemas; si no es null, nuevas/actualizadas/total
+  // son siempre 0 y hay que mostrar el fallo en vez de un mensaje de exito.
+  error: string | null;
 }
 
 export interface Valoracion {

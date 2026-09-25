@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ import org.springframework.web.client.RestClientException;
  * </ul>
  */
 @Component
+@Slf4j
 public class GoogleBusinessProfileClientImpl implements GoogleBusinessProfileClient {
 
     private static final String SCOPE = "https://www.googleapis.com/auth/business.manage";
@@ -42,15 +44,20 @@ public class GoogleBusinessProfileClientImpl implements GoogleBusinessProfileCli
             "https://mybusinessbusinessinformation.googleapis.com/v1/%s/locations?readMask=name,title";
     private static final String REVIEWS_URL_TEMPLATE = "https://mybusiness.googleapis.com/v4/%s/reviews";
 
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient;
     private final String clientId;
     private final String clientSecret;
     private final String redirectUri;
 
+    /** {@code RestClient.Builder} inyectado (en vez de {@code RestClient.create()} directo) para
+     * poder atar un {@code MockRestServiceServer} en tests sin llamar a la API real de Google -
+     * ver {@code GoogleBusinessProfileClientImplTest}. */
     public GoogleBusinessProfileClientImpl(
+            RestClient.Builder restClientBuilder,
             @Value("${app.google.client-id}") String clientId,
             @Value("${app.google.client-secret}") String clientSecret,
             @Value("${app.google.redirect-uri}") String redirectUri) {
+        this.restClient = restClientBuilder.build();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUri = redirectUri;
@@ -116,6 +123,13 @@ public class GoogleBusinessProfileClientImpl implements GoogleBusinessProfileCli
         }
     }
 
+    /**
+     * Solo se lee la primera pagina de cuentas y, por cada cuenta, la primera pagina de
+     * ubicaciones ({@code nextPageToken} de {@link AccountsResponse}/{@link LocationsResponse}
+     * se deserializa pero no se sigue) - coherente con el supuesto de "una unica ubicacion por
+     * cuenta" (back/fase4-1-back.md, "Analisis y supuestos"): si la cuenta conectada tuviera
+     * mas cuentas/ubicaciones de las que caben en una pagina, las siguientes no se descubririan.
+     */
     @Override
     public List<UbicacionGoogle> listarUbicaciones(String accessToken) {
         List<UbicacionGoogle> resultado = new ArrayList<>();
@@ -198,16 +212,20 @@ public class GoogleBusinessProfileClientImpl implements GoogleBusinessProfileCli
     }
 
     private static int puntuacionDesdeStarRating(String starRating) {
-        if (starRating == null) {
-            return 1;
-        }
         return switch (starRating) {
             case "ONE" -> 1;
             case "TWO" -> 2;
             case "THREE" -> 3;
             case "FOUR" -> 4;
             case "FIVE" -> 5;
-            default -> 1;
+            case null -> {
+                log.warn("Reseña de Google sin starRating, se contabiliza como 1 estrella por defecto");
+                yield 1;
+            }
+            default -> {
+                log.warn("starRating de Google desconocido '{}', se contabiliza como 1 estrella por defecto", starRating);
+                yield 1;
+            }
         };
     }
 
