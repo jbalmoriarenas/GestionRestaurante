@@ -24,19 +24,20 @@ Ruta `/configuracion` protegida con `permissionGuard('EMPLEADOS', 'EDICION')` (m
 export interface ConfiguracionEmpresa {
   nombreEmpresa: string;
   logoUrl: string | null;
+  emailRemitente: string | null; // Añadido (ampliación posterior, junto con la Fase 6.1 — ver back/fase5-1-back.md)
 }
 ```
 
 ## Desglose de subtareas
 
 ### Servicio
-1. **[Frontend, baja]** `ConfiguracionService` (se amplía, ya existe): añadir `obtenerEmpresa(): Observable<ConfiguracionEmpresa>`; `actualizarEmpresa(nombreEmpresa: string, logo: File | null): Observable<ConfiguracionEmpresa>` (`FormData`, adjunta `logo` solo si no es `null`).
+1. **[Frontend, baja]** `ConfiguracionService` (se amplía, ya existe): añadir `obtenerEmpresa(): Observable<ConfiguracionEmpresa>`; ~~`actualizarEmpresa(nombreEmpresa: string, logo: File | null): Observable<ConfiguracionEmpresa>`~~ **firma ampliada (ampliación posterior)**: `actualizarEmpresa(nombreEmpresa: string, logo: File | null, emailRemitente: string | null): Observable<ConfiguracionEmpresa>` (`FormData`, adjunta `logo` solo si no es `null`; `emailRemitente` siempre se manda, como `''` si es `null`, para poder vaciar el campo ya guardado).
 
 ### Vista de Configuración (nueva)
-2. **[Frontend, media]** `ConfiguracionAdminComponent` — tarjeta **"Datos de empresa"**: formulario reactivo con `nombreEmpresa` (`@NotBlank` reflejado con `Validators.required`) y un selector de imagen con **previsualización** (muestra el logo actual, o el nuevo seleccionado antes de guardar, vía `URL.createObjectURL` sobre el `File` elegido); botón "Guardar" deshabilitado mientras la petición está en curso (`ui-spinner`).
+2. **[Frontend, media]** `ConfiguracionAdminComponent` — tarjeta **"Datos de empresa"**: formulario reactivo con `nombreEmpresa` (`@NotBlank` reflejado con `Validators.required`) y un selector de imagen con **previsualización** (muestra el logo actual, o el nuevo seleccionado antes de guardar, vía `URL.createObjectURL` sobre el `File` elegido); botón "Guardar" deshabilitado mientras la petición está en curso (`ui-spinner`). **Añadido (ampliación posterior)**: campo `emailRemitente` (`Validators.email`, opcional — un string vacío pasa la validación, igual que en el backend) para elegir desde qué dirección salen los correos de la app (nóminas y recuperación de contraseña); se precarga con el valor ya guardado al cargar la vista.
 3. **[Frontend, media]** Tarjeta **"Ubicación de fichaje"** — **movida tal cual** desde `fichajes-admin.ts`/`.html` (mismo formulario `lat`/`lng`/`radioMetros`, mismos validadores, mismo servicio `ConfiguracionService.obtenerUbicacion`/`actualizarUbicacion` ya existentes): se elimina de `fichajes-admin` y se re-implementa aquí sin cambios de comportamiento.
 4. **[Frontend, media]** Tarjeta **"Vacaciones — días anuales por defecto"** — **movida tal cual** desde `vacaciones-admin.ts`/`.html` (mismo formulario, mismo servicio `ConfiguracionService.obtenerVacaciones`/`actualizarVacaciones` ya existentes): se elimina de `vacaciones-admin` y se re-implementa aquí.
-5. **[Frontend, baja]** Nuevas claves i18n bajo `configuracion.admin`: `titulo`, `empresa.{titulo,nombreEmpresa,logo,logoActual,sinLogo,seleccionarArchivo,guardar}`, y reutilizar (moviéndolas de sus claves actuales) las de ubicación/vacaciones ya existentes bajo el nuevo namespace `configuracion.admin.ubicacion`/`configuracion.admin.vacaciones`.
+5. **[Frontend, baja]** Nuevas claves i18n bajo `configuracion.admin`: `titulo`, `empresa.{titulo,nombreEmpresa,logo,logoActual,sinLogo,seleccionarArchivo,guardar}`, y reutilizar (moviéndolas de sus claves actuales) las de ubicación/vacaciones ya existentes bajo el nuevo namespace `configuracion.admin.ubicacion`/`configuracion.admin.vacaciones`. **Añadidas (ampliación posterior)**: `configuracion.admin.empresa.{emailRemitente,emailRemitentePlaceholder,emailRemitenteError}`.
 6. **[Frontend, baja]** Actualizar `app.routes.ts`: añadir `/configuracion` → `ConfiguracionAdminComponent`; quitar de `fichajes-admin`/`vacaciones-admin` el HTML/lógica movidos en los puntos 3 y 4 (sin quitar nada más de esos componentes).
 
 ### Cabecera de la aplicación (nombre y logo visibles para todos)

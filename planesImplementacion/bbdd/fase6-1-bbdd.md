@@ -1,6 +1,6 @@
 # Plan de Implementación — Fase 6.1 (Base de datos): Recuperación de contraseña ("olvidé mi contraseña")
 
-Depende únicamente de [`fase0-bbdd.md`](./fase0-bbdd.md) (tabla `empleados`). Numerado a partir de **V40**: la Fase 5 (`fase5-1-bbdd.md`) ya está implementada de verdad en el repo como `V39__create_configuracion_empresa_table.sql`, así que V40 es el siguiente número real disponible hoy. Los dos planes de cumplimiento normativo (`integracion_verifactu-bbdd.md`, `fichajes_vacaciones_2027-bbdd.md`) siguen sin implementarse y reservaban provisionalmente V39-V44 — ese rango queda desactualizado por la implementación real de la Fase 5; si se implementan más adelante, renumerar sus migraciones a partir de V41 (o del siguiente número real libre en ese momento). Fuente de verdad de nombres para [`../back/fase6-1-back.md`](../back/fase6-1-back.md).
+Depende únicamente de [`fase0-bbdd.md`](./fase0-bbdd.md) (tabla `empleados`). Numerado a partir de **V40**: la Fase 5 (`fase5-1-bbdd.md`) ya está implementada de verdad en el repo como `V39__create_configuracion_empresa_table.sql`, así que V40 es el siguiente número real disponible hoy. Esta misma entrega añade también `V41` (ver "Ampliación V41" más abajo), así que el siguiente número real libre pasa a ser **V42**. Los dos planes de cumplimiento normativo (`integracion_verifactu-bbdd.md`, `fichajes_vacaciones_2027-bbdd.md`) siguen sin implementarse y reservaban provisionalmente V39-V44 — ese rango queda desactualizado por la implementación real de las Fases 5 y 6; si se implementan más adelante, renumerar sus migraciones a partir de V42 (o del siguiente número real libre en ese momento). Fuente de verdad de nombres para [`../back/fase6-1-back.md`](../back/fase6-1-back.md).
 
 ## Contexto y objetivo
 
@@ -59,3 +59,31 @@ CREATE INDEX idx_tokens_recuperacion_password_empleado ON tokens_recuperacion_pa
 - Tras `V40`, la tabla existe vacía.
 - Insertar dos filas con el mismo `token_hash` falla por `uk_tokens_recuperacion_password_hash`.
 - Insertar con un `empleado_id` inexistente falla por la FK.
+
+## Ampliación V41 — remitente de email configurable (extiende Fase 5.1)
+
+Añadida en la misma entrega que la tabla de tokens, a petición del usuario ("el correo debe salir desde el correo de la empresa, el mismo que envía la recuperación de contraseña"). Extiende `configuracion_empresa` (tabla de [`fase5-1-bbdd.md`](./fase5-1-bbdd.md)), no `tokens_recuperacion_password` — se documenta aquí, y no en `fase5-1-bbdd.md`, porque se implementó en esta entrega posterior; el desglose de `fase5-1-back.md` remite aquí para el DDL.
+
+### `V41__add_email_remitente_a_configuracion_empresa.sql`
+
+```sql
+ALTER TABLE configuracion_empresa
+    ADD COLUMN email_remitente VARCHAR(150) NULL;
+```
+
+Nullable a propósito: mientras no se configure, `EmailServiceImpl` usa `spring.mail.username` (la cuenta SMTP autenticada) como remitente por defecto — mismo criterio de "columna opcional con fallback a un valor por defecto ya existente" que otras columnas nullable del proyecto (p. ej. `logo_ruta` en la misma tabla).
+
+**Mapeo de columnas ↔ campo de entidad JPA** (debe coincidir con `back/fase5-1-back.md`):
+
+| Columna | Campo entidad | Tipo Java |
+|---|---|---|
+| `email_remitente` | `emailRemitente` (nullable) | `String` |
+
+### Criterios de aceptación técnicos (V41)
+
+- Tras `V41`, `configuracion_empresa` tiene la columna `email_remitente`, `NULL` para la fila sembrada en `V45`/`V39` (según el entorno).
+- Un valor de más de 150 caracteres falla por el límite de columna (mitigado en el DTO con `@Size(max=150)`, ver `back/fase5-1-back.md`).
+
+## Corrección de rango de numeración (nota para `plan-implementacion-general.md`)
+
+Al implementarse `V41` en esta entrega, el "siguiente número real libre" para los planes de cumplimiento normativo (`integracion_verifactu-bbdd.md`, `fichajes_vacaciones_2027-bbdd.md`) pasa a ser **V42**, no V41 como indicaba la nota de `plan-implementacion-general.md` antes de esta ampliación — actualizado ahí también.
