@@ -136,6 +136,16 @@ class ConfiguracionControllerTest {
     }
 
     @Test
+    void actualizarEmpresa_conEmailRemitenteConFormatoInvalidoResponde400() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .multipart(org.springframework.http.HttpMethod.PUT, "/api/configuracion/empresa")
+                        .param("nombreEmpresa", "Sidrería La Zapica")
+                        .param("emailRemitente", "no-es-un-email")
+                        .principal(autenticacionDeAdmin()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void obtenerLogoEmpresa_sinLogoConfiguradoResponde404() throws Exception {
         when(configuracionEmpresaService.obtenerLogo()).thenThrow(new LogoEmpresaNoConfiguradoException());
 

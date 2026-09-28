@@ -9,6 +9,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
+    path: 'restablecer-contrasena',
+    loadComponent: () =>
+      import('./features/auth/restablecer-password/restablecer-password').then((m) => m.RestablecerPassword),
+  },
+  {
     path: '',
     component: Shell,
     canActivate: [authGuard],

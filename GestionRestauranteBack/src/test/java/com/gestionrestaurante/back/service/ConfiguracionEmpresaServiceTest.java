@@ -58,7 +58,7 @@ class ConfiguracionEmpresaServiceTest {
         when(configuracionEmpresaRepository.findById(1L)).thenReturn(Optional.of(configuracion));
         when(configuracionEmpresaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ConfiguracionEmpresa resultado = service.actualizar("Nuevo Nombre", null, ADMIN_ID);
+        ConfiguracionEmpresa resultado = service.actualizar("Nuevo Nombre", null, null, ADMIN_ID);
 
         assertThat(resultado.getNombreEmpresa()).isEqualTo("Nuevo Nombre");
         assertThat(resultado.getLogoRuta()).isEqualTo("empresa/logo-actual.png");
@@ -74,7 +74,7 @@ class ConfiguracionEmpresaServiceTest {
         when(fileStorageService.guardar(any(), anyString())).thenReturn("empresa/logo-nuevo.png");
 
         MockMultipartFile logo = new MockMultipartFile("logo", "logo.png", "image/png", new byte[] {1, 2, 3});
-        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, ADMIN_ID);
+        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, null, ADMIN_ID);
 
         assertThat(resultado.getLogoRuta()).isEqualTo("empresa/logo-nuevo.png");
         verify(fileStorageService).guardar(logo, "empresa");
@@ -89,7 +89,7 @@ class ConfiguracionEmpresaServiceTest {
         MockMultipartFile archivoInvalido =
                 new MockMultipartFile("logo", "factura.pdf", "application/pdf", new byte[] {1});
 
-        assertThatThrownBy(() -> service.actualizar("Sidrería La Zapica", archivoInvalido, ADMIN_ID))
+        assertThatThrownBy(() -> service.actualizar("Sidrería La Zapica", archivoInvalido, null, ADMIN_ID))
                 .isInstanceOf(LogoEmpresaFormatoNoValidoException.class);
         verify(fileStorageService, never()).guardar(any(), anyString());
         verify(configuracionEmpresaRepository, never()).save(any());
@@ -103,7 +103,7 @@ class ConfiguracionEmpresaServiceTest {
         when(fileStorageService.guardar(any(), anyString())).thenReturn("empresa/logo-nuevo.png");
 
         MockMultipartFile logo = new MockMultipartFile("logo", "logo.png", "image/png", new byte[] {1, 2, 3});
-        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, ADMIN_ID);
+        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, null, ADMIN_ID);
 
         assertThat(resultado.getLogoRuta()).isEqualTo("empresa/logo-nuevo.png");
         verify(fileStorageService, never()).eliminar(anyString());
@@ -119,10 +119,33 @@ class ConfiguracionEmpresaServiceTest {
                 .when(fileStorageService).eliminar("empresa/logo-viejo.png");
 
         MockMultipartFile logo = new MockMultipartFile("logo", "logo.png", "image/png", new byte[] {1, 2, 3});
-        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, ADMIN_ID);
+        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", logo, null, ADMIN_ID);
 
         assertThat(resultado.getLogoRuta()).isEqualTo("empresa/logo-nuevo.png");
         verify(configuracionEmpresaRepository).save(any());
+    }
+
+    @Test
+    void actualizar_conEmailRemitenteLoGuardaTalCual() {
+        ConfiguracionEmpresa configuracion = configuracionExistente(null);
+        when(configuracionEmpresaRepository.findById(1L)).thenReturn(Optional.of(configuracion));
+        when(configuracionEmpresaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", null, "pedidos@zapica.com", ADMIN_ID);
+
+        assertThat(resultado.getEmailRemitente()).isEqualTo("pedidos@zapica.com");
+    }
+
+    @Test
+    void actualizar_conEmailRemitenteEnBlancoLoGuardaComoNull() {
+        ConfiguracionEmpresa configuracion = configuracionExistente(null);
+        configuracion.setEmailRemitente("anterior@zapica.com");
+        when(configuracionEmpresaRepository.findById(1L)).thenReturn(Optional.of(configuracion));
+        when(configuracionEmpresaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ConfiguracionEmpresa resultado = service.actualizar("Sidrería La Zapica", null, "   ", ADMIN_ID);
+
+        assertThat(resultado.getEmailRemitente()).isNull();
     }
 
     @Test

@@ -64,9 +64,12 @@ public class ConfiguracionEmpresaService {
      * se haya guardado con exito, para no dejar a la empresa sin logo si el guardado fallara.
      */
     @Transactional
-    public ConfiguracionEmpresa actualizar(String nombreEmpresa, MultipartFile logo, Long adminId) {
+    public ConfiguracionEmpresa actualizar(String nombreEmpresa, MultipartFile logo, String emailRemitente, Long adminId) {
         ConfiguracionEmpresa configuracion = obtener();
         configuracion.setNombreEmpresa(nombreEmpresa);
+        // Blank -> null: "sin remitente configurado" (EmailServiceImpl cae a spring.mail.username),
+        // no un valor vacio persistido - el front puede mandar "" al vaciar el campo.
+        configuracion.setEmailRemitente(emailRemitente != null && !emailRemitente.isBlank() ? emailRemitente : null);
 
         if (logo != null && !logo.isEmpty()) {
             String contentType = logo.getContentType();

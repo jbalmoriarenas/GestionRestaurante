@@ -82,7 +82,7 @@ public class ConfiguracionController {
     public ConfiguracionEmpresaResponseDTO actualizarEmpresa(
             @Valid @ModelAttribute ConfiguracionEmpresaRequestDTO request, Authentication authentication) {
         ConfiguracionEmpresa configuracion = configuracionEmpresaService.actualizar(
-                request.nombreEmpresa(), request.logo(), CurrentUser.empleadoId(authentication));
+                request.nombreEmpresa(), request.logo(), request.emailRemitente(), CurrentUser.empleadoId(authentication));
         return ConfiguracionEmpresaResponseDTO.from(configuracion, Wuris.Configuracion.EMPRESA_LOGO);
     }
 

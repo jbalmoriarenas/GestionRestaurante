@@ -11,11 +11,13 @@ import com.gestionrestaurante.back.entity.ConfiguracionEmpresa;
  */
 public record ConfiguracionEmpresaResponseDTO(
         String nombreEmpresa,
-        String logoUrl
+        String logoUrl,
+        String emailRemitente
 ) {
     public static ConfiguracionEmpresaResponseDTO from(ConfiguracionEmpresa configuracion, String rutaLogoEndpoint) {
         return new ConfiguracionEmpresaResponseDTO(
                 configuracion.getNombreEmpresa(),
-                configuracion.getLogoRuta() != null ? rutaLogoEndpoint : null);
+                configuracion.getLogoRuta() != null ? rutaLogoEndpoint : null,
+                configuracion.getEmailRemitente());
     }
 }

@@ -2,19 +2,33 @@
   @if (label()) {
     <label [for]="id">{{ label() }}@if (required()) {<span class="required-mark" aria-hidden="true"> *</span>}</label>
   }
-  <input
-    [id]="id"
-    [type]="type()"
-    [placeholder]="placeholder()"
-    [value]="value()"
-    [disabled]="disabled()"
-    [attr.min]="min() || null"
-    [attr.max]="max() || null"
-    [attr.required]="required() ? '' : null"
-    [class.invalid]="errorMessage()"
-    (input)="handleInput($event)"
-    (blur)="handleBlur()"
-  />
+  <div class="ui-input-wrapper">
+    <input
+      [id]="id"
+      [type]="effectiveType()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="disabled()"
+      [attr.min]="min() || null"
+      [attr.max]="max() || null"
+      [attr.required]="required() ? '' : null"
+      [attr.autocomplete]="autocomplete() || null"
+      [class.invalid]="errorMessage()"
+      [class.has-toggle]="isPassword()"
+      (input)="handleInput($event)"
+      (blur)="handleBlur()"
+    />
+    @if (isPassword()) {
+      <button
+        type="button"
+        class="toggle-visibility"
+        [attr.aria-label]="showPassword() ? hidePasswordLabel() : showPasswordLabel()"
+        (click)="togglePasswordVisibility()"
+      >
+        <ui-icon [name]="showPassword() ? 'eye-off' : 'eye'" />
+      </button>
+    }
+  </div>
   @if (errorMessage()) {
     <span class="error">{{ errorMessage() }}</span>
   }

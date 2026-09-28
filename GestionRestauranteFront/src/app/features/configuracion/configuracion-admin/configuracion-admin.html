@@ -5,6 +5,17 @@
     <h2 class="section-heading">{{ 'configuracion.admin.empresa.titulo' | translate }}</h2>
     <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="flex flex-wrap gap-lg items-start">
       <ui-input [label]="'configuracion.admin.empresa.nombreEmpresa' | translate" formControlName="nombreEmpresa" />
+      <ui-input
+        [label]="'configuracion.admin.empresa.emailRemitente' | translate"
+        type="email"
+        [placeholder]="'configuracion.admin.empresa.emailRemitentePlaceholder' | translate"
+        formControlName="emailRemitente"
+        [errorMessage]="
+          empresaForm.controls.emailRemitente.touched && empresaForm.controls.emailRemitente.invalid
+            ? ('configuracion.admin.empresa.emailRemitenteError' | translate)
+            : null
+        "
+      />
       <ui-file-input
         [label]="'configuracion.admin.empresa.logo' | translate"
         [accept]="acceptaLogo"

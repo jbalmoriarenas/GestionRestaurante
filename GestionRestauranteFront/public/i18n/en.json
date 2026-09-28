@@ -1,6 +1,10 @@
 {
   "app": {
-    "brand": "La Zapica"
+    "brand": "Mavero"
+  },
+  "footer": {
+    "eslogan": "Mavero — Your whole restaurant, one click away.",
+    "derechosReservados": "All rights reserved."
   },
   "menu": {
     "fichajes": "Time tracking",
@@ -31,7 +35,26 @@
     "emailError": "Enter a valid email",
     "passwordError": "Password is required",
     "invalidCredentials": "Invalid credentials",
-    "genericError": "Could not sign in"
+    "genericError": "Could not sign in",
+    "olvideContrasena": "Forgot your password?",
+    "modalRecuperacion": {
+      "titulo": "Recover password",
+      "email": "Email",
+      "enviar": "Send",
+      "confirmacion": "If the email exists, we've sent you a link to reset your password.",
+      "cerrar": "Close"
+    }
+  },
+  "restablecerPassword": {
+    "titulo": "Reset password",
+    "password": "New password",
+    "confirmarPassword": "Confirm password",
+    "passwordsNoCoinciden": "Passwords do not match",
+    "restablecer": "Reset password",
+    "exito": "Password updated successfully",
+    "enlaceInvalido": "This recovery link is invalid or has expired. Request a new one.",
+    "errorGenerico": "Could not reset password",
+    "volverALogin": "← Back to login"
   },
   "common": {
     "selectOption": "Select an option",
@@ -42,7 +65,9 @@
     "close": "Close",
     "previous": "← Previous",
     "next": "Next →",
-    "pageOf": "Page {{current}} of {{total}}"
+    "pageOf": "Page {{current}} of {{total}}",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "empleados": {
     "title": "Employees",
@@ -329,6 +354,9 @@
       "empresa": {
         "titulo": "Company details",
         "nombreEmpresa": "Company name",
+        "emailRemitente": "Email address emails are sent from",
+        "emailRemitentePlaceholder": "Leave empty to use the SMTP account's",
+        "emailRemitenteError": "Enter a valid email address",
         "logo": "Logo",
         "logoActual": "Current logo",
         "sinLogo": "No logo configured",

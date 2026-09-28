@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../api-base-url';
 import { LoginRequest, LoginResponse } from '../models/auth.model';
 import { CodigoVista, NivelAcceso } from '../models/permiso.model';
+import { RestablecerPasswordRequest, SolicitarRecuperacionRequest } from '../models/recuperacion-password.model';
 
 const STORAGE_KEY = 'gestion-restaurante.session';
 
@@ -26,6 +27,16 @@ export class AuthService {
   logout(): void {
     this.currentUser.set(null);
     localStorage.removeItem(STORAGE_KEY);
+  }
+
+  solicitarRecuperacion(email: string): Observable<void> {
+    const request: SolicitarRecuperacionRequest = { email };
+    return this.http.post<void>(`${API_BASE_URL}/auth/recuperacion/solicitar`, request);
+  }
+
+  restablecerPassword(token: string, password: string): Observable<void> {
+    const request: RestablecerPasswordRequest = { token, password };
+    return this.http.post<void>(`${API_BASE_URL}/auth/recuperacion/restablecer`, request);
   }
 
   tieneAcceso(vista: CodigoVista): boolean {

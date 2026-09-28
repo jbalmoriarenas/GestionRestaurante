@@ -1,5 +1,11 @@
-.login-page {
+.login-shell {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-page {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,5 +57,15 @@
     ::ng-deep .ui-button {
       width: 100%;
     }
+  }
+
+  .link-recuperacion {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-primary);
+    font-size: 0.85rem;
+    text-align: center;
+    cursor: pointer;
   }
 }

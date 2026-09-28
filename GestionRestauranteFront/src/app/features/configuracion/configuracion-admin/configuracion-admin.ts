@@ -33,6 +33,9 @@ export class ConfiguracionAdmin implements OnInit {
   readonly logoPreviewUrl = signal<string | null>(null);
   readonly empresaForm = this.formBuilder.nonNullable.group({
     nombreEmpresa: ['', Validators.required],
+    // Opcional: en blanco, EmailServiceImpl usa spring.mail.username (la cuenta SMTP
+    // autenticada) por defecto - ver back/fase5-1-back.md.
+    emailRemitente: ['', Validators.email],
   });
   readonly logoControl = new FormControl<File | null>(null);
 
@@ -91,9 +94,9 @@ export class ConfiguracionAdmin implements OnInit {
       this.empresaForm.markAllAsTouched();
       return;
     }
-    const { nombreEmpresa } = this.empresaForm.getRawValue();
+    const { nombreEmpresa, emailRemitente } = this.empresaForm.getRawValue();
     this.guardandoEmpresa.set(true);
-    this.configuracionService.actualizarEmpresa(nombreEmpresa, this.logoControl.value).subscribe({
+    this.configuracionService.actualizarEmpresa(nombreEmpresa, this.logoControl.value, emailRemitente || null).subscribe({
       next: () => {
         this.guardandoEmpresa.set(false);
         this.logoControl.setValue(null);
@@ -143,6 +146,7 @@ export class ConfiguracionAdmin implements OnInit {
     this.configuracionService.obtenerEmpresa().subscribe({
       next: (empresa) => {
         this.empresaForm.controls.nombreEmpresa.setValue(empresa.nombreEmpresa);
+        this.empresaForm.controls.emailRemitente.setValue(empresa.emailRemitente ?? '');
         this.cargandoEmpresa.set(false);
         if (empresa.logoUrl !== null) {
           this.cargarLogoActual();

@@ -18,6 +18,8 @@ public final class Wuris {
 
         public static final String BASE = API + "/auth";
         public static final String LOGIN = BASE + "/login";
+        public static final String RECUPERACION_SOLICITAR = BASE + "/recuperacion/solicitar";
+        public static final String RECUPERACION_RESTABLECER = BASE + "/recuperacion/restablecer";
         /** Patron usado en SecurityConfig para dejar publico todo el paquete de autenticacion. */
         public static final String PUBLIC_PATTERN = BASE + "/**";
     }

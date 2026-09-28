@@ -1,6 +1,10 @@
 {
   "app": {
-    "brand": "La Zapica"
+    "brand": "Mavero"
+  },
+  "footer": {
+    "eslogan": "Mavero — Todo tu restaurante, a un click.",
+    "derechosReservados": "Todos los derechos reservados."
   },
   "menu": {
     "fichajes": "Fichajes",
@@ -31,7 +35,26 @@
     "emailError": "Introduce un email válido",
     "passwordError": "La contraseña es obligatoria",
     "invalidCredentials": "Credenciales incorrectas",
-    "genericError": "No se ha podido iniciar sesión"
+    "genericError": "No se ha podido iniciar sesión",
+    "olvideContrasena": "¿Olvidaste tu contraseña?",
+    "modalRecuperacion": {
+      "titulo": "Recuperar contraseña",
+      "email": "Email",
+      "enviar": "Enviar",
+      "confirmacion": "Si el email existe, te hemos enviado un enlace para restablecer tu contraseña.",
+      "cerrar": "Cerrar"
+    }
+  },
+  "restablecerPassword": {
+    "titulo": "Restablecer contraseña",
+    "password": "Nueva contraseña",
+    "confirmarPassword": "Confirmar contraseña",
+    "passwordsNoCoinciden": "Las contraseñas no coinciden",
+    "restablecer": "Restablecer contraseña",
+    "exito": "Contraseña actualizada correctamente",
+    "enlaceInvalido": "El enlace de recuperación no es válido o ha caducado. Solicita uno nuevo.",
+    "errorGenerico": "No se ha podido restablecer la contraseña",
+    "volverALogin": "← Volver al login"
   },
   "common": {
     "selectOption": "Selecciona una opción",
@@ -42,7 +65,9 @@
     "close": "Cerrar",
     "previous": "← Anterior",
     "next": "Siguiente →",
-    "pageOf": "Página {{current}} de {{total}}"
+    "pageOf": "Página {{current}} de {{total}}",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "empleados": {
     "title": "Empleados",
@@ -329,6 +354,9 @@
       "empresa": {
         "titulo": "Datos de empresa",
         "nombreEmpresa": "Nombre de la empresa",
+        "emailRemitente": "Email desde el que se envían los correos",
+        "emailRemitentePlaceholder": "Déjalo vacío para usar el de la cuenta SMTP",
+        "emailRemitenteError": "Introduce un email válido",
         "logo": "Logo",
         "logoActual": "Logo actual",
         "sinLogo": "Sin logo configurado",

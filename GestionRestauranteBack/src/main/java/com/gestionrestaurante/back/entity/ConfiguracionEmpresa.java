@@ -33,6 +33,13 @@ public class ConfiguracionEmpresa {
     @Column(name = "logo_nombre_original")
     private String logoNombreOriginal;
 
+    /**
+     * Remitente ("From") de los correos que envia la app (EmailServiceImpl). Nullable: si no
+     * se configura, se usa spring.mail.username (la cuenta SMTP autenticada) por defecto.
+     */
+    @Column(name = "email_remitente")
+    private String emailRemitente;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 

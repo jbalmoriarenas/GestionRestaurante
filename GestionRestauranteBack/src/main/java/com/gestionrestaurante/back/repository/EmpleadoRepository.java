@@ -60,4 +60,11 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
      * back/fase3-2-back.md). Solo empleados activos son candidatos.
      */
     Optional<Empleado> findByDniNieAndActivoTrue(String dniNie);
+
+    /**
+     * Usado por RecuperacionPasswordService.solicitar (back/fase6-1-back.md): un empleado dado
+     * de baja no debe poder generarse un enlace de recuperacion nuevo, mismo criterio ya
+     * aplicado en AuthService.login (.filter(Empleado::isActivo)).
+     */
+    Optional<Empleado> findByEmailAndActivoTrue(String email);
 }

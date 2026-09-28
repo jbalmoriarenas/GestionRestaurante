@@ -10,7 +10,9 @@ export type IconName =
   | 'configuracion'
   | 'logout'
   | 'menu'
-  | 'chevron';
+  | 'chevron'
+  | 'eye'
+  | 'eye-off';
 
 @Component({
   selector: 'ui-icon',

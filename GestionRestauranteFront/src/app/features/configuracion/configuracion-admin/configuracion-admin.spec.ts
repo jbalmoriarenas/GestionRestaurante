@@ -18,7 +18,7 @@ describe('ConfiguracionAdmin', () => {
   };
   let notificationServiceMock: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
-  const empresaSinLogo = { nombreEmpresa: 'Sidrería La Zapica', logoUrl: null };
+  const empresaSinLogo = { nombreEmpresa: 'Sidrería La Zapica', logoUrl: null, emailRemitente: null };
   const ubicacionConfigurada = { lat: 43.5, lng: -5.6, radioMetros: 150, updatedAt: '2026-01-01T00:00:00Z' };
   const vacacionesConfiguradas = { diasAnualesDefecto: 23, updatedAt: '2026-01-01T00:00:00Z' };
 
@@ -71,7 +71,7 @@ describe('ConfiguracionAdmin', () => {
 
   it('al cargar con la empresa con logo, pide el logo y lo muestra como previsualizacion', () => {
     configuracionServiceMock.obtenerEmpresa.mockReturnValue(
-      of({ nombreEmpresa: 'Sidrería La Zapica', logoUrl: '/api/configuracion/empresa/logo' }),
+      of({ nombreEmpresa: 'Sidrería La Zapica', logoUrl: '/api/configuracion/empresa/logo', emailRemitente: null }),
     );
     const componente = crearComponente();
 
@@ -107,10 +107,39 @@ describe('ConfiguracionAdmin', () => {
 
     componente.guardarEmpresa();
 
-    expect(configuracionServiceMock.actualizarEmpresa).toHaveBeenCalledWith('Nuevo Nombre', archivo);
+    expect(configuracionServiceMock.actualizarEmpresa).toHaveBeenCalledWith('Nuevo Nombre', archivo, null);
     expect(componente.guardandoEmpresa()).toBe(false);
     expect(componente.logoControl.value).toBeNull();
     expect(notificationServiceMock.success).toHaveBeenCalled();
+  });
+
+  it('al cargar, precarga el email remitente ya configurado', () => {
+    configuracionServiceMock.obtenerEmpresa.mockReturnValue(
+      of({ nombreEmpresa: 'Sidrería La Zapica', logoUrl: null, emailRemitente: 'pedidos@zapica.com' }),
+    );
+    const componente = crearComponente();
+
+    expect(componente.empresaForm.controls.emailRemitente.value).toBe('pedidos@zapica.com');
+  });
+
+  it('guardarEmpresa(): envia el email remitente introducido', () => {
+    const componente = crearComponente();
+    componente.empresaForm.controls.nombreEmpresa.setValue('Sidrería La Zapica');
+    componente.empresaForm.controls.emailRemitente.setValue('pedidos@zapica.com');
+
+    componente.guardarEmpresa();
+
+    expect(configuracionServiceMock.actualizarEmpresa).toHaveBeenCalledWith('Sidrería La Zapica', null, 'pedidos@zapica.com');
+  });
+
+  it('guardarEmpresa(): con un email remitente de formato invalido, no llama al servicio', () => {
+    const componente = crearComponente();
+    componente.empresaForm.controls.nombreEmpresa.setValue('Sidrería La Zapica');
+    componente.empresaForm.controls.emailRemitente.setValue('no-es-un-email');
+
+    componente.guardarEmpresa();
+
+    expect(configuracionServiceMock.actualizarEmpresa).not.toHaveBeenCalled();
   });
 
   it('ubicacionSinConfigurar() es true cuando lat y lng siguen en el valor semilla (0,0)', () => {

@@ -32,12 +32,13 @@ export class ConfiguracionService {
     return this.http.get<ConfiguracionEmpresa>(`${BASE_URL}/empresa`);
   }
 
-  actualizarEmpresa(nombreEmpresa: string, logo: File | null): Observable<ConfiguracionEmpresa> {
+  actualizarEmpresa(nombreEmpresa: string, logo: File | null, emailRemitente: string | null): Observable<ConfiguracionEmpresa> {
     const formData = new FormData();
     formData.set('nombreEmpresa', nombreEmpresa);
     if (logo !== null) {
       formData.set('logo', logo);
     }
+    formData.set('emailRemitente', emailRemitente ?? '');
     return this.http.put<ConfiguracionEmpresa>(`${BASE_URL}/empresa`, formData);
   }
 

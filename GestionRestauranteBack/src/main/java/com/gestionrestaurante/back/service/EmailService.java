@@ -12,4 +12,10 @@ public interface EmailService {
 
     void enviarNomina(Empleado destinatario, Resource archivo, String nombreArchivoParaAdjunto,
             int periodoMes, int periodoAnio);
+
+    /**
+     * Fase 6.1 (recuperacion de contraseña): {@code tokenEnClaro} solo vive en memoria hasta
+     * este punto - nunca se persiste, solo su hash (ver RecuperacionPasswordService).
+     */
+    void enviarRecuperacionPassword(Empleado destinatario, String tokenEnClaro);
 }
