@@ -1,6 +1,4 @@
 <div class="configuracion-admin-page flex flex-col gap-xl">
-  <h1 class="section-heading">{{ 'configuracion.admin.titulo' | translate }}</h1>
-
   <ui-card>
     <h2 class="section-heading">{{ 'configuracion.admin.empresa.titulo' | translate }}</h2>
     <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="flex flex-wrap gap-lg items-start">

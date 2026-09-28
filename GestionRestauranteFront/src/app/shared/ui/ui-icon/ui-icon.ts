@@ -12,7 +12,9 @@ export type IconName =
   | 'menu'
   | 'chevron'
   | 'eye'
-  | 'eye-off';
+  | 'eye-off'
+  | 'sun'
+  | 'moon';
 
 @Component({
   selector: 'ui-icon',

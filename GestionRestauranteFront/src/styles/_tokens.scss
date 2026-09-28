@@ -76,3 +76,37 @@
   /* Tipografia */
   --font-family: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* ---- Modo oscuro ----
+   ThemeService fija data-theme en <html>; redefine solo los tokens semanticos (nunca los
+   componentes) para que el cambio se propague solo con las variables, sin tocar ningun .scss
+   de componente - todo el proyecto ya consume color a traves de estas variables. */
+:root[data-theme="dark"] {
+  --color-bg: #161d24;
+  --color-surface: var(--neutral-10);
+  --color-surface-hover: var(--neutral-20);
+
+  --color-text-primary: var(--neutral-99);
+  --color-text-secondary: var(--neutral-80);
+  --color-text-disabled: var(--neutral-50);
+
+  --color-primary: #14b8ac;
+  --color-primary-hover: #0f9a90;
+  --color-primary-light: rgba(20, 184, 172, 0.16);
+
+  --color-success: #22c55e;
+  --color-success-light: rgba(34, 197, 94, 0.16);
+  --color-success-border: rgba(34, 197, 94, 0.4);
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d18a0a;
+  --color-warning-light: rgba(245, 158, 11, 0.16);
+  --color-warning-border: rgba(245, 158, 11, 0.4);
+  --color-danger: #f87171;
+  --color-danger-light: rgba(248, 113, 113, 0.16);
+  --color-danger-border: rgba(248, 113, 113, 0.4);
+
+  --color-border: var(--neutral-30);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 3px rgba(20, 184, 172, 0.4);
+}

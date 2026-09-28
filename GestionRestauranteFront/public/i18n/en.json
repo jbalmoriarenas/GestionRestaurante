@@ -24,7 +24,9 @@
   },
   "topbar": {
     "logout": "Log out",
-    "menu": "Open menu"
+    "menu": "Open menu",
+    "modoOscuro": "Switch to dark mode",
+    "modoClaro": "Switch to light mode"
   },
   "login": {
     "title": "La Zapica",

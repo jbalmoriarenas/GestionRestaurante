@@ -24,7 +24,9 @@
   },
   "topbar": {
     "logout": "Cerrar sesión",
-    "menu": "Abrir menú"
+    "menu": "Abrir menú",
+    "modoOscuro": "Activar modo oscuro",
+    "modoClaro": "Activar modo claro"
   },
   "login": {
     "title": "La Zapica",
