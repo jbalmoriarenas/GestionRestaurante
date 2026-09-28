@@ -4,6 +4,10 @@
 
 # Log file
 *.log
+# *.log solo cubre "termina en .log" — los logs de stderr de este proyecto se llaman
+# "*.log.err" (backend.log.err, maildev.log.err...) y no encajaban en ese patron, por lo
+# que se colaron trackeados por error y bloqueaban cualquier cambio de rama.
+*.log.err
 
 # Package Files
 *.jar

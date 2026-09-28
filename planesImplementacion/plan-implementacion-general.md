@@ -9,10 +9,13 @@ Aplicación de gestión integral para un restaurante, compuesta por varios módu
 3. **Gestión de facturas** — facturas de proveedores y de suministros (luz, agua...), en pestañas separadas; digitalizar (foto o PDF, con conversión automática de foto a PDF), extraer datos automáticamente (OCR) y consultar facturas con filtros avanzados, paginación y exportación a Excel o a ZIP con los archivos originales del periodo.
 4. **Gestión de nóminas** — mantener el listado de empleados, subir PDFs/ZIPs de nóminas y enviarlas por email.
 5. **Gestión de valoraciones** — conexión OAuth con la cuenta de Google Business Profile del restaurante, sincronización periódica (no un stream en vivo, Google no lo ofrece) de sus reseñas de Google, y panel de consulta con resumen (media, distribución por estrellas) y filtros.
+6. **Configuración** — datos de empresa (nombre y logo, visibles en la cabecera de toda la app), y punto único de configuración para la ubicación/radio de la geovalla de fichaje y los días de vacaciones anuales por defecto (antes embebidos en otras vistas).
 
 Es un único restaurante (sin multi-sede por ahora) con dos roles de usuario: **Admin** y **Empleado**.
 
 Este documento es un plan **general** (arquitectura + fases), no un desglose ticket a ticket. Cada fase deberá convertirse en tickets/planes de detalle más adelante.
+
+Además de estas seis fases numeradas, hay dos **planes de cumplimiento normativo** documentados aparte (`integracion_verifactu-*.md` y `fichajes_vacaciones_2027-*.md`, en `bbdd/`/`back/`/`front/`): preparación técnica para la facturación verificable VeriFactu y para el nuevo registro horario digital, ambos con fecha de entrada en vigor propia (ver "Notas adicionales"). No son funcionalidad de producto priorizada por el usuario, por lo que se mantienen fuera de la numeración secuencial de fases hasta que se decida implementarlos.
 
 ## Stack tecnológico
 
@@ -37,6 +40,8 @@ A añadir según los módulos:
 - **Spring Boot Starter Validation** (ya incluido) — validación de formularios en los distintos módulos.
 - **OAuth 2.0 contra Google (Business Profile / "Google My Business API v4")** — conexión y sincronización de reseñas, Fase 4. Sin SDK oficial de Google: llamadas REST directas vía `RestClient` de Spring, para no añadir una dependencia pesada solo para un puñado de endpoints (decisión tomada en la Fase 4.1, ver `back/fase4-1-back.md`). Requiere un proyecto en Google Cloud con acceso aprobado a esa API (aprobación manual de Google, puede tardar días) y que la cuenta de Google Business Profile del restaurante autorice el acceso.
 - **Spring `@Scheduled`** (ya incluido en Spring Boot, sin dependencia nueva) — primera tarea programada del proyecto, sincronización periódica de reseñas (Fase 4.1).
+- **Sin dependencias nuevas para la Fase 5 (Configuración)**: reutiliza `FileStorageService` (logo) y `EMPLEADOS:EDICION` (permiso) ya existentes.
+- **ZXing** (`com.google.zxing:core`+`javase`) — generación de códigos QR, **solo si se decide implementar** `integracion_verifactu-back.md` (fuera de la numeración secuencial de fases, ver "Contexto y objetivo"). El plan de cumplimiento de registro horario (`fichajes_vacaciones_2027-back.md`) no requiere ninguna dependencia nueva (reutiliza Apache POI ya listado).
 
 ## Análisis funcional y supuestos
 
@@ -132,7 +137,12 @@ GestionRestaurante/
 **Valoracion** (esquema definitivo, ver [`bbdd/fase4-1-bbdd.md`](./bbdd/fase4-1-bbdd.md))
 `id, google_review_id (único, clave de sincronización), autor_nombre, autor_foto_url (nullable), puntuacion (1-5), comentario (nullable), fecha_publicacion, fecha_actualizacion (nullable), fecha_sincronizacion` — una fila por reseña de Google ya sincronizada; el front nunca consulta la API de Google directamente, siempre lee esta tabla.
 
+**ConfiguracionEmpresa** (esquema definitivo, ver [`bbdd/fase5-1-bbdd.md`](./bbdd/fase5-1-bbdd.md))
+`id (fijo a 1), nombre_empresa, logo_ruta (nullable), logo_nombre_original (nullable), updated_at, actualizado_por_admin_id (nullable)` — fila única (mismo patrón que `configuracion_ubicacion`), con `INSERT` inicial (a diferencia de `ConexionGoogleBusiness`): la fila siempre existe, sembrada con el nombre real del negocio; el logo nace sin configurar. Lectura abierta a cualquier usuario autenticado (se muestra en la cabecera de toda la app); escritura solo `ADMIN`.
+
 Relaciones: `TipoUsuario 1—N Empleado`, `TipoUsuario 1—N Permiso`, `Vista 1—N Permiso`, `Empleado 1—N Fichaje`, `Empleado 1—N SolicitudVacaciones`, `Empleado 1—N Nomina`, `Proveedor 1—N Factura`, `Empleado 1—N ConexionGoogleBusiness` (en la práctica, 0 o 1 fila — quién la conectó).
+
+**Modelo de datos de los planes de cumplimiento normativo** (VeriFactu, registro horario 2027): no se duplica aquí para evitar que este documento se desincronice de sus propios planes de detalle — ver el modelo completo en [`bbdd/integracion_verifactu-bbdd.md`](./bbdd/integracion_verifactu-bbdd.md) (`ConfiguracionEmisorFiscal`, `RegistroFacturacionVerifactu`) y [`bbdd/fichajes_vacaciones_2027-bbdd.md`](./bbdd/fichajes_vacaciones_2027-bbdd.md) (`FichajeHistorialCorreccion`, nuevas columnas de `Fichaje`/`SolicitudVacaciones`).
 
 ## Desglose de fases
 
@@ -233,7 +243,16 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 - **Riesgo alto** — aprobación de acceso de Google a la API de reseñas (manual, puede tardar días); no bloquea el desarrollo pero sí el uso con la cuenta real antes de que Google la apruebe. Ver "Riesgos y dependencias".
 - **Independiente de las Fases 1, 2 y 3** — solo depende de la Fase 0 (empleados + catálogo de permisos), puede desarrollarse en paralelo a cualquiera de ellas.
 
-### Fase 5 — Pulido y cierre
+### Fase 5 — Configuración (datos de empresa, y consolidación de ubicación/vacaciones)
+
+Un único bloque, con su propio plan de detalle (BBDD + Backend + Frontend): [`bbdd/fase5-1-bbdd.md`](./bbdd/fase5-1-bbdd.md) · [`back/fase5-1-back.md`](./back/fase5-1-back.md) · [`front/fase5-1-front.md`](./front/fase5-1-front.md).
+
+- [BBDD, baja] Tabla `configuracion_empresa` (fila única, mismo patrón que `configuracion_ubicacion`): nombre del negocio y ruta del logo. Reutiliza `EMPLEADOS:EDICION`, sin vista/permiso nuevo.
+- [Backend, media] `ConfiguracionController` (ya existente) se amplía con una tercera sección: lectura (`GET`) abierta a cualquier usuario autenticado (el nombre/logo se muestran en la cabecera de toda la app), escritura (`PUT`, multipart) restringida a `EMPLEADOS:EDICION`. Reutiliza `FileStorageService` para el logo, mismo patrón que el archivo de una factura.
+- [Frontend, alta] Primera vista dedicada `/configuracion` del proyecto: datos de empresa (nombre + logo con previsualización) y, consolidados aquí, los formularios de ubicación de fichaje y días de vacaciones por defecto que hasta ahora vivían embebidos dentro de `fichajes-admin`/`vacaciones-admin`. La cabecera de la aplicación muestra el logo/nombre a todos los usuarios, no solo dentro de esta vista de Admin.
+- **Independiente de las Fases 1, 2, 3 y 4** — solo depende de la Fase 0.
+
+### Fase 6 — Pulido y cierre
 - [Frontend, baja] Dashboard/resumen (horas del mes, facturas pendientes de revisar, nóminas pendientes de enviar, valoración media reciente).
 - [Backend/Frontend, media] Tests de integración de los flujos críticos (fichaje, envío de nómina, subida de factura, sincronización de valoraciones).
 - [Transversal, media] Revisión de seguridad (control de acceso a ficheros ajenos, validación de tipos/tamaños de archivo subido, rotación de la clave de cifrado de `refresh_token_cifrado`).
@@ -259,11 +278,12 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 - **Riesgo medio — formatos de imagen no soportados**: Tesseract/`ImageIO` no leen HEIC (formato por defecto de fotos de iPhone) sin conversión previa — fuera de alcance salvo que se confirme como caso de uso real.
 - **Riesgo medio — matching automático de nóminas en un ZIP**: si el ZIP no sigue una convención de nombres consistente, el sistema no podrá asociar automáticamente cada PDF a su empleado. Mitigación: definir una convención de nombre de fichero desde el principio (p.ej. `DNI_AAAA-MM.pdf`) y dejar siempre una pantalla de asignación manual como red de seguridad.
 - **Riesgo medio — entregabilidad de emails con nóminas adjuntas**: datos sensibles (nóminas) por email requieren cuidado; valorar cifrado del PDF con contraseña (p.ej. el DNI del empleado) o enviar un enlace de descarga temporal en vez del adjunto directo, según las políticas de protección de datos que se quieran aplicar.
-- **Dependencia**: los módulos de Fichaje, Vacaciones, Facturas, Nóminas y Valoraciones dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
+- **Dependencia**: los módulos de Fichaje, Vacaciones, Facturas, Nóminas, Valoraciones y Configuración dependen todos de que la Fase 0 (empleados + auth) esté terminada primero.
 - **Riesgo medio — mantenimiento del catálogo de festivos**: se siembra por SQL año a año (ver `bbdd/fase1-2-bbdd.md`); si no se actualiza, el cálculo de días laborables de vacaciones sobreestimará ligeramente los días consumidos a partir del año no sembrado.
 - **Riesgo bajo — volumen de almacenamiento**: facturas y nóminas en disco local crecen con el tiempo; planear rotación/backup del directorio `uploads/` o migración a almacenamiento externo si el volumen lo justifica.
 - **Riesgo alto — aprobación de acceso de Google a la API de reseñas (Fase 4)**: la API de reseñas de Google Business Profile ("Google My Business API v4") requiere solicitud y aprobación manual de Google, que puede tardar días — no bloquea el desarrollo del código (se puede probar contra cuentas de prueba autorizadas explícitamente) pero sí el uso en producción con la cuenta real de "Sidrería La Zapica"; iniciar el trámite lo antes posible. Detalle en `back/fase4-1-back.md`.
 - **Riesgo medio — dependencia de un servicio externo fuera de control del proyecto (Fase 4)**: cambios de cuota, deprecación de la API (ya ha ocurrido una vez con "Google My Business API") o revocación del acceso desde la propia cuenta de Google rompen la sincronización de valoraciones; mitigado por el registro visible de errores (`ultimoError`) y porque un fallo aquí nunca afecta al resto de la app.
+- **Riesgo alto — los planes de cumplimiento normativo dependen de textos legales aún en tramitación**: ni el Real Decreto de VeriFactu ni el de registro horario digital tenían, al escribir este documento, su redacción final publicada — los algoritmos/esquemas implementados en `integracion_verifactu-back.md` y `fichajes_vacaciones_2027-back.md` son la mejor interpretación pública disponible en ese momento, aislados detrás de interfaces propias para poder ajustarlos sin rediseño si el texto definitivo difiere. No se recomienda planificar su despliegue a producción hasta acercarse a la fecha real de entrada en vigor de cada uno.
 
 ## Criterios de aceptación técnicos (a nivel de proyecto)
 
@@ -276,13 +296,16 @@ Resumen (ver cada documento para el desglose completo de subtareas):
 - El envío de una nómina por email requiere una acción explícita del Admin (nunca ocurre solo al subir el archivo) y queda registrado (fecha y quién lo envió). El único canal por el que un Empleado recibe su nómina es el email.
 - Ningún endpoint de datos de otro empleado (fichajes) es accesible por un Empleado que no sea el propietario.
 - Un Admin puede conectar la cuenta de Google Business Profile del restaurante vía OAuth, ver el estado de esa conexión (incluido el último error, si lo hay), forzar una sincronización manual y desconectarla; las reseñas sincronizadas son consultables con resumen (media, distribución por estrellas) y filtro por puntuación. Un Empleado no tiene acceso ni a la vista ni a los endpoints de Valoraciones.
+- Cualquier usuario autenticado (Admin o Empleado) ve el nombre y logo de la empresa en la cabecera de la app; solo un Admin puede editarlos, junto con la ubicación/radio de la geovalla de fichaje y los días de vacaciones anuales por defecto, desde la vista única `/configuracion`.
 
 ## Notas adicionales
 
 - **Orden real de implementación (revisado tras cerrar la Fase 1)**: este plan asumía originalmente 0→1→2→3→4 (con la Fase 2 dividida en un bloque base y un bloque de OCR), pero el usuario decidió implementar la **Fase 3 (Nóminas) antes que la Fase 2 (Facturas)** por ser más rápida de construir — ambas son independientes entre sí (ninguna depende de datos ni de clases de la otra, solo de la Fase 0), así que el orden entre ellas no tiene impacto técnico, solo de priorización. El orden real pasa a ser 0→1→3→2, y ahora con Valoraciones añadida, 0→1→3→2→4→5 (ver el punto siguiente sobre por qué la Fase 4 no tiene por qué ir forzosamente después de la 2, solo se numera así por orden de incorporación al plan).
 - **Renumeración de la Fase 2 (revisado al detallar sus planes de subfase)**: el desglose original separaba "Fase 2" (MVP sin OCR) de "Fase 2.1" (OCR) como dos fases distintas. Al planificar el detalle se consolidan en una única **Fase 2** con tres subfases — **2.1** (modelo + listado en pestañas + alta manual), **2.2** (exportación a Excel) y **2.3** (lo que antes era "Fase 2.1": extracción OCR + campos dinámicos) — siguiendo el mismo esquema de numeración por bloques ya usado en la Fase 1 (1.1–1.4) y la Fase 3 (3.1–3.3). No cambia el alcance funcional, solo el agrupamiento y el orden en que se detalla (la exportación a Excel, no prevista en el desglose original, se intercala como 2.2 antes del OCR porque no depende de él).
 - **Fase 4 — Valoraciones (añadida en una revisión posterior)**: no estaba en el desglose original; se incorpora como Fase 4, empujando lo que era "Fase 4 — Pulido y cierre" a **Fase 5**. Es **independiente de las Fases 1, 2 y 3** (solo depende de la Fase 0), así que su posición en la numeración es por orden de incorporación al plan, no por una dependencia real — podría haberse implementado en paralelo a cualquiera de ellas, y de hecho es buena candidata a desarrollarse mientras se espera la aprobación de Google del punto siguiente.
-- Este plan asume que las Fases se implementan en el orden 0→1→2→3→4→5, pero Fichajes/Vacaciones (Fase 1), Facturas (Fase 2.1/2.2, sin OCR), Nóminas (Fase 3) y Valoraciones (Fase 4) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
+- **Fase 5 — Configuración (añadida en una revisión posterior)**: mismo caso que la Fase 4 — no estaba en el desglose original; se incorpora como Fase 5, empujando "Pulido y cierre" a **Fase 6**. Es **independiente de las Fases 1, 2, 3 y 4** (solo depende de la Fase 0). Nace acotada a los datos de empresa (nombre y logo), pero de paso consolida en una única vista los formularios de `configuracion_ubicacion`/`configuracion_vacaciones` que hasta entonces vivían embebidos dentro de `fichajes-admin`/`vacaciones-admin` (ver `front/fase5-1-front.md`).
+- **Planes de cumplimiento normativo fuera de esta numeración secuencial** (`integracion_verifactu-*.md`, `fichajes_vacaciones_2027-*.md`): no son "Fase 6/7" de este plan porque no son funcionalidad de producto priorizada, sino preparación para obligaciones legales con fecha de entrada en vigor propia (VeriFactu, registro horario digital) — se documentan aparte. Su numeración de migraciones (V39-V41 y V42-V44 respectivamente) y la de la Fase 5 de este plan (V45, `bbdd/fase5-1-bbdd.md`) son **provisionales**: cada documento indica qué asume que se aplica antes; el orden real depende de cuál se implemente primero, y el que vaya primero reclama los números más bajos — renumerar el resto en consecuencia al implementar.
+- Este plan asume que las Fases se implementan en el orden 0→1→2→3→4→5→6, pero Fichajes/Vacaciones (Fase 1), Facturas (Fase 2.1/2.2, sin OCR), Nóminas (Fase 3), Valoraciones (Fase 4) y Configuración (Fase 5) son independientes entre sí y podrían desarrollarse en paralelo si hay más de una persona disponible, siempre que la Fase 0 ya esté cerrada.
 - Dentro de la Fase 1, las vistas 1.1 (Fichaje empleado) y 1.2 (Vacaciones empleado) son independientes entre sí y se pueden desarrollar en paralelo; 1.3 depende de que 1.1 esté terminada (reutiliza su esquema y sus clases) y 1.4 depende de que 1.2 esté terminada, por la misma razón.
 - Dentro de la Fase 2, **2.1 y 2.2 son independientes de 2.3** (el listado, los filtros y la exportación no dependen de que el OCR exista) — se pueden desarrollar y desplegar sin bloquear en el OCR, igual que ya se recomendaba en el desglose original. **2.2 depende de 2.1** (reutiliza `FacturaRepository`/entidades) y **2.3 depende de 2.1** (extiende su endpoint de alta) pero no de 2.2.
 - Antes de arrancar la Fase 2.3 (OCR), conviene una prueba de concepto rápida con 5-10 facturas reales variadas (proveedores y suministros) para validar la precisión de Tesseract sobre casos reales antes de dar por buena la decisión tomada en "Decisiones técnicas", en vez de descubrirlo ya con el pipeline completo construido.
