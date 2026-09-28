@@ -49,8 +49,11 @@
         <ui-input
           [label]="'empleados.form.password' | translate"
           type="password"
+          autocomplete="new-password"
           placeholder="********"
           formControlName="password"
+          [showPasswordLabel]="'common.showPassword' | translate"
+          [hidePasswordLabel]="'common.hidePassword' | translate"
           [errorMessage]="passwordErrorMessage()"
         />
       }

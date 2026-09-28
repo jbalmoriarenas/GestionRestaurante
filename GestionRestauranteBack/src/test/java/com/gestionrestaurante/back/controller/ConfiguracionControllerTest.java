@@ -6,9 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.gestionrestaurante.back.dto.ConfiguracionEmpresaLogoDTO;
+import com.gestionrestaurante.back.entity.ConfiguracionEmpresa;
 import com.gestionrestaurante.back.entity.ConfiguracionUbicacion;
 import com.gestionrestaurante.back.entity.ConfiguracionVacaciones;
+import com.gestionrestaurante.back.exception.LogoEmpresaNoConfiguradoException;
 import com.gestionrestaurante.back.security.JwtAuthFilter;
+import com.gestionrestaurante.back.service.ConfiguracionEmpresaService;
 import com.gestionrestaurante.back.service.ConfiguracionUbicacionService;
 import com.gestionrestaurante.back.service.ConfiguracionVacacionesService;
 import java.math.BigDecimal;
@@ -44,6 +48,8 @@ class ConfiguracionControllerTest {
     private ConfiguracionUbicacionService configuracionUbicacionService;
     @MockitoBean
     private ConfiguracionVacacionesService configuracionVacacionesService;
+    @MockitoBean
+    private ConfiguracionEmpresaService configuracionEmpresaService;
 
     private static Authentication autenticacionDeAdmin() {
         var authentication = new UsernamePasswordAuthenticationToken(
@@ -94,5 +100,67 @@ class ConfiguracionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"diasAnualesDefecto\":0}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void obtenerEmpresa_devuelveNombreYUrlDeLogoCuandoHayUno() throws Exception {
+        ConfiguracionEmpresa configuracion = new ConfiguracionEmpresa();
+        configuracion.setNombreEmpresa("Sidrería La Zapica");
+        configuracion.setLogoRuta("empresa/logo.png");
+        when(configuracionEmpresaService.obtener()).thenReturn(configuracion);
+
+        mockMvc.perform(get("/api/configuracion/empresa").principal(autenticacionDeAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombreEmpresa").value("Sidrería La Zapica"))
+                .andExpect(jsonPath("$.logoUrl").value("/api/configuracion/empresa/logo"));
+    }
+
+    @Test
+    void obtenerEmpresa_sinLogoConfiguradoDevuelveLogoUrlNull() throws Exception {
+        ConfiguracionEmpresa configuracion = new ConfiguracionEmpresa();
+        configuracion.setNombreEmpresa("Sidrería La Zapica");
+        when(configuracionEmpresaService.obtener()).thenReturn(configuracion);
+
+        mockMvc.perform(get("/api/configuracion/empresa").principal(autenticacionDeAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.logoUrl").doesNotExist());
+    }
+
+    @Test
+    void actualizarEmpresa_conNombreVacioResponde400SinLlamarAlServicio() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .multipart(org.springframework.http.HttpMethod.PUT, "/api/configuracion/empresa")
+                        .param("nombreEmpresa", "")
+                        .principal(autenticacionDeAdmin()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void actualizarEmpresa_conEmailRemitenteConFormatoInvalidoResponde400() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .multipart(org.springframework.http.HttpMethod.PUT, "/api/configuracion/empresa")
+                        .param("nombreEmpresa", "Sidrería La Zapica")
+                        .param("emailRemitente", "no-es-un-email")
+                        .principal(autenticacionDeAdmin()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void obtenerLogoEmpresa_sinLogoConfiguradoResponde404() throws Exception {
+        when(configuracionEmpresaService.obtenerLogo()).thenThrow(new LogoEmpresaNoConfiguradoException());
+
+        mockMvc.perform(get("/api/configuracion/empresa/logo").principal(autenticacionDeAdmin()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void obtenerLogoEmpresa_conLogoConfiguradoDevuelveElRecursoConSuContentType() throws Exception {
+        org.springframework.core.io.Resource recurso = new org.springframework.core.io.ByteArrayResource(new byte[] {1, 2, 3});
+        when(configuracionEmpresaService.obtenerLogo())
+                .thenReturn(new ConfiguracionEmpresaLogoDTO(recurso, MediaType.IMAGE_PNG));
+
+        mockMvc.perform(get("/api/configuracion/empresa/logo").principal(autenticacionDeAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentType(MediaType.IMAGE_PNG));
     }
 }

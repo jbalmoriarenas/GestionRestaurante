@@ -1,17 +1,33 @@
 <header class="topbar">
-  <button type="button" class="menu-toggle" (click)="toggleMenu()" [attr.aria-label]="'topbar.menu' | translate">
-    <ui-icon name="menu" />
-  </button>
-  <div class="spacer"></div>
-  @if (currentUser(); as user) {
-    <div class="user">
-      <div class="user-info">
-        <span class="name">{{ user.nombre }} {{ user.apellidos }}</span>
-        <span class="role">{{ user.tipoUsuario.nombre }}</span>
-      </div>
-      <button type="button" class="logout" (click)="logout()" [attr.aria-label]="'topbar.logout' | translate">
-        <ui-icon name="logout" />
-      </button>
-    </div>
+  <div class="topbar-left">
+    <button type="button" class="menu-toggle" (click)="toggleMenu()" [attr.aria-label]="'topbar.menu' | translate">
+      <ui-icon name="menu" />
+    </button>
+  </div>
+
+  @if (pageTitle(); as tituloKey) {
+    <h1 class="page-title">{{ tituloKey | translate }}</h1>
   }
+
+  <div class="topbar-right">
+    <button
+      type="button"
+      class="theme-toggle"
+      (click)="toggleTheme()"
+      [attr.aria-label]="(theme() === 'dark' ? 'topbar.modoClaro' : 'topbar.modoOscuro') | translate"
+    >
+      <ui-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+    @if (currentUser(); as user) {
+      <div class="user">
+        <div class="user-info">
+          <span class="name">{{ user.nombre }} {{ user.apellidos }}</span>
+          <span class="role">{{ user.tipoUsuario.nombre }}</span>
+        </div>
+        <button type="button" class="logout" (click)="logout()" [attr.aria-label]="'topbar.logout' | translate">
+          <ui-icon name="logout" />
+        </button>
+      </div>
+    }
+  </div>
 </header>

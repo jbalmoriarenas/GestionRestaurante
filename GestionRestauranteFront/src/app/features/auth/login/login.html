@@ -1,28 +1,72 @@
-<div class="login-page">
-  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
-    <img src="logo.jpg" alt="" class="login-logo" />
-    <h1>{{ 'login.title' | translate }}</h1>
+<div class="login-shell">
+  <div class="login-page">
+    <form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
+      <img src="logo.jpg" alt="" class="login-logo" />
+      <h1>{{ 'login.title' | translate }}</h1>
 
-    <ui-input
-      [label]="'login.email' | translate"
-      type="email"
-      [placeholder]="'login.emailPlaceholder' | translate"
-      formControlName="email"
-      [errorMessage]="form.controls.email.touched && form.controls.email.invalid ? ('login.emailError' | translate) : null"
-    />
+      <ui-input
+        [label]="'login.email' | translate"
+        type="email"
+        autocomplete="username"
+        [placeholder]="'login.emailPlaceholder' | translate"
+        formControlName="email"
+        [errorMessage]="form.controls.email.touched && form.controls.email.invalid ? ('login.emailError' | translate) : null"
+      />
 
-    <ui-input
-      [label]="'login.password' | translate"
-      type="password"
-      placeholder="••••••••"
-      formControlName="password"
-      [errorMessage]="form.controls.password.touched && form.controls.password.invalid ? ('login.passwordError' | translate) : null"
-    />
+      <ui-input
+        [label]="'login.password' | translate"
+        type="password"
+        autocomplete="current-password"
+        placeholder="••••••••"
+        formControlName="password"
+        [showPasswordLabel]="'common.showPassword' | translate"
+        [hidePasswordLabel]="'common.hidePassword' | translate"
+        [errorMessage]="form.controls.password.touched && form.controls.password.invalid ? ('login.passwordError' | translate) : null"
+      />
 
-    @if (errorMessage()) {
-      <p class="form-error">{{ errorMessage() }}</p>
-    }
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
 
-    <ui-button type="submit" [loading]="loading()">{{ 'login.submit' | translate }}</ui-button>
-  </form>
+      <ui-button type="submit" [loading]="loading()">{{ 'login.submit' | translate }}</ui-button>
+
+      <button type="button" class="link-recuperacion" (click)="abrirModalRecuperacion()">
+        {{ 'login.olvideContrasena' | translate }}
+      </button>
+    </form>
+  </div>
+  <app-footer />
 </div>
+
+<ui-modal
+  [open]="mostrarModalRecuperacion()"
+  [title]="'login.modalRecuperacion.titulo' | translate"
+  [closeLabel]="'common.close' | translate"
+  (closed)="cerrarModalRecuperacion()"
+>
+  @if (recuperacionEnviada()) {
+    <p>{{ 'login.modalRecuperacion.confirmacion' | translate }}</p>
+  } @else {
+    <form [formGroup]="formRecuperacion" (ngSubmit)="enviarRecuperacion()">
+      <ui-input
+        [label]="'login.modalRecuperacion.email' | translate"
+        type="email"
+        autocomplete="email"
+        [placeholder]="'login.emailPlaceholder' | translate"
+        formControlName="email"
+        [errorMessage]="formRecuperacion.controls.email.touched && formRecuperacion.controls.email.invalid ? ('login.emailError' | translate) : null"
+      />
+      @if (errorRecuperacion()) {
+        <p class="form-error">{{ errorRecuperacion() }}</p>
+      }
+    </form>
+  }
+  <div modal-footer>
+    @if (recuperacionEnviada()) {
+      <ui-button (click)="cerrarModalRecuperacion()">{{ 'login.modalRecuperacion.cerrar' | translate }}</ui-button>
+    } @else {
+      <ui-button variant="secondary" (click)="cerrarModalRecuperacion()">{{ 'common.cancel' | translate }}</ui-button>
+      <ui-button [loading]="enviandoRecuperacion()" (click)="enviarRecuperacion()">{{ 'login.modalRecuperacion.enviar' | translate }}</ui-button>
+    }
+  </div>
+</ui-modal>

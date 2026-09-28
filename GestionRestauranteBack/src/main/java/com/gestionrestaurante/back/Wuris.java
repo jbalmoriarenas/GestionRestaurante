@@ -18,6 +18,8 @@ public final class Wuris {
 
         public static final String BASE = API + "/auth";
         public static final String LOGIN = BASE + "/login";
+        public static final String RECUPERACION_SOLICITAR = BASE + "/recuperacion/solicitar";
+        public static final String RECUPERACION_RESTABLECER = BASE + "/recuperacion/restablecer";
         /** Patron usado en SecurityConfig para dejar publico todo el paquete de autenticacion. */
         public static final String PUBLIC_PATTERN = BASE + "/**";
     }
@@ -65,6 +67,8 @@ public final class Wuris {
 
         public static final String UBICACION = API + "/configuracion/ubicacion";
         public static final String VACACIONES = API + "/configuracion/vacaciones";
+        public static final String EMPRESA = API + "/configuracion/empresa";
+        public static final String EMPRESA_LOGO = EMPRESA + "/logo";
     }
 
     public static final class Vacaciones {

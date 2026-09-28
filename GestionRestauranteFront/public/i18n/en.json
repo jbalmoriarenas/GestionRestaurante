@@ -1,6 +1,10 @@
 {
   "app": {
-    "brand": "La Zapica"
+    "brand": "Mavero"
+  },
+  "footer": {
+    "eslogan": "Mavero — Your whole restaurant, one click away.",
+    "derechosReservados": "All rights reserved."
   },
   "menu": {
     "fichajes": "Time tracking",
@@ -12,14 +16,17 @@
     "empleados": "Employees",
     "facturas": "Invoices",
     "nominas": "Payroll",
-    "valoraciones": "Reviews"
+    "valoraciones": "Reviews",
+    "configuracion": "Settings"
   },
   "sidebar": {
     "language": "Language"
   },
   "topbar": {
     "logout": "Log out",
-    "menu": "Open menu"
+    "menu": "Open menu",
+    "modoOscuro": "Switch to dark mode",
+    "modoClaro": "Switch to light mode"
   },
   "login": {
     "title": "La Zapica",
@@ -30,7 +37,26 @@
     "emailError": "Enter a valid email",
     "passwordError": "Password is required",
     "invalidCredentials": "Invalid credentials",
-    "genericError": "Could not sign in"
+    "genericError": "Could not sign in",
+    "olvideContrasena": "Forgot your password?",
+    "modalRecuperacion": {
+      "titulo": "Recover password",
+      "email": "Email",
+      "enviar": "Send",
+      "confirmacion": "If the email exists, we've sent you a link to reset your password.",
+      "cerrar": "Close"
+    }
+  },
+  "restablecerPassword": {
+    "titulo": "Reset password",
+    "password": "New password",
+    "confirmarPassword": "Confirm password",
+    "passwordsNoCoinciden": "Passwords do not match",
+    "restablecer": "Reset password",
+    "exito": "Password updated successfully",
+    "enlaceInvalido": "This recovery link is invalid or has expired. Request a new one.",
+    "errorGenerico": "Could not reset password",
+    "volverALogin": "← Back to login"
   },
   "common": {
     "selectOption": "Select an option",
@@ -41,7 +67,9 @@
     "close": "Close",
     "previous": "← Previous",
     "next": "Next →",
-    "pageOf": "Page {{current}} of {{total}}"
+    "pageOf": "Page {{current}} of {{total}}",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "empleados": {
     "title": "Employees",
@@ -135,8 +163,7 @@
         "diario": "Daily",
         "semanal": "Weekly",
         "mensual": "Monthly",
-        "horarios": "Schedules",
-        "ubicacion": "Location"
+        "horarios": "Schedules"
       },
       "filtros": {
         "empleado": "Employee",
@@ -200,15 +227,6 @@
         "horaSalida": "Clock-out time",
         "observaciones": "Notes",
         "exito": "Clock-in fixed"
-      },
-      "ubicacion": {
-        "lat": "Latitude",
-        "lng": "Longitude",
-        "radio": "Radius (meters)",
-        "ayuda": "Employees will only be able to clock in within this radius around this point",
-        "sinConfigurar": "Location not configured: no employee will be able to clock in until you save it",
-        "actualizadoEl": "Last updated:",
-        "exito": "Location updated"
       }
     }
   },
@@ -311,15 +329,10 @@
         "motivo": "Rejection reason"
       },
       "configuracion": {
-        "global": {
-          "titulo": "Default annual time off days",
-          "ayuda": "Applies to every employee without a schedule of their own.",
-          "dias": "Annual days",
-          "guardar": "Save"
-        },
         "override": {
           "titulo": "Correct an employee's total days",
           "ayuda": "Select an employee to directly set their total available days this year (for example, if the automatic proration of their hire year isn't the right one). It can never exceed the global value ({{defecto}} days/year).",
+          "irAConfiguracion": "The global default is edited from Settings",
           "dias": "Total days available this year",
           "diasPlaceholder": "Empty = calculated automatically",
           "usaValorGlobal": "This employee has no total of their own: it's calculated automatically (prorated if it's their hire year), capped at {{defecto}} days/year",
@@ -333,8 +346,42 @@
         "aprobada": "Request approved",
         "rechazada": "Request rejected",
         "asignada": "Time off assigned",
-        "configuracionGuardada": "Settings updated",
         "overrideGuardado": "Employee's total days updated"
+      }
+    }
+  },
+  "configuracion": {
+    "admin": {
+      "titulo": "Settings",
+      "empresa": {
+        "titulo": "Company details",
+        "nombreEmpresa": "Company name",
+        "emailRemitente": "Email address emails are sent from",
+        "emailRemitentePlaceholder": "Leave empty to use the SMTP account's",
+        "emailRemitenteError": "Enter a valid email address",
+        "logo": "Logo",
+        "logoActual": "Current logo",
+        "sinLogo": "No logo configured",
+        "seleccionarArchivo": "Choose an image (JPEG, PNG or WEBP)",
+        "guardar": "Save",
+        "exito": "Company details updated"
+      },
+      "ubicacion": {
+        "titulo": "Clock-in location",
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "radio": "Radius (meters)",
+        "ayuda": "Employees will only be able to clock in within this radius around this point",
+        "sinConfigurar": "Location not configured: no employee will be able to clock in until you save it",
+        "actualizadoEl": "Last updated:",
+        "exito": "Location updated"
+      },
+      "vacaciones": {
+        "titulo": "Default annual time off days",
+        "ayuda": "Applies to every employee without a schedule of their own.",
+        "dias": "Annual days",
+        "guardar": "Save",
+        "exito": "Settings updated"
       }
     }
   },

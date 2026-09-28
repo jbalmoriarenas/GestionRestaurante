@@ -1,9 +1,10 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfiguracionService } from '../../core/services/configuracion.service';
 import { CodigoVista, NivelAcceso } from '../../core/models/permiso.model';
 import { AVAILABLE_LANGUAGES, storeLanguage } from '../../core/i18n/languages';
 import { LayoutService } from '../../core/services/layout.service';
@@ -16,11 +17,43 @@ import { MENU_ITEMS, MenuItem } from '../menu-items';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar {
+export class Sidebar implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly configuracionService = inject(ConfiguracionService);
   private readonly translateService = inject(TranslateService);
   private readonly layoutService = inject(LayoutService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // Nombre/logo de la empresa (back/fase5-1-back.md): se piden una sola vez, al montar el
+  // sidebar (persistente durante toda la sesion, no se recrea al navegar entre rutas hijas de
+  // Shell) - null hasta que responda obtenerEmpresa()/obtenerLogo(), momento en el que la
+  // plantilla cae de vuelta al logo/nombre estaticos por defecto.
+  readonly nombreEmpresa = signal<string | null>(null);
+  readonly logoUrl = signal<string | null>(null);
+  private ultimoLogoObjectUrl: string | null = null;
+
+  ngOnInit(): void {
+    this.configuracionService.obtenerEmpresa().subscribe((empresa) => {
+      this.nombreEmpresa.set(empresa.nombreEmpresa);
+      // El logo se pide como blob, nunca como <img src> directo: el endpoint exige un usuario
+      // autenticado y el interceptor de JWT solo se aplica a peticiones HttpClient
+      // (front/fase5-1-front.md).
+      if (empresa.logoUrl !== null) {
+        this.configuracionService.obtenerLogo().subscribe((blob) => {
+          const objectUrl = URL.createObjectURL(blob);
+          this.ultimoLogoObjectUrl = objectUrl;
+          this.logoUrl.set(objectUrl);
+        });
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.ultimoLogoObjectUrl) {
+        URL.revokeObjectURL(this.ultimoLogoObjectUrl);
+      }
+    });
+  }
 
   private readonly manualToggle = signal<Record<string, boolean>>({});
   private readonly currentUrl = toSignal(

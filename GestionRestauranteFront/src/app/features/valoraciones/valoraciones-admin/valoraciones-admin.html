@@ -1,6 +1,4 @@
 <div class="valoraciones-admin-page flex flex-col gap-xl">
-  <h1 class="section-heading">{{ 'valoraciones.admin.titulo' | translate }}</h1>
-
   @if (loadingEstado()) {
     <ui-card class="flex items-center gap-sm">
       <ui-spinner [label]="'common.loading' | translate" />

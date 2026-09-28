@@ -1,14 +1,9 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: var(--space-xl);
   gap: var(--space-lg);
-
-  h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-  }
 
   a {
     text-decoration: none;

@@ -1,6 +1,4 @@
 <div class="fichajes-admin-page flex flex-col gap-xl">
-  <h1 class="section-heading">{{ 'fichajes.admin.titulo' | translate }}</h1>
-
   <div class="tabs-shell" role="tablist">
     <button
       type="button"
@@ -49,18 +47,6 @@
       (click)="cambiarPestana('horarios')"
     >
       {{ 'fichajes.admin.pestanas.horarios' | translate }}
-    </button>
-    <button
-      type="button"
-      role="tab"
-      id="tab-ubicacion"
-      [attr.aria-selected]="pestana() === 'ubicacion'"
-      aria-controls="panel-ubicacion"
-      class="tab-button"
-      [class.tab-button--activa]="pestana() === 'ubicacion'"
-      (click)="cambiarPestana('ubicacion')"
-    >
-      {{ 'fichajes.admin.pestanas.ubicacion' | translate }}
     </button>
   </div>
 
@@ -211,25 +197,6 @@
         } @else if (!cargandoHorarioTeorico() && horarioTeoricoEmpleado()?.horasJornadaDiaria == null) {
           <p class="page-note">
             {{ 'fichajes.admin.horarios.usaValorGlobal' | translate: { horas: horasJornadaDefault } }}
-          </p>
-        }
-      </ui-card>
-    }
-    @case ('ubicacion') {
-      <ui-card role="tabpanel" id="panel-ubicacion" aria-labelledby="tab-ubicacion">
-        @if (ubicacionSinConfigurar()) {
-          <p class="notice-banner">{{ 'fichajes.admin.ubicacion.sinConfigurar' | translate }}</p>
-        }
-        <p class="page-note">{{ 'fichajes.admin.ubicacion.ayuda' | translate }}</p>
-        <form [formGroup]="ubicacionForm" (ngSubmit)="guardarUbicacion()" class="flex flex-wrap gap-lg items-end">
-          <ui-input [label]="'fichajes.admin.ubicacion.lat' | translate" type="number" formControlName="lat" />
-          <ui-input [label]="'fichajes.admin.ubicacion.lng' | translate" type="number" formControlName="lng" />
-          <ui-input [label]="'fichajes.admin.ubicacion.radio' | translate" type="number" formControlName="radioMetros" />
-          <ui-button type="submit" [loading]="guardandoUbicacion()">{{ 'common.save' | translate }}</ui-button>
-        </form>
-        @if (ubicacionActual(); as ubicacion) {
-          <p class="page-note">
-            {{ 'fichajes.admin.ubicacion.actualizadoEl' | translate }} {{ ubicacion.updatedAt }}
           </p>
         }
       </ui-card>

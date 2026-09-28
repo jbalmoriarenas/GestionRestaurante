@@ -46,24 +46,33 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({EmpleadoNotFoundException.class, TipoUsuarioNotFoundException.class,
             FichajeNotFoundException.class, SolicitudVacacionesNotFoundException.class,
             NominaNotFoundException.class, PendienteNoEncontradoException.class,
-            FacturaNotFoundException.class, ProveedorNotFoundException.class})
+            FacturaNotFoundException.class, ProveedorNotFoundException.class,
+            LogoEmpresaNoConfiguradoException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({ArchivoNoValidoException.class, ZipInvalidoException.class, ArchivoFacturaNoValidoException.class})
+    @ExceptionHandler({ArchivoNoValidoException.class, ZipInvalidoException.class, ArchivoFacturaNoValidoException.class,
+            LogoEmpresaFormatoNoValidoException.class})
     public ResponseEntity<ApiError> handleArchivoNoValido(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({EnvioNominaFallidoException.class, OcrNoDisponibleException.class, ConexionGoogleNoDisponibleException.class})
+    @ExceptionHandler({EnvioNominaFallidoException.class, EnvioRecuperacionPasswordFallidoException.class,
+            OcrNoDisponibleException.class, ConexionGoogleNoDisponibleException.class})
     public ResponseEntity<ApiError> handleEnvioNominaFallido(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_GATEWAY, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(EstadoOAuthInvalidoException.class)
-    public ResponseEntity<ApiError> handleEstadoOAuthInvalido(EstadoOAuthInvalidoException ex, HttpServletRequest request) {
+    @ExceptionHandler({EstadoOAuthInvalidoException.class, TokenRecuperacionInvalidoException.class})
+    public ResponseEntity<ApiError> handleEstadoOTokenInvalido(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SolicitudRecuperacionDemasiadoFrecuenteException.class)
+    public ResponseEntity<ApiError> handleSolicitudRecuperacionDemasiadoFrecuente(
+            SolicitudRecuperacionDemasiadoFrecuenteException ex, HttpServletRequest request) {
+        return build(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DiasVacacionesAnualesFueraDeRangoException.class)

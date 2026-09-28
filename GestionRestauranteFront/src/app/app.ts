@@ -2,6 +2,7 @@ import { Component, effect, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ThemeService } from './core/services/theme.service';
 import { NotificationHost } from './layout/notification-host/notification-host';
 
 @Component({
@@ -13,6 +14,9 @@ import { NotificationHost } from './layout/notification-host/notification-host';
 export class App {
   private readonly titleService = inject(Title);
   private readonly translateService = inject(TranslateService);
+  // Solo se inyecta para que su efecto (aplicar el tema al <html>) arranque desde el primer
+  // render, incluso en /login (fuera del Shell) - back/front sin ticket, a peticion del usuario.
+  private readonly themeService = inject(ThemeService);
 
   constructor() {
     // El <title> del index.html es estatico y vive fuera del bootstrap de Angular,

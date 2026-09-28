@@ -1,6 +1,4 @@
 <div class="vacaciones-admin-page flex flex-col gap-xl">
-  <h1 class="section-heading">{{ 'vacaciones.admin.titulo' | translate }}</h1>
-
   <div class="tabs-shell" role="tablist">
     <button
       type="button"
@@ -214,24 +212,12 @@
     @case ('configuracion') {
       <div role="tabpanel" id="panel-configuracion" aria-labelledby="tab-configuracion" class="flex flex-col gap-xl">
       <ui-card>
-        <h2 class="section-heading">{{ 'vacaciones.admin.configuracion.global.titulo' | translate }}</h2>
-        <p class="page-note">{{ 'vacaciones.admin.configuracion.global.ayuda' | translate }}</p>
-        <form [formGroup]="configuracionGlobalForm" (ngSubmit)="guardarConfiguracionGlobal()" class="flex flex-wrap gap-lg items-end">
-          <ui-input
-            [label]="'vacaciones.admin.configuracion.global.dias' | translate"
-            type="number"
-            formControlName="diasAnualesDefecto"
-          />
-          <ui-button type="submit" [loading]="guardandoConfiguracionGlobal()">
-            {{ 'vacaciones.admin.configuracion.global.guardar' | translate }}
-          </ui-button>
-        </form>
-      </ui-card>
-
-      <ui-card>
         <h2 class="section-heading">{{ 'vacaciones.admin.configuracion.override.titulo' | translate }}</h2>
         <p class="page-note">
           {{ 'vacaciones.admin.configuracion.override.ayuda' | translate: { defecto: diasAnualesGlobal() } }}
+        </p>
+        <p class="page-note">
+          <a routerLink="/configuracion">{{ 'vacaciones.admin.configuracion.override.irAConfiguracion' | translate }}</a>
         </p>
         <form [formGroup]="overrideForm" (ngSubmit)="guardarOverride()" class="flex flex-wrap gap-lg items-end">
           <ui-select
