@@ -53,4 +53,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { vista: 'FACTURAS', ruta: '/facturas', labelKey: 'facturas', icono: 'facturas' },
   { vista: 'NOMINAS', ruta: '/nominas', labelKey: 'nominas', icono: 'nominas' },
   { vista: 'VALORACIONES', ruta: '/valoraciones', labelKey: 'valoraciones', icono: 'valoraciones' },
+  // EMPLEADOS, no una vista propia: reutiliza el mismo permiso ya usado para editar
+  // ubicacion/vacaciones desde ConfiguracionController (back/fase5-1-back.md).
+  { vista: 'EMPLEADOS', ruta: '/configuracion', labelKey: 'configuracion', icono: 'configuracion', nivelMinimo: 'EDICION' },
 ];

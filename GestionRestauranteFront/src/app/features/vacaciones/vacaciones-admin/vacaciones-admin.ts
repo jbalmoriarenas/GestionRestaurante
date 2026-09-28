@@ -9,6 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, of, switchMap } from 'rxjs';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
@@ -66,7 +67,7 @@ function crearValidadorDiasVacaciones(obtenerTecho: () => number): ValidatorFn {
 
 @Component({
   selector: 'app-vacaciones-admin',
-  imports: [ReactiveFormsModule, UiCard, UiInput, UiSelect, UiButton, UiTable, UiModal, UiBadge, UiCalendar, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, UiCard, UiInput, UiSelect, UiButton, UiTable, UiModal, UiBadge, UiCalendar, TranslatePipe],
   templateUrl: './vacaciones-admin.html',
   styleUrl: './vacaciones-admin.scss',
 })
@@ -139,13 +140,9 @@ export class VacacionesAdmin implements OnInit {
   });
   readonly guardandoAsignacion = signal(false);
 
-  // Configuracion: valor global
+  // Valor global de dias anuales por defecto: solo lectura aqui (se edita desde /configuracion,
+  // front/fase5-1-front.md), se necesita como techo dinamico para validar el override de abajo.
   readonly diasAnualesGlobal = signal(DIAS_ANUALES_INICIAL);
-  readonly cargandoConfiguracionGlobal = signal(true);
-  readonly guardandoConfiguracionGlobal = signal(false);
-  readonly configuracionGlobalForm = this.formBuilder.nonNullable.group({
-    diasAnualesDefecto: [String(DIAS_ANUALES_INICIAL), [Validators.required, Validators.min(1), Validators.max(365)]],
-  });
 
   // Configuracion: sobrescritura por empleado
   readonly overrideForm = this.formBuilder.nonNullable.group({
@@ -323,31 +320,6 @@ export class VacacionesAdmin implements OnInit {
     });
   }
 
-  // ----- Configuracion: valor global -----
-
-  guardarConfiguracionGlobal(): void {
-    if (this.configuracionGlobalForm.invalid) {
-      this.configuracionGlobalForm.markAllAsTouched();
-      return;
-    }
-    const dias = Number(this.configuracionGlobalForm.getRawValue().diasAnualesDefecto);
-    this.guardandoConfiguracionGlobal.set(true);
-    this.configuracionService.actualizarVacaciones({ diasAnualesDefecto: dias }).subscribe({
-      next: (configuracion) => {
-        this.guardandoConfiguracionGlobal.set(false);
-        this.diasAnualesGlobal.set(configuracion.diasAnualesDefecto);
-        // El validador de "dias" lee diasAnualesGlobal() dinamicamente, pero Angular no
-        // vuelve a ejecutarlo solo porque la señal haya cambiado: hay que forzarlo para que
-        // un valor ya escrito que ahora supera el nuevo techo se marque invalido al momento.
-        this.overrideForm.controls.dias.updateValueAndValidity();
-        this.notificationService.success(
-          this.translateService.instant('vacaciones.admin.notificaciones.configuracionGuardada'),
-        );
-      },
-      error: () => this.guardandoConfiguracionGlobal.set(false),
-    });
-  }
-
   // ----- Configuracion: sobrescritura por empleado -----
 
   guardarOverride(): void {
@@ -471,14 +443,8 @@ export class VacacionesAdmin implements OnInit {
   }
 
   private cargarConfiguracionGlobal(): void {
-    this.cargandoConfiguracionGlobal.set(true);
-    this.configuracionService.obtenerVacaciones().subscribe({
-      next: (configuracion) => {
-        this.diasAnualesGlobal.set(configuracion.diasAnualesDefecto);
-        this.configuracionGlobalForm.controls.diasAnualesDefecto.setValue(String(configuracion.diasAnualesDefecto));
-        this.cargandoConfiguracionGlobal.set(false);
-      },
-      error: () => this.cargandoConfiguracionGlobal.set(false),
+    this.configuracionService.obtenerVacaciones().subscribe((configuracion) => {
+      this.diasAnualesGlobal.set(configuracion.diasAnualesDefecto);
     });
   }
 

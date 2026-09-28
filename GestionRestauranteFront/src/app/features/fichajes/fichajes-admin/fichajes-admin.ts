@@ -1,13 +1,11 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, of, switchMap } from 'rxjs';
-import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { EmpleadoService } from '../../../core/services/empleado.service';
 import { FichajeService } from '../../../core/services/fichaje.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { ConfiguracionUbicacion } from '../../../core/models/configuracion-ubicacion.model';
 import { Empleado } from '../../../core/models/empleado.model';
 import { Fichaje, FichajeResumenDia, FichajeResumenMes, FichajeResumenSemana } from '../../../core/models/fichaje.model';
 import { UiButton } from '../../../shared/ui/ui-button/ui-button';
@@ -18,7 +16,7 @@ import { UiSelect, UiSelectOption } from '../../../shared/ui/ui-select/ui-select
 import { UiTable } from '../../../shared/ui/ui-table/ui-table';
 import { horasATiempo, parsearHorasFlexible } from '../../../shared/utils/tiempo.util';
 
-type Pestana = 'diario' | 'semanal' | 'mensual' | 'horarios' | 'ubicacion';
+type Pestana = 'diario' | 'semanal' | 'mensual' | 'horarios';
 
 const PAGE_SIZE_DETALLE_DIA = 100;
 const HORAS_JORNADA_MINIMA = 1;
@@ -62,7 +60,6 @@ export class FichajesAdmin implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly fichajeService = inject(FichajeService);
   private readonly empleadoService = inject(EmpleadoService);
-  private readonly configuracionService = inject(ConfiguracionService);
   private readonly notificationService = inject(NotificationService);
   private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
@@ -97,20 +94,6 @@ export class FichajesAdmin implements OnInit {
     observaciones: [''],
   });
 
-  readonly cargandoUbicacion = signal(true);
-  readonly guardandoUbicacion = signal(false);
-  readonly ubicacionActual = signal<ConfiguracionUbicacion | null>(null);
-  readonly ubicacionForm = this.formBuilder.nonNullable.group({
-    lat: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-    lng: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
-    radioMetros: ['', [Validators.required, Validators.min(10), Validators.max(2000)]],
-  });
-
-  readonly ubicacionSinConfigurar = computed(() => {
-    const actual = this.ubicacionActual();
-    return actual !== null && actual.lat === 0 && actual.lng === 0;
-  });
-
   readonly horarioTeoricoForm = this.formBuilder.nonNullable.group({
     empleadoId: ['', Validators.required],
     horas: [String(HORAS_JORNADA_DEFAULT), [Validators.required, horasJornadaValidator]],
@@ -123,7 +106,6 @@ export class FichajesAdmin implements OnInit {
     this.empleadoService.listar(0, 100).subscribe((pagina) => {
       this.empleadoOptions.set(pagina.content.map((e) => ({ value: String(e.id), label: `${e.nombre} ${e.apellidos}` })));
     });
-    this.cargarUbicacion();
 
     // switchMap descarta la respuesta de un empleado anterior si el Admin ya selecciono
     // otro antes de que llegara: sin esto, una respuesta desordenada (red lenta) podia dejar
@@ -232,26 +214,6 @@ export class FichajesAdmin implements OnInit {
     });
   }
 
-  guardarUbicacion(): void {
-    if (this.ubicacionForm.invalid) {
-      this.ubicacionForm.markAllAsTouched();
-      return;
-    }
-
-    const raw = this.ubicacionForm.getRawValue();
-    this.guardandoUbicacion.set(true);
-    this.configuracionService
-      .actualizarUbicacion({ lat: Number(raw.lat), lng: Number(raw.lng), radioMetros: Number(raw.radioMetros) })
-      .subscribe({
-        next: (ubicacion) => {
-          this.guardandoUbicacion.set(false);
-          this.ubicacionActual.set(ubicacion);
-          this.notificationService.success(this.translateService.instant('fichajes.admin.ubicacion.exito'));
-        },
-        error: () => this.guardandoUbicacion.set(false),
-      });
-  }
-
   guardarHorarioTeorico(): void {
     if (this.horarioTeoricoForm.invalid) {
       this.horarioTeoricoForm.markAllAsTouched();
@@ -324,19 +286,4 @@ export class FichajesAdmin implements OnInit {
     });
   }
 
-  private cargarUbicacion(): void {
-    this.cargandoUbicacion.set(true);
-    this.configuracionService.obtenerUbicacion().subscribe({
-      next: (ubicacion) => {
-        this.ubicacionActual.set(ubicacion);
-        this.ubicacionForm.setValue({
-          lat: String(ubicacion.lat),
-          lng: String(ubicacion.lng),
-          radioMetros: String(ubicacion.radioMetros),
-        });
-        this.cargandoUbicacion.set(false);
-      },
-      error: () => this.cargandoUbicacion.set(false),
-    });
-  }
 }

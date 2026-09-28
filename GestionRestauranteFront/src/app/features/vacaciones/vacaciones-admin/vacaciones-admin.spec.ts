@@ -182,29 +182,6 @@ describe('VacacionesAdmin', () => {
     expect(componente.mostrarAsignarOficio()).toBe(false);
   });
 
-  it('guardarConfiguracionGlobal(): guarda el nuevo valor global y actualiza el techo del override', () => {
-    const componente = crearComponente();
-    configuracionServiceMock.actualizarVacaciones.mockReturnValue(of({ diasAnualesDefecto: 25, updatedAt: '2026-02-01T00:00:00Z' }));
-    componente.configuracionGlobalForm.controls.diasAnualesDefecto.setValue('25');
-
-    componente.guardarConfiguracionGlobal();
-
-    expect(configuracionServiceMock.actualizarVacaciones).toHaveBeenCalledWith({ diasAnualesDefecto: 25 });
-    expect(componente.diasAnualesGlobal()).toBe(25);
-  });
-
-  it('guardarConfiguracionGlobal(): si baja el techo por debajo de un valor ya escrito en el override, lo revalida al momento', () => {
-    const componente = crearComponente();
-    componente.overrideForm.controls.dias.setValue('20');
-    expect(componente.overrideForm.controls.dias.valid).toBe(true);
-    configuracionServiceMock.actualizarVacaciones.mockReturnValue(of({ diasAnualesDefecto: 15, updatedAt: '2026-02-01T00:00:00Z' }));
-    componente.configuracionGlobalForm.controls.diasAnualesDefecto.setValue('15');
-
-    componente.guardarConfiguracionGlobal();
-
-    expect(componente.overrideForm.controls.dias.hasError('fueraDeRango')).toBe(true);
-  });
-
   it('al elegir un empleado en la sobrescritura, precarga su valor propio (o vacio si sigue el global)', () => {
     empleadoServiceMock.obtener.mockReturnValue(of({ ...empleadoBase, diasVacacionesAnuales: 15 }));
     const componente = crearComponente();

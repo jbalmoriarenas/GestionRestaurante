@@ -12,7 +12,8 @@
     "empleados": "Empleados",
     "facturas": "Facturas",
     "nominas": "Nóminas",
-    "valoraciones": "Valoraciones"
+    "valoraciones": "Valoraciones",
+    "configuracion": "Configuración"
   },
   "sidebar": {
     "language": "Idioma"
@@ -135,8 +136,7 @@
         "diario": "Diario",
         "semanal": "Semanal",
         "mensual": "Mensual",
-        "horarios": "Horarios",
-        "ubicacion": "Ubicación"
+        "horarios": "Horarios"
       },
       "filtros": {
         "empleado": "Empleado",
@@ -200,15 +200,6 @@
         "horaSalida": "Hora de salida",
         "observaciones": "Observaciones",
         "exito": "Fichaje corregido"
-      },
-      "ubicacion": {
-        "lat": "Latitud",
-        "lng": "Longitud",
-        "radio": "Radio (metros)",
-        "ayuda": "Los empleados solo podrán fichar entrada dentro de este radio alrededor de este punto",
-        "sinConfigurar": "Ubicación sin configurar: ningún empleado podrá fichar hasta que la guardes",
-        "actualizadoEl": "Última actualización:",
-        "exito": "Ubicación actualizada"
       }
     }
   },
@@ -311,15 +302,10 @@
         "motivo": "Motivo del rechazo"
       },
       "configuracion": {
-        "global": {
-          "titulo": "Días de vacaciones anuales por defecto",
-          "ayuda": "Se aplica a todos los empleados que no tengan un valor propio asignado.",
-          "dias": "Días anuales",
-          "guardar": "Guardar"
-        },
         "override": {
           "titulo": "Corregir el total de días de un empleado",
           "ayuda": "Selecciona un empleado para fijar directamente su total de días disponibles este año (por ejemplo, si el prorrateo automático de su año de alta no es el que corresponde). Nunca puede superar el valor global ({{defecto}} días/año).",
+          "irAConfiguracion": "El valor global se edita desde Configuración",
           "dias": "Total de días disponibles este año",
           "diasPlaceholder": "Vacío = se calcula automáticamente",
           "usaValorGlobal": "Este empleado no tiene un total propio: se calcula automáticamente (prorrateado si es su año de alta), con un máximo de {{defecto}} días/año",
@@ -333,8 +319,39 @@
         "aprobada": "Solicitud aprobada",
         "rechazada": "Solicitud rechazada",
         "asignada": "Días de vacaciones asignados",
-        "configuracionGuardada": "Configuración actualizada",
         "overrideGuardado": "Total de días del empleado actualizado"
+      }
+    }
+  },
+  "configuracion": {
+    "admin": {
+      "titulo": "Configuración",
+      "empresa": {
+        "titulo": "Datos de empresa",
+        "nombreEmpresa": "Nombre de la empresa",
+        "logo": "Logo",
+        "logoActual": "Logo actual",
+        "sinLogo": "Sin logo configurado",
+        "seleccionarArchivo": "Selecciona una imagen (JPEG, PNG o WEBP)",
+        "guardar": "Guardar",
+        "exito": "Datos de empresa actualizados"
+      },
+      "ubicacion": {
+        "titulo": "Ubicación de fichaje",
+        "lat": "Latitud",
+        "lng": "Longitud",
+        "radio": "Radio (metros)",
+        "ayuda": "Los empleados solo podrán fichar entrada dentro de este radio alrededor de este punto",
+        "sinConfigurar": "Ubicación sin configurar: ningún empleado podrá fichar hasta que la guardes",
+        "actualizadoEl": "Última actualización:",
+        "exito": "Ubicación actualizada"
+      },
+      "vacaciones": {
+        "titulo": "Días de vacaciones anuales por defecto",
+        "ayuda": "Se aplica a todos los empleados que no tengan un valor propio asignado.",
+        "dias": "Días anuales",
+        "guardar": "Guardar",
+        "exito": "Configuración actualizada"
       }
     }
   },

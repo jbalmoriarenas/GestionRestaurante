@@ -57,6 +57,12 @@ export const routes: Routes = [
           import('./features/valoraciones/valoraciones-admin/valoraciones-admin').then((m) => m.ValoracionesAdmin),
       },
       {
+        path: 'configuracion',
+        canActivate: [permissionGuard('EMPLEADOS', 'EDICION')],
+        loadComponent: () =>
+          import('./features/configuracion/configuracion-admin/configuracion-admin').then((m) => m.ConfiguracionAdmin),
+      },
+      {
         path: 'empleados',
         canActivate: [permissionGuard('EMPLEADOS')],
         loadComponent: () =>

@@ -1,0 +1,62 @@
+<div class="configuracion-admin-page flex flex-col gap-xl">
+  <h1 class="section-heading">{{ 'configuracion.admin.titulo' | translate }}</h1>
+
+  <ui-card>
+    <h2 class="section-heading">{{ 'configuracion.admin.empresa.titulo' | translate }}</h2>
+    <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="flex flex-wrap gap-lg items-start">
+      <ui-input [label]="'configuracion.admin.empresa.nombreEmpresa' | translate" formControlName="nombreEmpresa" />
+      <ui-file-input
+        [label]="'configuracion.admin.empresa.logo' | translate"
+        [accept]="acceptaLogo"
+        [noFileLabel]="'configuracion.admin.empresa.seleccionarArchivo' | translate"
+        [formControl]="logoControl"
+      />
+      <div class="configuracion-admin-page__guardar-wrapper">
+        <span class="configuracion-admin-page__label-spacer" aria-hidden="true">&nbsp;</span>
+        <ui-button type="submit" [loading]="guardandoEmpresa()">
+          {{ 'configuracion.admin.empresa.guardar' | translate }}
+        </ui-button>
+      </div>
+    </form>
+    <div class="configuracion-admin-page__logo-preview">
+      <p class="page-note">{{ 'configuracion.admin.empresa.logoActual' | translate }}</p>
+      @if (logoPreviewUrl(); as preview) {
+        <img [src]="preview" alt="" class="configuracion-admin-page__logo-imagen" />
+      } @else if (!cargandoEmpresa()) {
+        <p class="page-note">{{ 'configuracion.admin.empresa.sinLogo' | translate }}</p>
+      }
+    </div>
+  </ui-card>
+
+  <ui-card>
+    <h2 class="section-heading">{{ 'configuracion.admin.ubicacion.titulo' | translate }}</h2>
+    @if (ubicacionSinConfigurar()) {
+      <p class="notice-banner">{{ 'configuracion.admin.ubicacion.sinConfigurar' | translate }}</p>
+    }
+    <p class="page-note">{{ 'configuracion.admin.ubicacion.ayuda' | translate }}</p>
+    <form [formGroup]="ubicacionForm" (ngSubmit)="guardarUbicacion()" class="flex flex-wrap gap-lg items-end">
+      <ui-input [label]="'configuracion.admin.ubicacion.lat' | translate" type="number" formControlName="lat" />
+      <ui-input [label]="'configuracion.admin.ubicacion.lng' | translate" type="number" formControlName="lng" />
+      <ui-input [label]="'configuracion.admin.ubicacion.radio' | translate" type="number" formControlName="radioMetros" />
+      <ui-button type="submit" [loading]="guardandoUbicacion()">{{ 'common.save' | translate }}</ui-button>
+    </form>
+    @if (ubicacionActual(); as ubicacion) {
+      <p class="page-note">{{ 'configuracion.admin.ubicacion.actualizadoEl' | translate }} {{ ubicacion.updatedAt }}</p>
+    }
+  </ui-card>
+
+  <ui-card>
+    <h2 class="section-heading">{{ 'configuracion.admin.vacaciones.titulo' | translate }}</h2>
+    <p class="page-note">{{ 'configuracion.admin.vacaciones.ayuda' | translate }}</p>
+    <form [formGroup]="vacacionesForm" (ngSubmit)="guardarVacaciones()" class="flex flex-wrap gap-lg items-end">
+      <ui-input
+        [label]="'configuracion.admin.vacaciones.dias' | translate"
+        type="number"
+        formControlName="diasAnualesDefecto"
+      />
+      <ui-button type="submit" [loading]="guardandoVacaciones()">
+        {{ 'configuracion.admin.vacaciones.guardar' | translate }}
+      </ui-button>
+    </form>
+  </ui-card>
+</div>

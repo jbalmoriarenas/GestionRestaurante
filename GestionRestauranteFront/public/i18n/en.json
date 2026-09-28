@@ -12,7 +12,8 @@
     "empleados": "Employees",
     "facturas": "Invoices",
     "nominas": "Payroll",
-    "valoraciones": "Reviews"
+    "valoraciones": "Reviews",
+    "configuracion": "Settings"
   },
   "sidebar": {
     "language": "Language"
@@ -135,8 +136,7 @@
         "diario": "Daily",
         "semanal": "Weekly",
         "mensual": "Monthly",
-        "horarios": "Schedules",
-        "ubicacion": "Location"
+        "horarios": "Schedules"
       },
       "filtros": {
         "empleado": "Employee",
@@ -200,15 +200,6 @@
         "horaSalida": "Clock-out time",
         "observaciones": "Notes",
         "exito": "Clock-in fixed"
-      },
-      "ubicacion": {
-        "lat": "Latitude",
-        "lng": "Longitude",
-        "radio": "Radius (meters)",
-        "ayuda": "Employees will only be able to clock in within this radius around this point",
-        "sinConfigurar": "Location not configured: no employee will be able to clock in until you save it",
-        "actualizadoEl": "Last updated:",
-        "exito": "Location updated"
       }
     }
   },
@@ -311,15 +302,10 @@
         "motivo": "Rejection reason"
       },
       "configuracion": {
-        "global": {
-          "titulo": "Default annual time off days",
-          "ayuda": "Applies to every employee without a schedule of their own.",
-          "dias": "Annual days",
-          "guardar": "Save"
-        },
         "override": {
           "titulo": "Correct an employee's total days",
           "ayuda": "Select an employee to directly set their total available days this year (for example, if the automatic proration of their hire year isn't the right one). It can never exceed the global value ({{defecto}} days/year).",
+          "irAConfiguracion": "The global default is edited from Settings",
           "dias": "Total days available this year",
           "diasPlaceholder": "Empty = calculated automatically",
           "usaValorGlobal": "This employee has no total of their own: it's calculated automatically (prorated if it's their hire year), capped at {{defecto}} days/year",
@@ -333,8 +319,39 @@
         "aprobada": "Request approved",
         "rechazada": "Request rejected",
         "asignada": "Time off assigned",
-        "configuracionGuardada": "Settings updated",
         "overrideGuardado": "Employee's total days updated"
+      }
+    }
+  },
+  "configuracion": {
+    "admin": {
+      "titulo": "Settings",
+      "empresa": {
+        "titulo": "Company details",
+        "nombreEmpresa": "Company name",
+        "logo": "Logo",
+        "logoActual": "Current logo",
+        "sinLogo": "No logo configured",
+        "seleccionarArchivo": "Choose an image (JPEG, PNG or WEBP)",
+        "guardar": "Save",
+        "exito": "Company details updated"
+      },
+      "ubicacion": {
+        "titulo": "Clock-in location",
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "radio": "Radius (meters)",
+        "ayuda": "Employees will only be able to clock in within this radius around this point",
+        "sinConfigurar": "Location not configured: no employee will be able to clock in until you save it",
+        "actualizadoEl": "Last updated:",
+        "exito": "Location updated"
+      },
+      "vacaciones": {
+        "titulo": "Default annual time off days",
+        "ayuda": "Applies to every employee without a schedule of their own.",
+        "dias": "Annual days",
+        "guardar": "Save",
+        "exito": "Settings updated"
       }
     }
   },

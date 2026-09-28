@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
-import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { EmpleadoService } from '../../../core/services/empleado.service';
 import { FichajeService } from '../../../core/services/fichaje.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -21,11 +20,9 @@ describe('FichajesAdmin', () => {
     obtener: ReturnType<typeof vi.fn>;
     actualizarHorarioTeorico: ReturnType<typeof vi.fn>;
   };
-  let configuracionServiceMock: { obtenerUbicacion: ReturnType<typeof vi.fn>; actualizarUbicacion: ReturnType<typeof vi.fn> };
   let notificationServiceMock: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
   const empleadosVacio = { content: [], totalElements: 0, totalPages: 0, number: 0, size: 100 };
-  const ubicacionConfigurada = { lat: 43.5, lng: -5.6, radioMetros: 150, updatedAt: '2026-01-01T00:00:00Z' };
 
   function crearComponente(): FichajesAdmin {
     const fixture = TestBed.createComponent(FichajesAdmin);
@@ -46,10 +43,6 @@ describe('FichajesAdmin', () => {
       obtener: vi.fn().mockReturnValue(of({ id: 0, horasJornadaDiaria: null })),
       actualizarHorarioTeorico: vi.fn().mockReturnValue(of({ id: 0, horasJornadaDiaria: null })),
     };
-    configuracionServiceMock = {
-      obtenerUbicacion: vi.fn().mockReturnValue(of(ubicacionConfigurada)),
-      actualizarUbicacion: vi.fn(),
-    };
     notificationServiceMock = { success: vi.fn(), error: vi.fn() };
 
     TestBed.configureTestingModule({
@@ -57,18 +50,16 @@ describe('FichajesAdmin', () => {
       providers: [
         { provide: FichajeService, useValue: fichajeServiceMock },
         { provide: EmpleadoService, useValue: empleadoServiceMock },
-        { provide: ConfiguracionService, useValue: configuracionServiceMock },
         { provide: NotificationService, useValue: notificationServiceMock },
         provideTranslateService(),
       ],
     });
   });
 
-  it('al cargar, pide el listado de empleados y la ubicacion actual', () => {
+  it('al cargar, pide el listado de empleados', () => {
     crearComponente();
 
     expect(empleadoServiceMock.listar).toHaveBeenCalledWith(0, 100);
-    expect(configuracionServiceMock.obtenerUbicacion).toHaveBeenCalled();
   });
 
   it('consultar(): con el formulario invalido (sin empleado), no llama al backend', () => {
@@ -191,26 +182,6 @@ describe('FichajesAdmin', () => {
     });
     expect(componente.fichajeACorregir()).toBeNull();
     expect(componente.guardandoCorreccion()).toBe(false);
-    expect(notificationServiceMock.success).toHaveBeenCalled();
-  });
-
-  it('ubicacionSinConfigurar() es true cuando lat y lng siguen en el valor semilla (0,0)', () => {
-    configuracionServiceMock.obtenerUbicacion.mockReturnValue(of({ lat: 0, lng: 0, radioMetros: 150, updatedAt: '2026-01-01T00:00:00Z' }));
-    const componente = crearComponente();
-
-    expect(componente.ubicacionSinConfigurar()).toBe(true);
-  });
-
-  it('guardarUbicacion(): con exito, actualiza la ubicacion actual y notifica', () => {
-    const nuevaUbicacion = { lat: 43.51, lng: -5.69, radioMetros: 200, updatedAt: '2026-02-01T00:00:00Z' };
-    configuracionServiceMock.actualizarUbicacion.mockReturnValue(of(nuevaUbicacion));
-    const componente = crearComponente();
-    componente.ubicacionForm.setValue({ lat: '43.51', lng: '-5.69', radioMetros: '200' });
-
-    componente.guardarUbicacion();
-
-    expect(configuracionServiceMock.actualizarUbicacion).toHaveBeenCalledWith({ lat: 43.51, lng: -5.69, radioMetros: 200 });
-    expect(componente.ubicacionActual()).toEqual(nuevaUbicacion);
     expect(notificationServiceMock.success).toHaveBeenCalled();
   });
 

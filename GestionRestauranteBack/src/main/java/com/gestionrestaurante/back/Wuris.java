@@ -65,6 +65,8 @@ public final class Wuris {
 
         public static final String UBICACION = API + "/configuracion/ubicacion";
         public static final String VACACIONES = API + "/configuracion/vacaciones";
+        public static final String EMPRESA = API + "/configuracion/empresa";
+        public static final String EMPRESA_LOGO = EMPRESA + "/logo";
     }
 
     public static final class Vacaciones {

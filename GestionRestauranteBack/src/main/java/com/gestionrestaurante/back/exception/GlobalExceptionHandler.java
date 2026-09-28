@@ -46,12 +46,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({EmpleadoNotFoundException.class, TipoUsuarioNotFoundException.class,
             FichajeNotFoundException.class, SolicitudVacacionesNotFoundException.class,
             NominaNotFoundException.class, PendienteNoEncontradoException.class,
-            FacturaNotFoundException.class, ProveedorNotFoundException.class})
+            FacturaNotFoundException.class, ProveedorNotFoundException.class,
+            LogoEmpresaNoConfiguradoException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({ArchivoNoValidoException.class, ZipInvalidoException.class, ArchivoFacturaNoValidoException.class})
+    @ExceptionHandler({ArchivoNoValidoException.class, ZipInvalidoException.class, ArchivoFacturaNoValidoException.class,
+            LogoEmpresaFormatoNoValidoException.class})
     public ResponseEntity<ApiError> handleArchivoNoValido(RuntimeException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
