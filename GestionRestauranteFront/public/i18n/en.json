@@ -26,7 +26,43 @@
     "logout": "Log out",
     "menu": "Open menu",
     "modoOscuro": "Switch to dark mode",
-    "modoClaro": "Switch to light mode"
+    "modoClaro": "Switch to light mode",
+    "ayuda": "Help"
+  },
+  "ayuda": {
+    "titulo": "Help",
+    "descripcion": "A quick guide to each part of the application, with a video explaining how it works.",
+    "verVideo": "Watch video",
+    "videoProximamente": "Video coming soon",
+    "items": {
+      "fichajesMio": {
+        "descripcion": "Clock in and out every day and check how long you worked during your shift."
+      },
+      "fichajesAdmin": {
+        "descripcion": "Review and correct every employee's time entries, with daily, weekly and monthly summaries."
+      },
+      "vacacionesMias": {
+        "descripcion": "Check your annual time-off allowance and request or cancel your days off."
+      },
+      "vacacionesAdmin": {
+        "descripcion": "Manage every employee's time-off requests: approve, reject, or assign days directly."
+      },
+      "empleados": {
+        "descripcion": "Add, edit and deactivate the restaurant's employees."
+      },
+      "facturas": {
+        "descripcion": "Record and browse supplier and utility invoices, with export to Excel or ZIP."
+      },
+      "nominas": {
+        "descripcion": "Upload each employee's payslip and send it to them by email."
+      },
+      "valoraciones": {
+        "descripcion": "Connect the restaurant's Google Business Profile account and browse its synced reviews."
+      },
+      "configuracion": {
+        "descripcion": "Configure the company name and logo, the clock-in location, and the default time-off days."
+      }
+    }
   },
   "login": {
     "title": "La Zapica",
