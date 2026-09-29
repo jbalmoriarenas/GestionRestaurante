@@ -96,6 +96,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/empleados/empleado-form/empleado-form').then((m) => m.EmpleadoForm),
       },
+      {
+        path: 'ayuda',
+        data: { title: 'ayuda.titulo' },
+        loadComponent: () => import('./features/ayuda/ayuda/ayuda').then((m) => m.Ayuda),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

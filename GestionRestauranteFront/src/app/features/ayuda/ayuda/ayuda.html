@@ -1,0 +1,19 @@
+<div class="ayuda-page flex flex-col gap-xl">
+  <p class="page-note">{{ 'ayuda.descripcion' | translate }}</p>
+
+  <div class="ayuda-page__lista">
+    @for (item of items(); track item.ruta) {
+      <ui-card class="ayuda-page__item">
+        <h2 class="section-heading">{{ item.tituloKey | translate }}</h2>
+        <p class="page-note">{{ item.descripcionKey | translate }}</p>
+        @if (item.videoUrl) {
+          <a [href]="item.videoUrl" target="_blank" rel="noopener" class="ayuda-page__video-link">
+            {{ 'ayuda.verVideo' | translate }}
+          </a>
+        } @else {
+          <p class="ayuda-page__video-pendiente">{{ 'ayuda.videoProximamente' | translate }}</p>
+        }
+      </ui-card>
+    }
+  </div>
+</div>

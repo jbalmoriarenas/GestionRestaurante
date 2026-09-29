@@ -1,0 +1,27 @@
+.ayuda-page__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.ayuda-page__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.ayuda-page__video-link {
+  align-self: flex-start;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.ayuda-page__video-pendiente {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}

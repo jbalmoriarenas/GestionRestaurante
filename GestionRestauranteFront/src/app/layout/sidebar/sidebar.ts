@@ -5,11 +5,10 @@ import { filter, map } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
-import { CodigoVista, NivelAcceso } from '../../core/models/permiso.model';
 import { AVAILABLE_LANGUAGES, storeLanguage } from '../../core/i18n/languages';
 import { LayoutService } from '../../core/services/layout.service';
 import { UiIcon } from '../../shared/ui/ui-icon/ui-icon';
-import { MENU_ITEMS, MenuItem } from '../menu-items';
+import { MENU_ITEMS, MenuItem, tieneAccesoItem } from '../menu-items';
 
 @Component({
   selector: 'app-sidebar',
@@ -110,15 +109,9 @@ export class Sidebar implements OnInit {
 
   private resolverItem(item: MenuItem): MenuItem | null {
     if (item.children) {
-      const children = item.children.filter((child) => this.tieneAcceso(child));
+      const children = item.children.filter((child) => tieneAccesoItem(this.authService, child));
       return children.length > 0 ? { ...item, children } : null;
     }
-    return this.tieneAcceso(item) ? item : null;
-  }
-
-  private tieneAcceso(entry: { vista: CodigoVista; nivelMinimo?: NivelAcceso }): boolean {
-    return entry.nivelMinimo === 'EDICION'
-      ? this.authService.puedeEditar(entry.vista)
-      : this.authService.tieneAcceso(entry.vista);
+    return tieneAccesoItem(this.authService, item) ? item : null;
   }
 }

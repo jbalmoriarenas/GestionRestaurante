@@ -14,7 +14,8 @@ export type IconName =
   | 'eye'
   | 'eye-off'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'ayuda';
 
 @Component({
   selector: 'ui-icon',

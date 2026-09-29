@@ -26,7 +26,43 @@
     "logout": "Cerrar sesión",
     "menu": "Abrir menú",
     "modoOscuro": "Activar modo oscuro",
-    "modoClaro": "Activar modo claro"
+    "modoClaro": "Activar modo claro",
+    "ayuda": "Ayuda"
+  },
+  "ayuda": {
+    "titulo": "Ayuda",
+    "descripcion": "Guía rápida de cada parte de la aplicación, con un vídeo explicativo de su funcionamiento.",
+    "verVideo": "Ver vídeo",
+    "videoProximamente": "Vídeo próximamente",
+    "items": {
+      "fichajesMio": {
+        "descripcion": "Ficha tu entrada y salida cada día y consulta el tiempo trabajado en tu turno."
+      },
+      "fichajesAdmin": {
+        "descripcion": "Consulta y corrige los fichajes de todos los empleados, con resúmenes diario, semanal y mensual."
+      },
+      "vacacionesMias": {
+        "descripcion": "Consulta tu cupo anual de vacaciones y solicita o cancela tus periodos de descanso."
+      },
+      "vacacionesAdmin": {
+        "descripcion": "Gestiona las solicitudes de vacaciones de todos los empleados: aprueba, rechaza o asigna días de oficio."
+      },
+      "empleados": {
+        "descripcion": "Da de alta, edita y da de baja a los empleados del restaurante."
+      },
+      "facturas": {
+        "descripcion": "Registra y consulta las facturas de proveedores y de suministros, con exportación a Excel o ZIP."
+      },
+      "nominas": {
+        "descripcion": "Sube las nóminas de cada empleado y envíaselas por email."
+      },
+      "valoraciones": {
+        "descripcion": "Conecta la cuenta de Google Business Profile del restaurante y consulta sus reseñas sincronizadas."
+      },
+      "configuracion": {
+        "descripcion": "Configura el nombre y logo de la empresa, la ubicación de fichaje y los días de vacaciones por defecto."
+      }
+    }
   },
   "login": {
     "title": "La Zapica",

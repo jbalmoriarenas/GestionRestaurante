@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { UiIcon } from '../../shared/ui/ui-icon/ui-icon';
 
 @Component({
   selector: 'app-topbar',
-  imports: [UiIcon, TranslatePipe],
+  imports: [UiIcon, TranslatePipe, RouterLink],
   templateUrl: './topbar.html',
   styleUrl: './topbar.scss',
 })
